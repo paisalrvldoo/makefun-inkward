@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';
+import { STEP } from '../game/src/config.js';
+import { createState, startRun } from '../game/src/world/state.js';
+import { spawnYokai } from '../game/src/entities/yokai.js';
+import { spawnBoss } from '../game/src/entities/bosses.js';
+import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
+import { updateWorld } from '../game/src/world/update.js';
+import { splashInk } from '../game/src/arts/brushArts.js';
+import { replayInput, stageShot } from '../game/src/shots.js';
+
+function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
+function circle(state, x, y, radius = 64) {
+  beginStroke(state, { x: x + radius, y });
+  for (let i = 1; i <= 48; i++) paintPoint(state, { x: x + Math.cos(i / 48 * Math.PI * 2) * radius, y: y + Math.sin(i / 48 * Math.PI * 2) * radius });
+  endStroke(state); state.waitRelease = false;
+}
+{
+  const state = world(), enemy = spawnYokai(state, 'kappa', { x: 374, y: 411 });
+  beginStroke(state, { x: 450, y: 240 }); paintPoint(state, { x: 450, y: 610 }); endStroke(state);
+  const wall = state.strokes[0], initialInk = state.ink;
+  assert.ok(initialInk < 80, 'Long strokes spend ink');
+  for (let i = 0; i < 4 / STEP; i++) updateWorld(state, replayInput(), STEP);
+  assert.ok(enemy.x < 433, 'A real yokai cannot cross a live ink wall');
+  assert.ok(wall.integrity < 1, 'Blocked yokai erode the wall');
+  assert.equal(state.bell.hp, 12, 'Wall protection preserves the bell');
+}
+{
+  const state = world(); spawnYokai(state, 'kappa', { x: 240, y: 340 }); spawnYokai(state, 'crane', { x: 256, y: 360 });
+  circle(state, 248, 350);
+  assert.equal(state.sealed, 2, 'Closed loops seal every enclosed spirit');
+  assert.ok(state.score >= 180); assert.ok(state.ink > 85, 'Seals refund ink');
+  circle(state, 730, 350); assert.equal(state.sealed, 2, 'Empty loops never invent a kill');
+}
+{
+  const state = world(); spawnBoss(state, 'moss', { x: 260, y: 350 });
+  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 2);
+  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 2, 'Oni seal grace prevents instantaneous repeated damage');
+}
+{
+  const state = world(); spawnYokai(state, 'fox', { x: 260, y: 350 }); splashInk(state, { x: 260, y: 350 });
+  assert.equal(state.enemies.length, 2, 'Fox-fire splits on a splash');
+  assert.ok(state.enemies.every(e => e.stun > 0));
+}
+{
+  const state = world(); state.ink = 8;
+  beginStroke(state, { x: 200, y: 200 }); paintPoint(state, { x: 850, y: 200 });
+  assert.equal(state.ink, 0, 'Ink cannot go below zero');
+  assert.ok(state.strokes[0].points.at(-1).x < 330, 'Painting stops at the affordable endpoint');
+}
+const win = stageShot('win').state, loss = stageShot('end').state, draft = stageShot('draft').state;
+assert.equal(win.mode, 'win'); assert.equal(win.scroll, 8); assert.ok(win.bell.hp > 0);
+assert.equal(loss.mode, 'lose'); assert.equal(loss.bell.hp, 0);
+assert.equal(draft.mode, 'draft'); assert.equal(draft.draft.length, 3);
+assert.equal(stageShot('win').state.score, win.score, 'Fixed-seed replays are deterministic');
+console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

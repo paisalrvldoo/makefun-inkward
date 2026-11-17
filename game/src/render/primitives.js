@@ -24,7 +24,8 @@ export function stamp(ctx, value, x, y, size = 48, angle = -0.08) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
   ctx.strokeStyle = COLORS.red; ctx.lineWidth = 2.5; ctx.strokeRect(-size / 2, -size / 2, size, size);
   ctx.lineWidth = 1; ctx.strokeRect(-size / 2 + 4, -size / 2 + 4, size - 8, size - 8);
-  text(ctx, value, 0, size * 0.16, size * 0.28, COLORS.red, 'bold', true, 'center'); ctx.restore();
+  const fontSize = size * (value.length === 1 ? 0.62 : 0.28);
+  text(ctx, value, 0, fontSize * 0.34, fontSize, COLORS.red, 'bold', true, 'center'); ctx.restore();
 }
 export function button(ctx, label, rect, hovered = false, small = null) {
   const { x, y, w, h } = rect;

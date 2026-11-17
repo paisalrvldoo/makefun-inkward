@@ -32,7 +32,8 @@ export function createInput(canvas, unlockAudio) {
     if (event.button === 2) input.splashes.push({ ...input.pointer });
   });
   canvas.addEventListener('pointermove', event => {
-    const events = event.getCoalescedEvents?.() || [event];
+    const coalesced = event.getCoalescedEvents?.();
+    const events = coalesced?.length ? coalesced : [event];
     for (const sample of events) {
       updatePointer(sample);
       if (input.painting) input.paintEvents.push({ type: 'move', point: { ...input.pointer } });

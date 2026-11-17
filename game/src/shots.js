@@ -22,7 +22,7 @@ export function createReplayPilot() {
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
     const target = threats.find(e => !e.sealLock);
-    if (!drawing && target && state.time - lastLoop > (aggressive ? 1.55 : 4.2) && state.ink > 27) {
+    if (!drawing && target && state.time - lastLoop > (aggressive ? 1.55 : 2.4) && state.ink > 27) {
       const radius = target.kind === 'oni' ? 76 : 64;
       drawing = {
         x: clamp(target.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
@@ -66,7 +66,7 @@ export function stageShot(name, seed = 1) {
   const limit = name === 'end' ? 280 : 900;
   for (let i = 0; i < limit / STEP; i++) {
     if (name === 'draft' && state.mode === 'draft') break;
-    if (name === 'play' && state.scroll === 3 && state.enemies.some(e => e.kind === 'oni') && state.enemies.length >= 3 && state.activeStroke) break;
+    if (name === 'play' && state.scroll === 3 && state.enemies.some(e => e.kind === 'oni') && state.enemies.length >= 3 && state.activeStroke?.points.length >= 32 && state.bannerTime <= 0 && state.bell.hitTime <= 0 && state.comboTime > 3) break;
     if (name === 'end' && state.runTime > 35) { input.clearFrame(); input.keys.clear(); }
     else pilot(state, input, name !== 'play' || state.scroll < 3);
     updateWorld(state, input, STEP);
