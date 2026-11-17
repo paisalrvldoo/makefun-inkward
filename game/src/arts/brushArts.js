@@ -20,6 +20,7 @@ export const BRUSH_ARTS = [
   { id: 'afterglow', name: 'Afterglow prayer', rune: 'A', type: 'BELL', unlock: 'afterglow' },
 ];
 export const findArt = id => BRUSH_ARTS.find(art => art.id === id);
+export const draftArtLevel = (state, id) => Math.min(MAX_ART_LEVEL, artLevel(state, id) + 1 + (state.roadChoice === 'swarm' ? 1 : 0));
 export function describeArt(id, level = 1) {
   const descriptions = {
     vermilion: [`Wall contact cuts spirits after ${(1.6 / level).toFixed(2)}s`, 'Contact stuns spirits and reduces erosion. Oni are stunned but resist the cut.'],
@@ -47,12 +48,13 @@ export function draftArts(state) {
 }
 export function chooseArt(state, index) {
   const art = state.draft[index];
-  if (!art) return false;
-  const level = artLevel(state, art.id) + 1;
+  if (!art || (state.mode === 'draft' && !state.roadChoice)) return false;
+  const current = artLevel(state, art.id), level = draftArtLevel(state, art.id), gained = level - current;
+  if (gained <= 0) return false;
   if (!state.arts.includes(art.id)) state.arts.push(art.id);
   state.artLevels[art.id] = level;
-  if (art.id === 'breath') state.maxInk += 30;
-  if (art.id === 'mending') state.bell.hp = Math.min(state.bell.hp + 3, state.bell.maxHp);
+  if (art.id === 'breath') state.maxInk += 30 * gained;
+  if (art.id === 'mending') state.bell.hp = Math.min(state.bell.hp + 3 * gained, state.bell.maxHp);
   state.ink = state.maxInk;
   burst(state, state.monk.x, state.monk.y, 26, '#b68a36');
   floatText(state, state.monk.x, state.monk.y - 40, `${art.name.toUpperCase()} · LV ${level}`, '#b68a36', 21);

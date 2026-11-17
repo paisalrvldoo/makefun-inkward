@@ -5,6 +5,7 @@ import { makeThreatQueue } from './waves.js';
 import { DIFFICULTIES } from './difficulty.js';
 import { beginOmen } from './omens.js';
 import { emptyProgress } from '../save.js';
+import { createPath } from './path.js';
 
 export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress()) {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
@@ -12,6 +13,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     seed: (Number(seed) >>> 0) || 1, difficulty: profile.id, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
     progress, unlocks: [...progress.unlocks], previousBestRun: progress.bestRun, newUnlocks: [], newBest: false, runRecorded: false,
     scrollScores: Array(8).fill(0), scrollStartScore: 0,
+    route: createPath(), roadChoice: null, activeRoad: 'shrine',
     score: 0, best, combo: 1, comboTime: 0, peakCombo: 1, sealed: 0, loops: 0, largestSeal: 0,
     wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,

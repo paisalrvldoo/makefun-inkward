@@ -32,5 +32,6 @@ export function drawArtIcon(ctx, id, x, y, size = 23, palette = {}) {
 }
 export function drawLevelPips(ctx, state, id, x, y, next = false) {
   const level = artLevel(state, id);
-  for (let i = 0; i < 3; i++) circle(ctx, x + i * 10, y, 3, i < level ? COLORS.red : next && i === level ? COLORS.gold : '#d9ceb5');
+  const projected = next === true ? level + 1 : typeof next === 'number' ? next : level;
+  for (let i = 0; i < 3; i++) circle(ctx, x + i * 10, y, 3, i < level ? COLORS.red : i < projected ? COLORS.gold : '#d9ceb5');
 }

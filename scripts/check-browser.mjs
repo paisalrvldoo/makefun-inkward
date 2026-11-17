@@ -51,19 +51,23 @@ try {
   };
   const key = async (code, keyValue) => {
     await call('Input.dispatchKeyEvent', { type: 'keyDown', code, key: keyValue });
-    await pause(35);
+    await evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
     await call('Input.dispatchKeyEvent', { type: 'keyUp', code, key: keyValue });
   };
   const mouse = (type, x, y, button = 'left') => call('Input.dispatchMouseEvent', { type, x, y, button, buttons: type === 'mouseReleased' ? 0 : button === 'right' ? 2 : 1, clickCount: type === 'mouseMoved' ? 0 : 1 });
   // Observe labels drawn by the real animation frame, including ordinary play.
   const paintedLabels = () => evaluate(`(async () => {
-    const ctx = document.querySelector('#game').getContext('2d'), original = ctx.fillText, labels = [];
+    const ctx = document.querySelector('#game').getContext('2d'), original = ctx.fillText, originalFill = ctx.fillRect, labels = [];
+    ctx.fillRect = function(x, y, width, height) {
+      if (x <= 0 && y <= 0 && width >= 1280 && height >= 800 && this.globalAlpha === 1) labels.length = 0;
+      return originalFill.call(this, x, y, width, height);
+    };
     ctx.fillText = function(value, x, y, ...rest) {
       labels.push({ text: String(value), x, y, width: this.measureText(value).width, font: this.font, align: this.textAlign });
       return original.call(this, value, x, y, ...rest);
     };
     try { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
-    finally { ctx.fillText = original; }
+    finally { ctx.fillText = original; ctx.fillRect = originalFill; }
     return labels;
   })()`);
   await call('Runtime.enable'); await call('Network.enable'); await call('Page.enable');
@@ -109,6 +113,7 @@ try {
     const expectedMode = { title: 'title', play: 'play', draft: 'draft', end: 'lose', winter: 'play', win: 'win' }[scene];
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
+    await until('(() => { const p = document.querySelector("#game").getContext("2d").getImageData(10, 10, 1, 1).data; return p[3] === 255 && (p[0] || p[1] || p[2]); })()');
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
     if (scene === 'play') {
@@ -132,14 +137,43 @@ try {
       assert.equal(state.arts, 5, 'Draft shot shows five held arts');
       assert.equal(state.choices, 4, 'Earned omen displays its fourth choice');
       assert.equal(state.bonus, true, 'Scroll-five omen reward is live');
-      const lacquer = await evaluate('(() => { const c = document.querySelector("#game").getContext("2d"); const p = (x, y) => Array.from(c.getImageData(x, y, 1, 1).data); return { backdrop: p(10, 10), card: p(55, 300), seal: p(184, 394) }; })()');
+      const lacquer = await evaluate('(() => { const c = document.querySelector("#game").getContext("2d"); const p = (x, y) => Array.from(c.getImageData(x, y, 1, 1).data); return { backdrop: p(10, 10), card: p(55, 380), seal: p(166, 423) }; })()');
       console.log('Draft pixels', JSON.stringify(lacquer));
       assert.deepEqual(lacquer.backdrop, [8, 15, 25, 255], 'Draft covers the game scene with opaque lacquer');
-      assert.ok(lacquer.card[0] < 50 && lacquer.card[2] < 70, 'Draft card uses a dark lacquer surface');
+      assert.ok(lacquer.card[0] < 50 && lacquer.card[2] < 80, 'Draft card uses a dark lacquer surface, including hover');
       assert.ok(Math.max(...lacquer.seal.slice(0, 3)) > 130, 'Draft art seal has a bright colored face');
+      const labels = await paintedLabels();
+      for (const value of ["PILGRIM'S PATH", 'SWARM ROAD', 'QUIET ROAD', 'CHOOSE SCROLL 6', 'CHOOSE A ROAD FIRST ↑']) {
+        assert.ok(labels.some(label => label.text.includes(value)), `Draft presents ${value}`);
+      }
+      const cards = await evaluate('(async () => { const { draftRects } = await import("./src/screens/draft.js"); return draftRects(inkward.state); })()');
+      for (const label of labels.filter(label => label.y >= 390 && label.y <= 674)) {
+        const card = cards.find(rect => label.x >= rect.x && label.x <= rect.x + rect.w);
+        assert.ok(card, `Draft label has a card: ${label.text}`);
+        const left = label.x - (label.align === 'center' ? label.width / 2 : label.align === 'right' ? label.width : 0);
+        assert.ok(left >= card.x + 10 && left + label.width <= card.x + card.w - 10, `Draft text fits its card: ${label.text}`);
+      }
+      const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
+      writeFileSync('/tmp/ink-draft.jpg', Buffer.from(screenshot.data, 'base64'));
+      await key('Digit1', '1');
+      assert.equal(await evaluate('inkward.state.mode'), 'draft', 'Taking an art waits for a road');
+      const health = await evaluate('inkward.state.bell.hp');
+      await key('ArrowRight', 'ArrowRight'); await until('inkward.state.roadChoice === "quiet"');
+      assert.equal(await evaluate('inkward.state.roadChoice'), 'quiet', 'Right selects Quiet road');
+      await mouse('mousePressed', 618, 161); await mouse('mouseReleased', 618, 161); await until('inkward.state.roadChoice === "swarm"');
+      assert.equal(await evaluate('inkward.state.roadChoice'), 'swarm', 'The next map node selects Swarm road');
+      await mouse('mousePressed', 1060, 217); await mouse('mouseReleased', 1060, 217); await until('inkward.state.roadChoice === "quiet"');
+      assert.equal(await evaluate('inkward.state.roadChoice'), 'quiet', 'The road card selects Quiet road');
+      assert.equal(await evaluate('inkward.state.bell.hp'), health, 'Previewing roads does not apply healing');
+      await key('Digit1', '1'); await until('inkward.state.mode === "play" && inkward.state.scroll === 6');
+      assert.equal(await evaluate('inkward.state.route[5]'), 'quiet', 'Taking an art commits the walked road');
+      assert.equal(await evaluate('inkward.state.bell.hp'), Math.min(12, health + 2), 'Entering Quiet road applies its healing');
+      console.log('Path browser OK: node and road clicks, arrow choices, art gate, readable cards and real route transition');
     }
-    const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
-    writeFileSync(`/tmp/ink-${scene}.jpg`, Buffer.from(screenshot.data, 'base64'));
+    if (scene !== 'draft') {
+      const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
+      writeFileSync(`/tmp/ink-${scene}.jpg`, Buffer.from(screenshot.data, 'base64'));
+    }
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
   }
   // In a normal run, the natural loss replay also exercises persistent best score and restart.

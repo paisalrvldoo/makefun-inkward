@@ -26,6 +26,7 @@ export function drawHud(ctx, state, audio) {
     ctx.fillStyle = i < state.scroll - 1 ? '#e24937' : i === state.scroll - 1 ? '#f0c35b' : '#494b4b';
     ctx.fillRect(x, 72, 24, 5);
   }
+  if (state.scroll > 1) text(ctx, state.activeRoad === 'swarm' ? 'SWARM ROAD +30%' : 'QUIET ROAD +2 BELL', 576, 81, 9, '#e1bf70', 'bold');
   text(ctx, 'SCORE', 690, 28, 11, COLORS.gold, 'bold');
   text(ctx, String(state.score).padStart(6, '0'), 688, 64, 34, COLORS.white, 'bold', true);
   text(ctx, 'PERSONAL BEST', 906, 28, 11, COLORS.gold, 'bold');

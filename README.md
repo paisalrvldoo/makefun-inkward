@@ -55,6 +55,8 @@ Each scroll offers an optional challenge: seal three cranes in one loop, finish 
 
 Between scrolls, choose one of three offered arts (four with an omen reward). Picking an owned art upgrades it, up to level three. Every choice refills your ink.
 
+First choose your next node on **Pilgrim's Path**, the eight-scroll branching map. Swarm road adds 30% more ordinary spirits to the next scroll and an extra level to your drafted art (up to level three). Quiet road repairs two bell health when you enter the next scroll. Click either next node or a road card; Left selects Swarm and Right selects Quiet. Then press 1–4 or click an art to commit the road. Past roads remain drawn in ink.
+
 | Art | Effect |
 | --- | --- |
 | Vermilion edge | Wall contact stuns spirits and eventually cuts ordinary yokai |
@@ -114,7 +116,7 @@ game/
     audio.js           Synthesized sound
     save.js            Local best-score persistence
     rng.js             Seeded randomness
-    world/             Scrolls, waves, difficulty, WRATH, omens, and state updates
+    world/             Scrolls, branching roads, waves, difficulty, WRATH, omens, and state updates
     entities/          Monk, yokai, and Oni behavior
     ink/               Strokes, geometry, and seals
     arts/              Twelve brush arts, drafts, and upgrade levels

@@ -1,11 +1,12 @@
 // Screenshot replays send mouse paths and keyboard actions through the real fixed-step game.
 // They never create a pretend score, spawn a staged boss, or select an end screen directly.
-import { STEP, FIELD, distance, clamp } from './config.js';
+import { STEP, FIELD, INK, distance, clamp } from './config.js';
 import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt, draftArts } from './arts/brushArts.js';
 import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
+import { chooseRoad } from './world/path.js';
 
 export function replayInput() {
   return {
@@ -18,19 +19,28 @@ export function createReplayPilot(options = {}) {
   return (state, input, aggressive = true) => {
     input.clearFrame();
     if (state.mode === 'draft') {
+      chooseRoad(state, options.branching && state.scroll % 2 ? 'swarm' : 'quiet');
       const preferred = ['well', 'breath', 'feather', 'thunder', 'lotus', 'mending', 'gold', 'willow', 'echo', 'stone', 'twin', 'vermilion'];
       const value = art => preferred.indexOf(art.id) + (state.arts.includes(art.id) ? 20 : 0);
       const index = (options.cover && state.scroll === 5 && state.draft.find(a => a.id === 'echo')) || [...state.draft].sort((a, b) => value(a) - value(b))[0];
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
-    const craneOmen = options.omenScroll === state.scroll && state.omen?.id === 'cranes';
+    const craneOmen = options.omenScroll === state.scroll && state.omen?.id === 'cranes' && !state.omen.complete;
     const cranes = craneOmen ? threats.filter(e => e.kind === 'crane' && !e.hunter && !e.sealLock) : [];
     const craneCentre = cranes.length >= 3
       ? cranes.slice(0, 3).reduce((sum, e) => ({ x: sum.x + e.x / 3, y: sum.y + e.y / 3 }), { x: 0, y: 0 })
       : null;
     const craneRadius = craneCentre ? Math.max(...cranes.slice(0, 3).map(e => distance(e, craneCentre))) : Infinity;
     const craneGroup = craneCentre && craneRadius < 230 ? { x: craneCentre.x, y: craneCentre.y, kind: 'omen-group' } : null;
+    // A broad rectangular loop keeps thin or widely spaced crane groups inside the seal.
+    const group = cranes.slice(0, 3);
+    const left = clamp(Math.min(...group.map(e => e.x)) - 30, FIELD.x + 12, FIELD.x + FIELD.w - 12);
+    const right = clamp(Math.max(...group.map(e => e.x)) + 30, FIELD.x + 12, FIELD.x + FIELD.w - 12);
+    const top = clamp(Math.min(...group.map(e => e.y)) - 30, FIELD.y + 12, FIELD.y + FIELD.h - 12);
+    const bottom = clamp(Math.max(...group.map(e => e.y)) + 30, FIELD.y + 12, FIELD.y + FIELD.h - 12);
+    const craneVertices = craneGroup ? [{ x: left, y: top }, { x: right, y: top }, { x: right, y: bottom }, { x: left, y: bottom }] : null;
+    const craneCost = craneVertices ? craneVertices.reduce((sum, p, i) => sum + distance(p, craneVertices[(i + 1) % 4]) * INK.cost, 0) + 6 : Infinity;
     const available = craneOmen && !craneGroup ? threats.filter(e => e.kind !== 'crane') : threats;
     const urgent = available.find(e => !e.hunter && !e.sealLock && distance(e, state.bell) < 125);
     const target = craneGroup || available.find(e => e.kind === 'oni' && !e.sealLock) || urgent || available.find(e => !e.sealLock);
@@ -38,18 +48,23 @@ export function createReplayPilot(options = {}) {
       const neighbours = threats.filter(e => distance(e, target) < 80);
       const radius = craneGroup ? craneRadius + 26 : target.kind === 'oni' ? 65 : neighbours.length >= 2 ? 75 : 48;
       const centre = craneGroup ? craneCentre : target.kind === 'oni' ? target : neighbours.length >= 2 ? neighbours.reduce((sum, e) => ({ x: sum.x + e.x / neighbours.length, y: sum.y + e.y / neighbours.length }), { x: 0, y: 0 }) : target;
-      if (!craneGroup || state.ink >= radius * 0.46 + 6) {
+      if (!craneGroup || state.ink >= craneCost) {
         drawing = {
           x: clamp(centre.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
           y: clamp(centre.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
-          radius, step: 0, duration: craneGroup ? 26 : aggressive ? 12 : 47,
+          radius, vertices: craneVertices, step: 0, duration: craneGroup ? 24 : aggressive ? 12 : 47,
         };
         lastLoop = state.time;
       }
     }
     if (drawing) {
       const a = drawing.step / drawing.duration * Math.PI * 2;
-      const point = { x: drawing.x + Math.cos(a) * drawing.radius, y: drawing.y + Math.sin(a) * drawing.radius };
+      let point = { x: drawing.x + Math.cos(a) * drawing.radius, y: drawing.y + Math.sin(a) * drawing.radius };
+      if (drawing.vertices) {
+        const segment = Math.min(3, Math.floor(drawing.step / 6)), t = (drawing.step - segment * 6) / 6;
+        const from = drawing.vertices[segment], to = drawing.vertices[(segment + 1) % 4];
+        point = { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+      }
       input.pointer = point; input.painting = true;
       input.paintEvents.push({ type: drawing.step === 0 ? 'begin' : 'move', point });
       drawing.step++;
@@ -84,7 +99,7 @@ export function stageShot(name, seed = 1) {
     chooseArt(state, 0);
   }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, branching: name === 'draft' || name === 'win' });
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);

@@ -8,7 +8,7 @@ import { wrathLevel } from './wrath.js';
 export function makeThreatQueue(state) {
   const scroll = getScroll(state);
   const queue = [];
-  const count = Math.round(scroll.count * difficulty(state).count);
+  const count = Math.round(scroll.count * difficulty(state).count * (state.activeRoad === 'swarm' ? 1.3 : 1));
   for (let i = 0; i < count; i++) {
     // Each group contains the whole scroll's palette; shuffled offsets keep the order surprising.
     const kind = scroll.types[(i + Math.floor(state.rng() * 2)) % scroll.types.length];

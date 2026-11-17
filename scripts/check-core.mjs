@@ -4,12 +4,13 @@ import { createState, startRun } from '../game/src/world/state.js';
 import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { spawnBoss, updateBosses } from '../game/src/entities/bosses.js';
 import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
-import { updateWorld, finishRun } from '../game/src/world/update.js';
+import { updateWorld, finishRun, nextScroll } from '../game/src/world/update.js';
 import { splashInk } from '../game/src/arts/brushArts.js';
 import { replayInput, stageShot } from '../game/src/shots.js';
 import { raiseWrath, updateWrath, wrathLevel, wrathMultiplier } from '../game/src/world/wrath.js';
 import { beginOmen, finishOmen } from '../game/src/world/omens.js';
-import { draftArts } from '../game/src/arts/brushArts.js';
+import { draftArts, chooseArt, BRUSH_ARTS } from '../game/src/arts/brushArts.js';
+import { chooseRoad } from '../game/src/world/path.js';
 import { readBest, readProgress, recordRun, selectBellSkin, UNLOCKS } from '../game/src/save.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
@@ -161,4 +162,33 @@ assert.equal(loss.scrollScores.reduce((sum, score) => sum + score, 0), loss.scor
   assert.equal(prayer.mode, 'draft'); assert.equal(prayer.bell.hp, 10, 'Afterglow repairs the bell on a real scroll clear');
 }
 console.log('Progression OK: eight score bars, legacy/corrupt saves, persistent one-time victory unlocks, next-run arts and Moon Bell');
+{
+  const swarm = world(), quiet = world();
+  for (const state of [swarm, quiet]) {
+    state.bell.hp = 8; updateWorld(state, replayInput(), STEP);
+    state.draft = [BRUSH_ARTS.find(a => a.id === 'breath')];
+    assert.equal(nextScroll(state), false, 'The next scroll requires a real road selection');
+    assert.equal(chooseArt(state, 0), false, 'Art choices wait for the road');
+    assert.equal(chooseRoad(state, 'invented'), false);
+  }
+  assert.ok(chooseRoad(swarm, 'swarm'));
+  chooseRoad(quiet, 'quiet'); chooseRoad(quiet, 'swarm'); chooseRoad(quiet, 'quiet');
+  assert.equal(quiet.bell.hp, 8, 'Changing road choices cannot farm bell repairs');
+  for (const state of [swarm, quiet]) { assert.ok(chooseArt(state, 0)); assert.ok(nextScroll(state)); }
+  assert.equal(swarm.queue.length, 30); assert.equal(quiet.queue.length, 23, 'Swarm changes the next scroll queue by 30%');
+  assert.equal(swarm.artLevels.breath, 2); assert.equal(swarm.maxInk, 160, 'Swarm grants a real extra art level and its capacity');
+  assert.equal(quiet.artLevels.breath, 1); assert.equal(quiet.bell.hp, 10);
+  assert.equal(swarm.route[1], 'swarm'); assert.equal(quiet.route[1], 'quiet');
+  assert.equal(chooseRoad(quiet, 'swarm'), false, 'Walked roads are immutable during play');
+  const fresh = createState(1);
+  assert.deepEqual(fresh.route, ['shrine', null, null, null, null, null, null, null], 'A new run clears its walked path');
+  swarm.queue = []; swarm.enemies = []; updateWorld(swarm, replayInput(), STEP);
+  chooseRoad(swarm, 'swarm'); swarm.draft = [BRUSH_ARTS.find(a => a.id === 'breath')];
+  chooseArt(swarm, 0); nextScroll(swarm);
+  assert.equal(swarm.artLevels.breath, 3, 'Road bonuses respect the art level cap');
+  assert.equal(swarm.queue.filter(t => t.kind === 'oni').length, 1, 'Boss roads still contain exactly one Oni');
+}
+assert.ok(draft.route.slice(0, 5).every(Boolean));
+assert.ok(draft.route.includes('swarm') && draft.route.includes('quiet'), 'Draft replay walks both branches through real choices');
+console.log('Path OK: required selection, real wave/level/heal effects, immutable walked nodes, cap and boss count');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

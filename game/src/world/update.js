@@ -11,6 +11,7 @@ import { beginOmen, finishOmen } from './omens.js';
 import { gradeRun } from './state.js';
 import { recordRun } from '../save.js';
 import { artLevel } from '../arts/levels.js';
+import { walkRoad } from './path.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -28,6 +29,7 @@ export function finishRun(state, won) {
   state.soundEvents.push({ name: won ? 'win' : 'lose' });
 }
 export function nextScroll(state) {
+  if (!walkRoad(state)) return false;
   state.scroll++;
   state.scrollStartScore = state.score;
   state.scrollTime = 0; state.cleared = 0;
@@ -39,6 +41,7 @@ export function nextScroll(state) {
   state.bannerTime = 4; state.mode = 'play';
   state.bonusDraft = false; beginOmen(state);
   state.soundEvents.push({ name: 'scrollIntro' });
+  return true;
 }
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
@@ -66,7 +69,7 @@ export function updateWorld(state, input, dt) {
     else {
       state.score += 400 + state.bell.hp * 25;
       recordScroll(state);
-      state.mode = 'draft'; draftArts(state);
+      state.mode = 'draft'; state.roadChoice = null; draftArts(state);
       state.soundEvents.push({ name: 'draft' });
     }
   }

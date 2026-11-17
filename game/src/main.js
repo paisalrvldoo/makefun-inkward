@@ -6,11 +6,13 @@ import { newRunSeed } from './rng.js';
 import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt } from './arts/brushArts.js';
+import { chooseRoad } from './world/path.js';
 import { endStroke } from './ink/strokes.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON } from './screens/title.js';
 import { draftRects } from './screens/draft.js';
+import { ROAD_RECTS, pathChoiceRects } from './screens/path.js';
 import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/results.js';
 import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
@@ -64,6 +66,9 @@ function handleMenus() {
   } else if (state.mode === 'pause') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; input.clearFrame(); }
   } else if (state.mode === 'draft') {
+    for (const road of ROAD_RECTS) {
+      if (clicked(road) || pathChoiceRects(state).some(rect => rect.id === road.id && clicked(rect)) || input.pressed.has(road.id === 'swarm' ? 'ArrowLeft' : 'ArrowRight')) chooseRoad(state, road.id);
+    }
     for (let i = 0; i < state.draft.length; i++) {
       if (input.pressed.has(`Digit${i + 1}`) || clicked(draftRects(state)[i])) {
         if (chooseArt(state, i)) { nextScroll(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
@@ -90,7 +95,7 @@ function frame(now) {
     for (const event of state.soundEvents.splice(0)) audio.play(event.name, event.value);
   } else input.clearFrame();
   if (previousMode !== state.mode) {
-    status.textContent = state.mode === 'title' ? 'INKWARD. Click Open the first scroll or press Enter.' : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Choose a brush art with 1, 2 or 3.' : state.mode === 'pause' ? 'Paused. P to resume.' : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. R to restart.`;
+    status.textContent = state.mode === 'title' ? 'INKWARD. Click Open the first scroll or press Enter.' : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. R for a new seed. S for the same seed. Escape for the menu.`;
     if (!staged && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
     previousMode = state.mode;
   }
