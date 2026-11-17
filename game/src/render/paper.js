@@ -55,7 +55,7 @@ function branch(ctx, x, y, scale = 1, flip = 1, motif = 'blossom') {
 export function drawGarden(ctx, state) {
   const season = getSeason(state);
   ctx.save(); ctx.beginPath(); ctx.rect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.clip();
-  ctx.fillStyle = '#faf5e6'; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h);
+  ctx.fillStyle = season.motif === 'snow' ? '#edf6f8' : '#faf5e6'; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h);
   wash(ctx, FIELD.x + 70, FIELD.y + 80, 220, season.wash, 0.72);
   wash(ctx, FIELD.x + FIELD.w - 10, FIELD.y + FIELD.h - 40, 250, season.wash, 0.66);
   wash(ctx, 495, 410, 210, '#ebdbac', 0.25);
@@ -88,13 +88,14 @@ export function drawGarden(ctx, state) {
   branch(ctx, FIELD.x + 7, FIELD.y + 195, 1.2, 1, season.motif);
   branch(ctx, FIELD.x + FIELD.w - 2, FIELD.y + FIELD.h - 25, 1.05, -1, season.motif);
   const rng = createRng(91);
-  for (let i = 0; i < 32; i++) {
+  const snowfall = season.motif === 'snow' ? 78 : 32;
+  for (let i = 0; i < snowfall; i++) {
     const baseX = FIELD.x + rng() * FIELD.w, baseY = FIELD.y + rng() * FIELD.h;
     const x = FIELD.x + (baseX - FIELD.x + state.time * (6 + i % 5)) % FIELD.w;
     const y = FIELD.y + (baseY - FIELD.y + state.time * 3) % FIELD.h;
     ctx.save(); ctx.translate(x, y); ctx.rotate(i + state.time * 0.2); ctx.globalAlpha = 0.38;
     if (season.motif === 'maple') { ctx.globalAlpha = 0.55; maple(ctx, 0, 0, 5 + i % 5, 0, i % 3 ? '#ce6930' : '#b94c32'); }
-    else if (season.motif === 'snow') circle(ctx, 0, 0, 2 + i % 3, '#ffffff', '#96b1be');
+    else if (season.motif === 'snow') circle(ctx, 0, 0, 2 + i % 4, '#ffffff', '#669bb7', 1.25);
     else { ctx.fillStyle = season.color; ctx.beginPath(); ctx.ellipse(0, 0, 3 + i % 3, 1.8, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }

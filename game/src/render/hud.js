@@ -121,9 +121,9 @@ export function drawWaveBanner(ctx, state) {
   if (state.bannerTime <= 0) return;
   ctx.globalAlpha = Math.min(1, state.bannerTime);
   const scroll = getScroll(state), season = getSeason(state);
-  panel(ctx, 207, 255, 574, 123, '#faf3e6f5', season.color);
-  text(ctx, `SCROLL ${state.scroll} — ${season.name}`, 494, 286, 17, season.color, 'bold', false, 'center');
-  text(ctx, scroll.boss ? ONI[scroll.boss].short : scroll.name.toUpperCase(), 494, 324, 28, COLORS.ink, 'bold', true, 'center');
-  text(ctx, 'GUARD THE BELL · DRAW THE WARD · SEAL THE WANDERERS', 494, 353, 11, COLORS.faint, 'bold', false, 'center');
+  panel(ctx, 207, 255, 574, 123, '#171c24f5', COLORS.gold);
+  text(ctx, `SCROLL ${state.scroll} — ${season.name}`, 494, 286, 17, '#f0c35b', 'bold', false, 'center');
+  text(ctx, scroll.boss ? ONI[scroll.boss].short : scroll.name.toUpperCase(), 494, 324, 28, COLORS.white, 'bold', true, 'center');
+  text(ctx, 'GUARD THE BELL · DRAW THE WARD · SEAL THE WANDERERS', 494, 353, 11, '#ddd4c1', 'bold', false, 'center');
   ctx.globalAlpha = 1;
 }

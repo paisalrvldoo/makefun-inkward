@@ -5,6 +5,7 @@ import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt } from './arts/brushArts.js';
 import { directPlayCover } from './coverReplay.js';
+import { wrathLevel } from './world/wrath.js';
 
 export function replayInput() {
   return {
@@ -64,7 +65,7 @@ export function createReplayPilot(options = {}) {
 }
 export function stageShot(name, seed = 1) {
   const state = createState(seed, 0), input = replayInput();
-  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft'].includes(name)) {
+  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
   startRun(state);
@@ -72,6 +73,10 @@ export function stageShot(name, seed = 1) {
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);
+  }
+  if (name === 'winter') {
+    state.best = stageShot('win', seed).state.score;
+    return directWinterFight(state, input, pilot);
   }
   const limit = name === 'end' ? 280 : 900;
   for (let i = 0; i < limit / STEP; i++) {
@@ -83,4 +88,52 @@ export function stageShot(name, seed = 1) {
   }
   state.soundEvents.length = 0;
   return { state, input };
+}
+
+// Run the normal world until the last Oni is surrounded by an unedited live crowd.
+// The director only supplies ordinary movement, wards, splashes, and one real loop.
+function directWinterFight(state, input, pilot) {
+  let holding = false, loop = null;
+  for (let frame = 0; frame < 900 / STEP; frame++) {
+    if (!holding) {
+      pilot(state, input, true);
+      const live = state.enemies.filter(e => !e.dead && !e.hunter);
+      if (state.scroll === 8 && live.length >= 12 && live.some(e => e.kind === 'oni')) holding = true;
+    } else {
+      input.clearFrame(); input.keys.clear();
+      const live = state.enemies.filter(e => !e.dead && !e.hunter);
+      const boss = live.find(e => e.kind === 'oni');
+      const danger = live.filter(e => distance(e, state.bell) < 130);
+      if (danger.length && state.eCooldown <= 0) input.pressed.add('KeyE');
+      if (live.length >= 12 && state.qCooldown <= 0) input.pressed.add('KeyQ');
+      if (live.length >= 6 && state.splashCooldown <= 0) {
+        const target = [...live].sort((a, b) => distance(a, state.bell) - distance(b, state.bell))[0];
+        input.splashes.push(target);
+      }
+      if (!loop && state.wrath >= 4 && state.wrath <= 4.22 && live.length >= 12 && boss) {
+        const solo = live.map(enemy => ({ enemy, nearby: live.filter(other => other !== enemy && distance(enemy, other) < 100).length }))
+          .sort((a, b) => a.nearby - b.nearby)[0]?.enemy;
+        if (solo) loop = { x: solo.x, y: solo.y, radius: 44, step: 0 };
+      }
+      if (loop) {
+        const i = loop.step++, angle = i / 12 * Math.PI * 2;
+        const point = {
+          x: clamp(loop.x + Math.cos(angle) * loop.radius, FIELD.x + 54, FIELD.x + FIELD.w - 54),
+          y: clamp(loop.y + Math.sin(angle) * loop.radius, FIELD.y + 54, FIELD.y + FIELD.h - 54),
+        };
+        input.pointer = point; input.painting = true;
+        input.paintEvents.push({ type: i === 0 ? 'begin' : 'move', point });
+        if (i >= 12) { input.paintEvents.push({ type: 'end', point }); input.painting = false; loop = null; }
+      }
+    }
+    updateWorld(state, input, STEP);
+    const live = state.enemies.filter(e => !e.dead && !e.hunter);
+    const burst = state.seals.some(seal => seal.success && seal.life > 1.2);
+    const scored = state.floats.some(f => f.text.startsWith('SEALED ×'));
+    if (state.scroll === 8 && wrathLevel(state) === 4 && live.length >= 12 && live.some(e => e.kind === 'oni') && burst && scored) {
+      state.soundEvents.length = 0; return { state, input };
+    }
+    if (state.mode === 'lose' || state.mode === 'win' || state.bell.hp <= 0) break;
+  }
+  throw new Error(`Winter director missed its frame: scroll ${state.scroll}, mode ${state.mode}, HP ${state.bell.hp}, WRATH ${state.wrath}, enemies ${state.enemies.length}`);
 }
