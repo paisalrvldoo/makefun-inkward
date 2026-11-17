@@ -8,7 +8,7 @@ import { chooseArt } from './arts/brushArts.js';
 import { endStroke } from './ink/strokes.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
-import { START_BUTTON } from './screens/title.js';
+import { START_BUTTON, DIFFICULTY_RECTS } from './screens/title.js';
 import { DRAFT_RECTS } from './screens/draft.js';
 import { RESTART_BUTTON, TITLE_BUTTON } from './screens/results.js';
 import { RESUME_BUTTON } from './screens/pause.js';
@@ -35,7 +35,7 @@ function fitCanvas() {
 window.addEventListener('resize', fitCanvas); fitCanvas();
 
 function resetRun(start = true) {
-  state = createState(seed, readBest());
+  state = createState(seed, readBest(), state.difficulty);
   input.release(); input.clearFrame();
   if (start) startRun(state);
 }
@@ -47,6 +47,7 @@ function handleMenus() {
   if (input.pressed.has('KeyM')) audio.toggle();
   const clicked = rect => input.clicks.some(p => hitRect(p, rect));
   if (state.mode === 'title') {
+    for (let i = 0; i < DIFFICULTY_RECTS.length; i++) if (clicked(DIFFICULTY_RECTS[i]) || input.pressed.has(`Digit${i + 1}`)) { state.difficulty = DIFFICULTY_RECTS[i].id; audio.play('click'); }
     if (input.pressed.has('Enter') || clicked(START_BUTTON)) { resetRun(); input.clearFrame(); }
   } else if (state.mode === 'play') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();

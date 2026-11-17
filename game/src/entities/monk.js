@@ -1,4 +1,5 @@
 import { BELL, FIELD, MONK, clamp, distance } from '../config.js';
+import { artLevel } from '../arts/levels.js';
 
 export function createMonk() {
   return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, walk: 0 };
@@ -18,7 +19,7 @@ export function updateMonk(state, input, dt) {
       monk.vy = (input.pointer.y - monk.y) / aim;
     }
     monk.dashTime = MONK.dashTime;
-    monk.dashCooldown = state.arts.includes('willow') ? 0.95 : MONK.dashCooldown;
+    monk.dashCooldown = MONK.dashCooldown / (1 + artLevel(state, 'willow') * 0.7);
     state.soundEvents.push({ name: 'dash' });
   }
   if (monk.dashTime > 0) {

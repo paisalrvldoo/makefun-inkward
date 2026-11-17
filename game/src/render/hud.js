@@ -3,6 +3,8 @@ import { getScroll, getSeason } from '../world/scrolls.js';
 import { gradeRun } from '../world/state.js';
 import { YOKAI } from '../entities/yokai.js';
 import { findArt } from '../arts/brushArts.js';
+import { drawArtIcon, drawLevelPips } from './arts.js';
+import { comboDuration } from '../arts/levels.js';
 import { drawYokai } from './sprites.js';
 import { text, line, panel, circle, wrapText } from './primitives.js';
 
@@ -38,6 +40,7 @@ export function drawHud(ctx, state, audio) {
   text(ctx, `${state.queue.length} INCOMING`, 1001, 176, 10, COLORS.faint, 'bold');
   line(ctx, [[1001, 187], [1235, 187]], COLORS.line, 1);
   const counts = {};
+  if (state.enemies.some(e => e.kind === 'oni')) counts.oni = 1;
   for (const threat of state.queue) counts[threat.kind] = (counts[threat.kind] || 0) + 1;
   const rows = Object.entries(counts).slice(0, 4);
   if (!rows.length) text(ctx, 'Last spirits on the paper', 1003, 222, 14, COLORS.green, 'normal', true);
@@ -59,10 +62,10 @@ export function drawHud(ctx, state, audio) {
     wrapText(ctx, 'Clear a scroll. Choose 1 of 3 arts. Shape your own way to win.', 1001, 462, 225, 20, 13);
   } else {
     state.arts.forEach((id, i) => {
-      const art = findArt(id), col = i >= 4 ? 1 : 0, row = i % 4, x = 1001 + col * 124, y = 434 + row * 28;
-      circle(ctx, x + 7, y - 4, 8, '#efe2bf', COLORS.gold, 1);
-      text(ctx, art.rune, x + 7, y - 1, 9, COLORS.gold, 'bold', false, 'center');
-      text(ctx, art.name, x + 20, y, 10, COLORS.ink, 'bold');
+      const art = findArt(id), x = 1001, y = 429 + i * 17;
+      drawArtIcon(ctx, id, x + 9, y - 4, 16);
+      text(ctx, art.name, x + 24, y, 12, COLORS.ink, 'bold');
+      drawLevelPips(ctx, state, id, 1196, y - 4);
     });
   }
   text(ctx, '12 ARTS · EVERY RUN A NEW BRUSH', 1001, 551, 10, COLORS.gold, 'bold');
@@ -79,13 +82,13 @@ export function drawHud(ctx, state, audio) {
   ctx.fillStyle = state.ink < 20 ? COLORS.red : COLORS.ink; ctx.fillRect(46, 740, 230 * state.ink / state.maxInk, 12);
   line(ctx, [[292, 720], [292, 759]], COLORS.line, 1);
   text(ctx, 'BELL', 309, 729, 12, COLORS.ink, 'bold');
-  text(ctx, `${state.bell.hp} / 12`, 505, 729, 12, state.bell.hp < 4 ? COLORS.red : COLORS.gold, 'bold', false, 'right');
-  for (let i = 0; i < 12; i++) { ctx.fillStyle = i < state.bell.hp ? (state.bell.hp < 4 ? COLORS.red : COLORS.gold) : '#d8ceb6'; ctx.fillRect(309 + i * 17, 740, 13, 12); }
+  text(ctx, `${state.bell.hp} / ${state.bell.maxHp}`, 505, 729, 12, state.bell.hp < 4 ? COLORS.red : COLORS.gold, 'bold', false, 'right');
+  for (let i = 0; i < state.bell.maxHp; i++) { const step = 200 / state.bell.maxHp; ctx.fillStyle = i < state.bell.hp ? (state.bell.hp < 4 ? COLORS.red : COLORS.gold) : '#d8ceb6'; ctx.fillRect(309 + i * step, 740, step - 3, 12); }
   line(ctx, [[535, 720], [535, 759]], COLORS.line, 1);
   text(ctx, 'COMBO', 554, 729, 12, COLORS.ink, 'bold');
   text(ctx, `×${state.combo.toFixed(1)}`, 620, 751, 32, COLORS.red, 'bold', true);
   ctx.fillStyle = '#d8ceb6'; ctx.fillRect(554, 741, 54, 6);
-  ctx.fillStyle = COLORS.red; ctx.fillRect(554, 741, 54 * Math.min(1, state.comboTime / (state.arts.includes('echo') ? 10 : 7)), 6);
+  ctx.fillStyle = COLORS.red; ctx.fillRect(554, 741, 54 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   text(ctx, 'RITUALS', 734, 729, 10, COLORS.faint, 'bold');
   text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 734, 751, 12, COLORS.blue, 'bold');
   text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 811, 751, 12, COLORS.gold, 'bold');

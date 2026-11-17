@@ -1,6 +1,8 @@
 import { FIELD, INK, distance, clamp } from '../config.js';
 import { nearestOnSegment } from '../ink/geometry.js';
 import { burst, floatText, addRing } from '../render/fx.js';
+import { difficulty } from '../world/difficulty.js';
+import { artLevel } from '../arts/levels.js';
 
 export const YOKAI = {
   kappa: { name: 'KAPPA', detail: 'Lunges toward the bell', color: '#63846d', speed: 30, radius: 17, value: 100 },
@@ -13,7 +15,7 @@ export const YOKAI = {
 export function spawnYokai(state, kind, point, small = false) {
   const stats = YOKAI[kind];
   const enemy = {
-    ...point, ...stats, kind, id: state.nextId++, speed: stats.speed * (1 + (state.scroll - 1) * 0.04),
+    ...point, ...stats, kind, id: state.nextId++, speed: stats.speed * (1 + (state.scroll - 1) * 0.065) * difficulty(state).speed,
     phase: state.rng() * Math.PI * 2, age: 0, stun: 0, hitTime: 0, blocked: 0, dead: false, small,
   };
   if (small) { enemy.radius *= 0.7; enemy.speed *= 1.2; enemy.value = 90; }
@@ -32,19 +34,27 @@ export function damageBell(state, enemy) {
   floatText(state, state.bell.x, state.bell.y - 45, 'BELL CRACKED', '#bb4436', 22);
   state.soundEvents.push({ name: 'bell' });
 }
-function wallCollision(state, enemy, next, dt) {
+export function wallCollision(state, enemy, next, dt) {
   if (enemy.kind === 'lantern') return false;
   for (const stroke of state.strokes) {
     if (stroke.life <= 0 || stroke.integrity <= 0) continue;
     for (let i = 1; i < stroke.points.length; i++) {
       const nearest = nearestOnSegment(next, stroke.points[i - 1], stroke.points[i]);
       if (nearest.distance >= enemy.radius + INK.width / 2) continue;
-      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09);
+      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / (1 + artLevel(state, 'stone') * 0.25);
       enemy.blocked += dt;
-      if (state.arts.includes('vermilion')) {
+      if (artLevel(state, 'vermilion')) {
         enemy.hitTime = 0.15;
         enemy.stun = Math.max(enemy.stun, 0.06);
         stroke.integrity += dt * 0.035;
+        enemy.edgeDamage = (enemy.edgeDamage || 0) + dt * artLevel(state, 'vermilion');
+        if (enemy.edgeDamage >= 1.6 && enemy.kind !== 'oni') {
+          enemy.dead = true; state.sealed++; state.cleared++;
+          state.score += Math.round(enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3));
+          burst(state, enemy.x, enemy.y, 22, '#bb4436');
+          floatText(state, enemy.x, enemy.y - 30, 'VERMILION CUT', '#bb4436', 18);
+          state.soundEvents.push({ name: 'seal' });
+        }
       }
       // Slide tangentially along the ink instead of getting stuck forever.
       const a = stroke.points[i - 1], b = stroke.points[i];
@@ -71,6 +81,7 @@ export function updateYokai(state, dt) {
     const dx = state.bell.x - enemy.x, dy = state.bell.y - enemy.y;
     const length = Math.hypot(dx, dy) || 1;
     if (length < state.bell.radius + enemy.radius - 3) { damageBell(state, enemy); continue; }
+    if (enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0)) continue;
     let speed = enemy.speed;
     if (enemy.kind === 'kappa' && Math.sin(enemy.age * 1.7 + enemy.phase) > 0.87) speed *= 2.3;
     if (enemy.kind === 'umbrella') speed *= Math.sin(enemy.age * 3 + enemy.phase) > 0.2 ? 2.2 : 0.2;

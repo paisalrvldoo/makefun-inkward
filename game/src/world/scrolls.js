@@ -7,12 +7,12 @@ export const SEASONS = [
 export const SCROLLS = [
   { name: 'A bell in bloom', season: 0, types: ['kappa', 'crane'], count: 16, interval: 2.0, boss: null },
   { name: 'Lanterns at dusk', season: 0, types: ['kappa', 'lantern', 'umbrella'], count: 23, interval: 1.6, boss: null },
-  { name: 'The moss-crowned oni', season: 1, types: ['kappa', 'crane', 'eater'], count: 25, interval: 1.45, boss: 'moss' },
-  { name: 'A thousand paper wings', season: 1, types: ['crane', 'umbrella', 'lantern'], count: 30, interval: 1.25, boss: null },
-  { name: 'Foxes in the firelight', season: 2, types: ['fox', 'eater', 'umbrella'], count: 34, interval: 1.1, boss: null },
-  { name: 'The ember-crowned oni', season: 2, types: ['fox', 'kappa', 'lantern'], count: 36, interval: 1.0, boss: 'ember' },
-  { name: 'Snow on the inkstone', season: 3, types: ['eater', 'crane', 'lantern', 'fox'], count: 42, interval: 0.88, boss: null },
-  { name: 'The last bell', season: 3, types: ['eater', 'fox', 'umbrella', 'crane'], count: 46, interval: 0.8, boss: 'frost' },
+  { name: 'The moss oni', season: 1, types: ['kappa', 'crane', 'eater', 'umbrella'], count: 32, interval: 1.28, boss: 'moss' },
+  { name: 'A thousand paper wings', season: 1, types: ['crane', 'umbrella', 'lantern', 'kappa'], count: 40, interval: 1.02, boss: null },
+  { name: 'Foxes in the firelight', season: 2, types: ['fox', 'eater', 'umbrella', 'lantern', 'crane'], count: 48, interval: 0.88, boss: null },
+  { name: 'The maple oni', season: 2, types: ['fox', 'kappa', 'lantern', 'umbrella', 'eater', 'crane'], count: 62, interval: 0.72, boss: 'ember' },
+  { name: 'Snow on the inkstone', season: 3, types: ['eater', 'crane', 'lantern', 'fox', 'umbrella'], count: 70, interval: 0.66, boss: null },
+  { name: 'The last bell', season: 3, types: ['eater', 'fox', 'umbrella', 'crane', 'lantern', 'kappa'], count: 82, interval: 0.60, boss: 'frost' },
 ];
 export const getScroll = state => SCROLLS[state.scroll - 1];
 export const getSeason = state => SEASONS[getScroll(state).season];

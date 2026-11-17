@@ -2,6 +2,7 @@ import { BELL, INK, distance, inField } from '../config.js';
 import { segmentIntersection } from './geometry.js';
 import { sealLoop } from './seal.js';
 import { floatText } from '../render/fx.js';
+import { artLevel } from '../arts/levels.js';
 
 export function beginStroke(state, point) {
   if (!inField(point) || state.ink < 2 || state.waitRelease) return;
@@ -12,7 +13,8 @@ export function endStroke(state) {
   const stroke = state.activeStroke;
   if (stroke && stroke.points.length < 2) state.strokes = state.strokes.filter(s => s !== stroke);
   if (stroke && !stroke.closed && state.arts.includes('twin') && stroke.points.length > 1) {
-    state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: BELL.x * 2 - p.x, y: p.y })), integrity: 0.65 });
+    state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: BELL.x * 2 - p.x, y: p.y })), integrity: 0.5 + artLevel(state, 'twin') * 0.15 });
+    if (artLevel(state, 'twin') >= 3) state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: p.x, y: BELL.y * 2 - p.y })), integrity: 0.8 });
   }
   state.activeStroke = null;
 }
@@ -23,7 +25,7 @@ export function paintPoint(state, point) {
   const previous = stroke.points[stroke.points.length - 1];
   let length = distance(previous, point);
   if (length < 3) return;
-  const cost = INK.cost * (state.arts.includes('feather') ? 0.75 : 1);
+  const cost = INK.cost * (1 - artLevel(state, 'feather') * 0.18);
   const available = state.ink / cost;
   const end = length > available ? { x: previous.x + (point.x - previous.x) * available / length, y: previous.y + (point.y - previous.y) * available / length } : { ...point };
   length = Math.min(length, available);
@@ -64,8 +66,8 @@ export function updateStrokes(state, input, dt) {
     else if (event.type === 'move') paintPoint(state, event.point);
     else { paintPoint(state, event.point); endStroke(state); state.waitRelease = false; }
   }
-  for (const stroke of state.strokes) if (stroke !== state.activeStroke) stroke.life -= dt / (state.arts.includes('stone') ? 1.5 : 1);
+  for (const stroke of state.strokes) if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);
   state.strokes = state.strokes.filter(stroke => stroke.life > 0 && stroke.integrity > 0).slice(-35);
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
-  if (!state.activeStroke) state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (state.arts.includes('breath') ? 1.3 : 1));
+  if (!state.activeStroke) state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3));
 }

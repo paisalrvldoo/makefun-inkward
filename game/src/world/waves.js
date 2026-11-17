@@ -2,14 +2,17 @@ import { FIELD } from '../config.js';
 import { getScroll } from './scrolls.js';
 import { spawnYokai } from '../entities/yokai.js';
 import { spawnBoss } from '../entities/bosses.js';
+import { difficulty } from './difficulty.js';
 
 export function makeThreatQueue(state) {
   const scroll = getScroll(state);
   const queue = [];
-  for (let i = 0; i < scroll.count; i++) {
-    const kind = scroll.types[Math.floor(state.rng() * scroll.types.length)];
-    queue.push({ kind, lane: Math.floor(state.rng() * 4), position: 0.14 + state.rng() * 0.72, wave: Math.floor(i / Math.ceil(scroll.count / 3)) + 1 });
-    if (scroll.boss && i === Math.floor(scroll.count * 0.55)) queue.push({ kind: 'oni', boss: scroll.boss, lane: 0, position: 0.5, wave: 2 });
+  const count = Math.round(scroll.count * difficulty(state).count);
+  for (let i = 0; i < count; i++) {
+    // Each group contains the whole scroll's palette; shuffled offsets keep the order surprising.
+    const kind = scroll.types[(i + Math.floor(state.rng() * 2)) % scroll.types.length];
+    queue.push({ kind, lane: Math.floor(state.rng() * 4), position: 0.12 + state.rng() * 0.76, wave: Math.floor(i / Math.ceil(count / 3)) + 1 });
+    if (scroll.boss && i === Math.floor(count * 0.32)) queue.push({ kind: 'oni', boss: scroll.boss, lane: 0, position: 0.5, wave: 2 });
   }
   return queue;
 }
@@ -29,5 +32,5 @@ export function updateWaves(state, dt) {
   if (threat.kind === 'oni') spawnBoss(state, threat.boss, point);
   else spawnYokai(state, threat.kind, point);
   state.spawned++;
-  state.spawnTime = getScroll(state).interval;
+  state.spawnTime = getScroll(state).interval * difficulty(state).interval;
 }

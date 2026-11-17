@@ -10,6 +10,7 @@ import { drawResults } from '../screens/results.js';
 import { drawPause } from '../screens/pause.js';
 import { spawnPoint } from '../world/waves.js';
 import { circle, text } from './primitives.js';
+import { drawBossBanner, drawBossTelegraphs } from './bosses.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -24,6 +25,7 @@ export function renderScene(ctx, paper, state, input, audio) {
     circle(ctx, p.x, p.y, 24 + Math.sin(state.time * 5) * 3, null, '#bb443650', 1.5);
     text(ctx, 'INCOMING', p.x, p.y + 37, 9, '#bb4436', 'bold', false, 'center');
   }
+  drawBossTelegraphs(ctx, state);
   drawStrokes(ctx, state);
   drawBell(ctx, state.bell, state.time);
   for (const ghost of state.ghosts) {
@@ -39,6 +41,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   ctx.restore();
   drawHud(ctx, state, audio);
   drawWaveBanner(ctx, state);
+  drawBossBanner(ctx, state);
   if (state.mode === 'draft') drawDraft(ctx, state, input);
   if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);

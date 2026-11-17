@@ -16,18 +16,22 @@ export function createReplayPilot() {
   return (state, input, aggressive = true) => {
     input.clearFrame();
     if (state.mode === 'draft') {
-      const preferred = ['breath', 'feather', 'thunder', 'mending', 'gold', 'lotus', 'echo', 'well', 'stone', 'willow', 'twin', 'vermilion'];
-      const index = [...state.draft].sort((a, b) => preferred.indexOf(a.id) - preferred.indexOf(b.id))[0];
+      const preferred = ['well', 'breath', 'feather', 'thunder', 'lotus', 'mending', 'gold', 'willow', 'echo', 'stone', 'twin', 'vermilion'];
+      const value = art => preferred.indexOf(art.id) + (state.arts.includes(art.id) ? 20 : 0);
+      const index = [...state.draft].sort((a, b) => value(a) - value(b))[0];
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
-    const target = threats.find(e => !e.sealLock);
-    if (!drawing && target && state.time - lastLoop > (aggressive ? 1.55 : 2.4) && state.ink > 27) {
-      const radius = target.kind === 'oni' ? 76 : 64;
+    const urgent = threats.find(e => !e.sealLock && distance(e, state.bell) < 125);
+    const target = urgent || threats.find(e => e.kind === 'oni' && !e.sealLock) || threats.find(e => !e.sealLock);
+    if (!drawing && target && state.time - lastLoop > (aggressive ? 0.65 : 2.4) && state.ink > 27) {
+      const neighbours = threats.filter(e => distance(e, target) < 110);
+      const radius = target.kind === 'oni' || neighbours.length >= 2 ? 83 : 64;
+      const centre = target.kind === 'oni' ? target : neighbours.length >= 2 ? neighbours.reduce((sum, e) => ({ x: sum.x + e.x / neighbours.length, y: sum.y + e.y / neighbours.length }), { x: 0, y: 0 }) : target;
       drawing = {
-        x: clamp(target.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
-        y: clamp(target.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
-        radius, step: 0, duration: 47,
+        x: clamp(centre.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
+        y: clamp(centre.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
+        radius, step: 0, duration: aggressive ? 16 : 47,
       };
       lastLoop = state.time;
     }
@@ -51,8 +55,9 @@ export function createReplayPilot() {
     const x = state.bell.x + Math.cos(state.time * 0.27) * 145, y = state.bell.y + Math.sin(state.time * 0.27) * 125;
     if (x > state.monk.x + 8) input.keys.add('KeyD'); else if (x < state.monk.x - 8) input.keys.add('KeyA');
     if (y > state.monk.y + 8) input.keys.add('KeyS'); else if (y < state.monk.y - 8) input.keys.add('KeyW');
-    if (aggressive && threats.some(e => e.kind === 'oni') && state.qCooldown <= 0) input.pressed.add('KeyQ');
+    if (aggressive && (threats.length >= 6 || threats.some(e => e.kind === 'oni')) && state.qCooldown <= 0) input.pressed.add('KeyQ');
     if (aggressive && threats.some(e => distance(e, state.bell) < 110) && state.eCooldown <= 0) input.pressed.add('KeyE');
+    if (aggressive && threats.length > 3 && state.splashCooldown <= 0) input.splashes.push({ x: target.x, y: target.y });
   };
 }
 export function stageShot(name, seed = 1) {

@@ -3,8 +3,10 @@ import { YOKAI } from '../entities/yokai.js';
 import { drawMonk, drawBell, drawYokai } from '../render/sprites.js';
 import { text, line, panel, button, hitRect, stamp, circle } from '../render/primitives.js';
 import { wash, blossom } from '../render/paper.js';
+import { DIFFICULTIES } from '../world/difficulty.js';
 
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
+export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
 export function drawTitle(ctx, state, input, audio) {
   wash(ctx, 1080, 150, 310, '#edc3b8', 0.45);
   wash(ctx, 790, 454, 260, '#d7dfb7', 0.4);
@@ -16,7 +18,12 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, 'Set wandering spirits free before they crack your shrine.', 67, 357, 17, COLORS.faint);
   text(ctx, '8 SCROLLS     4 SEASONS     3 ONI BOSSES     12 BRUSH ARTS', 67, 399, 12, COLORS.gold, 'bold');
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
-  text(ctx, 'A fresh brush art after every scroll. No two wards alike.', 68, 538, 14, COLORS.faint, 'normal', true);
+  DIFFICULTY_RECTS.forEach((rect, i) => {
+    const selected = state.difficulty === rect.id;
+    panel(ctx, rect.x, rect.y, rect.w, rect.h, selected ? '#eee0bd' : '#faf5e6', selected ? COLORS.red : COLORS.line);
+    text(ctx, DIFFICULTIES[i].name, rect.x + rect.w / 2, rect.y + 21, 12, selected ? COLORS.red : COLORS.faint, 'bold', false, 'center');
+  });
+  text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 578, 12, COLORS.faint);
   text(ctx, `BEST  ${String(state.best).padStart(6, '0')}`, 1216, 67, 14, COLORS.gold, 'bold', true, 'right');
 
   ctx.save();

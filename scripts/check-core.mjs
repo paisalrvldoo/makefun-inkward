@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { STEP } from '../game/src/config.js';
 import { createState, startRun } from '../game/src/world/state.js';
 import { spawnYokai } from '../game/src/entities/yokai.js';
-import { spawnBoss } from '../game/src/entities/bosses.js';
+import { spawnBoss, updateBosses } from '../game/src/entities/bosses.js';
 import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
 import { updateWorld } from '../game/src/world/update.js';
 import { splashInk } from '../game/src/arts/brushArts.js';
@@ -33,8 +33,16 @@ function circle(state, x, y, radius = 64) {
 }
 {
   const state = world(); spawnBoss(state, 'moss', { x: 260, y: 350 });
-  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 2);
-  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 2, 'Oni seal grace prevents instantaneous repeated damage');
+  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 5);
+  circle(state, 260, 350); assert.equal(state.enemies[0].hp, 5, 'Oni seal grace prevents instantaneous repeated damage');
+}
+{
+  const state = world(); spawnBoss(state, 'ember', { x: 370, y: 350 });
+  beginStroke(state, { x: 425, y: 230 }); paintPoint(state, { x: 425, y: 570 }); endStroke(state);
+  const boss = state.enemies[0]; boss.charge = { dx: 1, dy: 0 }; boss.actionTime = 0.5;
+  for (let i = 0; i < 40; i++) updateBosses(state, STEP);
+  assert.ok(boss.x < 425, 'Ink walls stop an Oni charge');
+  assert.equal(boss.charge, null); assert.ok(boss.exposed > 0 && boss.stun > 0);
 }
 {
   const state = world(); spawnYokai(state, 'fox', { x: 260, y: 350 }); splashInk(state, { x: 260, y: 350 });
