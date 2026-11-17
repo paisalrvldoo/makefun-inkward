@@ -9,8 +9,9 @@ import { createPath } from './path.js';
 
 export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress()) {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
+  const runSeed = (Number(seed) >>> 0) || 1;
   const state = {
-    seed: (Number(seed) >>> 0) || 1, difficulty: profile.id, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
+    seed: runSeed, difficulty: profile.id, rng: createRng(runSeed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
     progress, unlocks: [...progress.unlocks], previousBestRun: progress.bestRun, newUnlocks: [], newBest: false, runRecorded: false,
     scrollScores: Array(8).fill(0), scrollStartScore: 0,
     route: createPath(), roadChoice: null, activeRoad: 'shrine',

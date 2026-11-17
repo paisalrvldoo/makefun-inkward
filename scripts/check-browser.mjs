@@ -75,6 +75,13 @@ try {
   await call('Page.bringToFront');
   await call('Page.navigate', { url: base });
   await until('window.inkward?.state.mode === "title"');
+  const initialSeed = await evaluate('inkward.state.seed');
+  assert.ok((await paintedLabels()).some(label => label.text === 'SEED ' + String(initialSeed).padStart(10, '0')), 'Title displays its actual run seed');
+  await key('KeyR', 'r'); await until(`inkward.state.mode === 'title' && inkward.state.seed !== ${initialSeed}`);
+  const rerolledSeed = await evaluate('inkward.state.seed');
+  await mouse('mousePressed', 168, 400); await mouse('mouseReleased', 168, 400);
+  await until(`inkward.state.seed !== ${rerolledSeed}`);
+  await call('Page.navigate', { url: `${base}/?seed=1` }); await until('window.inkward?.state.mode === "title" && inkward.state.seed === 1');
   await mouse('mousePressed', 230, 470); await mouse('mouseReleased', 230, 470);
   await until('window.inkward.state.mode === "play"');
   const beforeX = await evaluate('window.inkward.state.monk.x');
@@ -174,8 +181,45 @@ try {
       const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
       writeFileSync(`/tmp/ink-${scene}.jpg`, Buffer.from(screenshot.data, 'base64'));
     }
+    if (scene === 'win') {
+      const labels = await paintedLabels();
+      for (const value of ['THE BELL ENDURES', 'S', 'NEW BEST!', 'UNLOCKED', 'SEED 0000000001 / MONK', 'BEST RUN / MONK / A']) {
+        assert.ok(labels.some(label => label.text === value), `Victory draws ${value}`);
+      }
+      assert.ok(labels.some(label => /^\+[\d,]+ VS PREVIOUS BEST$/.test(label.text)), 'Victory compares its score against the old record');
+      const markers = await evaluate(`(() => {
+        const s = inkward.state, max = Math.max(1000, ...s.scrollScores, ...s.previousBestRun.scrollScores);
+        const ctx = document.querySelector('#game').getContext('2d');
+        return s.previousBestRun.scrollScores.map((score, i) => {
+          const x = 131 + i * 93, y = 568 - score / max * 94;
+          const pixels = ctx.getImageData(Math.round(x) - 5, Math.round(y) - 5, 11, 11).data;
+          let gold = 0;
+          for (let p = 0; p < pixels.length; p += 4) if (pixels[p] > 200 && pixels[p + 1] > 170 && pixels[p + 2] < 190) gold++;
+          return gold;
+        });
+      })()`);
+      assert.ok(markers.every(count => count > 0), 'The visible ghost has a gold marker at every real previous scroll score');
+    }
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
   }
+  for (const action of ['same-key', 'same-click', 'again-key', 'again-click', 'menu-key', 'menu-click']) {
+    await call('Page.navigate', { url: `${base}/?shot=win&seed=1&verify=${action}` });
+    await until(`location.search.includes('verify=${action}') && window.inkward?.state.mode === 'win' && document.documentElement.dataset.shotReady === 'true'`);
+    if (action === 'same-key') await key('KeyS', 's');
+    if (action === 'same-click') { await mouse('mousePressed', 650, 735); await mouse('mouseReleased', 650, 735); }
+    if (action === 'again-key') await key('KeyR', 'r');
+    if (action === 'again-click') { await mouse('mousePressed', 255, 735); await mouse('mouseReleased', 255, 735); }
+    if (action === 'menu-key') await key('Escape', 'Escape');
+    if (action === 'menu-click') { await mouse('mousePressed', 1030, 735); await mouse('mouseReleased', 1030, 735); }
+    const expected = action.startsWith('menu') ? 'title' : 'play';
+    await until(`inkward.state.mode === '${expected}'`);
+    const run = await evaluate('({seed:inkward.state.seed, score:inkward.state.score, difficulty:inkward.state.difficulty, route:inkward.state.route})');
+    assert.equal(run.score, 0); assert.equal(run.difficulty, 'monk');
+    assert.deepEqual(run.route, ['shrine', null, null, null, null, null, null, null]);
+    if (action.startsWith('again')) assert.notEqual(run.seed, 1, `${action} rolls a fresh seed`);
+    else assert.equal(run.seed, 1, `${action} retains the finished seed`);
+  }
+  console.log('Victory controls OK: all three buttons and R/S/Esc, fresh and same seeds, reset route and saved comparison markers');
   // In a normal run, the natural loss replay also exercises persistent best score and restart.
   await call('Page.navigate', { url: base }); await until('window.inkward?.state.mode === "title"');
   await evaluate(`(async () => { const { replayInput, createReplayPilot } = await import('./src/shots.js'); const { updateWorld, nextScroll } = await import('./src/world/update.js'); const { startRun } = await import('./src/world/state.js'); const s = inkward.state; const input = replayInput(); const pilot = createReplayPilot(); startRun(s); for (let i = 0; i < 12000 && s.mode !== 'lose'; i++) { if (s.runTime < 35) pilot(s, input); else { input.clearFrame(); input.keys.clear(); } updateWorld(s, input, 1/60); } })()`);
@@ -186,8 +230,30 @@ try {
   await key('KeyR', 'r'); await until('window.inkward.state.mode === "play"');
   assert.equal(await evaluate('window.inkward.state.bell.hp'), 12, 'Restart restores bell HP');
   assert.equal(await evaluate('window.inkward.state.score'), 0, 'Restart clears score');
+  await call('Page.navigate', { url: `${base}/?seed=1` }); await until('window.inkward?.state.mode === "title" && inkward.state.seed === 1');
+  await evaluate(`(async () => {
+    const { replayInput, createReplayPilot } = await import('./src/shots.js');
+    const { updateWorld } = await import('./src/world/update.js');
+    const { startRun } = await import('./src/world/state.js');
+    const state = inkward.state, input = replayInput(), pilot = createReplayPilot({ branching: true });
+    startRun(state);
+    for (let frame = 0; frame < 54000 && !state.ended; frame++) { pilot(state, input); updateWorld(state, input, 1/60); }
+  })()`);
+  await until('inkward.state.mode === "win" && JSON.parse(localStorage.getItem("inkward.progress.v2"))?.wins === 1');
+  const saved = await evaluate('JSON.parse(localStorage.getItem("inkward.progress.v2"))');
+  assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'moonBell'], 'A real browser victory persists all four unlocks');
+  assert.equal(saved.bestRun.seed, 1); assert.equal(saved.bestRun.scrollScores.length, 8);
+  await key('Escape', 'Escape'); await until('inkward.state.mode === "title"');
+  await key('KeyB', 'b'); await until('inkward.state.bell.skin === "moon"');
+  await call('Page.navigate', { url: `${base}/?seed=1` });
+  await until('window.inkward?.state.mode === "title" && inkward.state.bell.skin === "moon"');
+  await key('Digit3', '3'); assert.equal(await evaluate('inkward.state.difficulty'), 'master', 'Victory makes Master selectable after a reload');
+  await key('Enter', 'Enter'); await until('inkward.state.mode === "play"');
+  assert.equal(await evaluate('inkward.state.bell.maxHp'), 10, 'Unlocked Master starts with its actual difficulty');
+  assert.equal(await evaluate('inkward.state.previousBestRun.score'), saved.bestRun.score, 'New runs inherit the persisted score ghost');
+  console.log('Persistence browser OK: real victory unlocks, best seed/chart, Moon Bell and Master survive reload');
   assert.deepEqual(errors, [], `Browser errors: ${JSON.stringify(errors)}`);
-  console.log('Browser OK: title click, WASD, dash, real wall/loop and tactical call-outs, splash, Q/E, mute, pause, all scenes including the earned five-art draft, save and restart; zero console exceptions or failed resources');
+  console.log('Browser OK: input and live tactics, readable path/drafts, victory controls, seeds, ghost chart and persistent unlocks; zero console errors, exceptions or failed resources');
 } finally {
   ws?.close(); chrome.kill('SIGTERM');
   await new Promise(resolve => { if (chrome.exitCode !== null) resolve(); else chrome.once('exit', resolve); });

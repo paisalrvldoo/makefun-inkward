@@ -37,6 +37,7 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | P / Esc | Pause or resume during play |
 | M | Toggle sound |
 | R / Run again | Start another run with a fresh seed from the results screen |
+| R / seed button on title | Roll a fresh seed before starting |
 | S / Same seed | Replay the finished run's seed and difficulty |
 | Esc / title button | Return to the title from the results screen |
 | B / bell skin button | Switch between Bronze and the unlocked Moon Bell on the title |
@@ -56,6 +57,8 @@ Each scroll offers an optional challenge: seal three cranes in one loop, finish 
 Between scrolls, choose one of three offered arts (four with an omen reward). Picking an owned art upgrades it, up to level three. Every choice refills your ink.
 
 First choose your next node on **Pilgrim's Path**, the eight-scroll branching map. Swarm road adds 30% more ordinary spirits to the next scroll and an extra level to your drafted art (up to level three). Quiet road repairs two bell health when you enter the next scroll. Click either next node or a road card; Left selects Swarm and Right selects Quiet. Then press 1–4 or click an art to commit the road. Past roads remain drawn in ink.
+
+The title and results display your run seed. Use **Same seed (S)** to revisit it at the same difficulty, or **Run again (R)** for a fresh pilgrimage. Results compare all eight scrolls against the best run saved before you started: a gold dashed ghost line shares the score scale with your seasonal bars, and the total shows how much you gained or lost against that record. A first record starts without a ghost.
 
 | Art | Effect |
 | --- | --- |
@@ -114,12 +117,12 @@ game/
     config.js          Dimensions, balance constants, and palette
     input.js           Keyboard and pointer input
     audio.js           Synthesized sound
-    save.js            Local best-score persistence
+    save.js            Local best runs, unlocks, and bell-skin persistence
     rng.js             Seeded randomness
     world/             Scrolls, branching roads, waves, difficulty, WRATH, omens, and state updates
     entities/          Monk, yokai, and Oni behavior
     ink/               Strokes, geometry, and seals
-    arts/              Twelve brush arts, drafts, and upgrade levels
+    arts/              Fourteen brush arts, drafts, and upgrade levels
     render/            Paper, sprites, effects, scenery, and HUD
     screens/           Title, draft, pause, and results
     shots.js           Submission-view staging

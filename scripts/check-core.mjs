@@ -12,6 +12,7 @@ import { beginOmen, finishOmen } from '../game/src/world/omens.js';
 import { draftArts, chooseArt, BRUSH_ARTS } from '../game/src/arts/brushArts.js';
 import { chooseRoad } from '../game/src/world/path.js';
 import { readBest, readProgress, recordRun, selectBellSkin, UNLOCKS } from '../game/src/save.js';
+import { formatSeed, newRunSeed } from '../game/src/rng.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
 function circle(state, x, y, radius = 64) {
@@ -121,25 +122,30 @@ assert.equal(win.scrollScores.length, 8);
 assert.ok(win.scrollScores.every(score => score > 0), 'Each cleared scroll has a real score bar');
 assert.equal(win.scrollScores.reduce((sum, score) => sum + score, 0), win.score, 'Scroll bars include every score and victory bonus');
 assert.equal(loss.scrollScores.reduce((sum, score) => sum + score, 0), loss.score, 'Loss charts include the unfinished scroll');
+assert.ok(win.previousBestRun.score > 0 && win.previousBestRun.score < win.score, 'Victory beats an earned previous attempt');
+assert.equal(win.previousBestRun.scrollScores.reduce((sum, score) => sum + score, 0), win.previousBestRun.score, 'The ghost keeps all eight scores from the actual previous run');
 {
   const originalStorage = globalThis.localStorage, store = new Map();
   globalThis.localStorage = { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)) };
   try {
     store.set('inkward.best.v1', '125');
     assert.equal(readBest(), 125, 'Existing v1 best scores migrate without a reset');
+    const recordedRuns = win.progress.runs;
     recordRun(win); recordRun(win);
     const progress = readProgress();
-    assert.equal(progress.runs, 1, 'An ended run is recorded once');
+    assert.equal(progress.runs, recordedRuns, 'Persisting an ended run twice does not increment its count');
     assert.equal(progress.wins, 1);
     assert.deepEqual(progress.unlocks, UNLOCKS.map(u => u.id), 'A real eight-scroll win unlocks the next-run rewards');
     assert.deepEqual(progress.bestRun.scrollScores, win.scrollScores, 'The best record saves all eight real scroll scores');
     assert.equal(progress.bestRun.seed, win.seed);
+    assert.notEqual(win.previousBestRun.score, progress.bestRun.score, 'A new best retains the older ghost for the results chart');
     assert.ok(selectBellSkin(progress, 'moon'));
     const again = createState(2, readBest(), 'monk', readProgress());
     assert.equal(again.bell.skin, 'moon', 'The selected skin survives a fresh state');
     startRun(again); finishRun(again, false); recordRun(again);
     assert.equal(again.newBest, false); assert.deepEqual(again.newUnlocks, []);
-    assert.equal(readProgress().wins, 1); assert.equal(readProgress().runs, 2);
+    assert.equal(readProgress().wins, 1); assert.equal(readProgress().runs, recordedRuns + 1);
+    assert.deepEqual(again.previousBestRun, progress.bestRun, 'The next run loads the persisted ghost record');
     assert.deepEqual(readProgress().unlocks, progress.unlocks, 'A later loss retains victory unlocks');
     const offered = new Set();
     for (let i = 0; i < 40; i++) { draftArts(again); again.draft.forEach(a => offered.add(a.id)); }
@@ -191,4 +197,16 @@ console.log('Progression OK: eight score bars, legacy/corrupt saves, persistent 
 assert.ok(draft.route.slice(0, 5).every(Boolean));
 assert.ok(draft.route.includes('swarm') && draft.route.includes('quiet'), 'Draft replay walks both branches through real choices');
 console.log('Path OK: required selection, real wave/level/heal effects, immutable walked nodes, cap and boss count');
+for (const value of [0, -1, 4294967296, 4294967297, NaN, '123456789']) {
+  const state = createState(value), same = createState(state.seed);
+  assert.deepEqual(state.queue, same.queue, 'Displayed normalized seeds reproduce the same spirit queue');
+  assert.equal(Number(formatSeed(state.seed)), state.seed);
+}
+let previousSeed = 1;
+for (let i = 0; i < 16; i++) {
+  const seed = newRunSeed(previousSeed);
+  assert.ok(seed > 0 && seed <= 0xffffffff && seed !== previousSeed, 'Fresh seeds are valid and change the previous run');
+  previousSeed = seed;
+}
+console.log('Replay hooks OK: stable displayed seeds, fresh rerolls and a persisted previous-best ghost');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

@@ -4,6 +4,7 @@ import { UNLOCKS } from '../save.js';
 import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
 import { artLevel } from '../arts/levels.js';
+import { formatSeed } from '../rng.js';
 
 export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
@@ -42,8 +43,14 @@ function drawGrade(ctx, state) {
 export function drawScoreChart(ctx, state) {
   panel(ctx, 64, 422, 820, 184, '#111e2b', '#665538');
   text(ctx, 'EIGHT SCROLLS / SCORE RECORD', 84, 446, 12, '#edc571', 'bold');
-  const max = Math.max(1000, ...state.scrollScores);
+  const ghost = state.previousBestRun;
+  const max = Math.max(1000, ...state.scrollScores, ...(ghost?.scrollScores || []));
   const baseline = 568, height = 94;
+  if (ghost) {
+    ctx.save(); ctx.setLineDash([4, 4]);
+    line(ctx, [[708, 442], [736, 442]], '#f4dc9b', 2); ctx.restore();
+    text(ctx, 'BEST RUN / ' + ghost.difficulty.toUpperCase() + ' / ' + ghost.grade, 863, 446, 10, '#f4dc9b', 'bold', false, 'right');
+  } else text(ctx, 'SET YOUR FIRST RECORD', 863, 446, 10, '#98ada8', 'bold', false, 'right');
   for (let i = 1; i <= 3; i++) {
     const y = baseline - height * i / 3;
     line(ctx, [[112, y], [863, y]], '#34424a', 1);
@@ -56,8 +63,17 @@ export function drawScoreChart(ctx, state) {
     fill.addColorStop(0, season.wash); fill.addColorStop(1, season.color);
     ctx.fillStyle = fill; ctx.fillRect(x - 26, baseline - barHeight, 52, barHeight);
     ctx.fillStyle = '#fff0ce99'; ctx.fillRect(x - 26, baseline - barHeight, 52, 2);
-    text(ctx, score ? (score / 1000).toFixed(1) + 'k' : '—', x, baseline - barHeight - 7, 10, '#e4e7db', 'bold', false, 'center');
     text(ctx, String(i + 1).padStart(2, '0'), x, 584, 10, '#e9deca', 'bold', false, 'center');
+  });
+  if (ghost) {
+    const points = ghost.scrollScores.map((score, i) => [131 + i * 93, baseline - score / max * height]);
+    line(ctx, points, '#101b25cc', 5);
+    ctx.save(); ctx.setLineDash([5, 4]); line(ctx, points, '#f4dc9b', 2); ctx.restore();
+    points.forEach(([x, y]) => circle(ctx, x, y, 3, '#152632', '#f4dc9b', 1.5));
+  }
+  state.scrollScores.forEach((score, i) => {
+    const barHeight = score ? Math.max(3, score / max * height) : 2;
+    text(ctx, score ? (score / 1000).toFixed(1) + 'k' : '—', 131 + i * 93, baseline - barHeight - 7, 10, '#e4e7db', 'bold', false, 'center');
   });
   SEASONS.forEach((season, i) => text(ctx, season.name, 177.5 + i * 186, 600, 9, season.wash, 'bold', false, 'center'));
 }
@@ -118,6 +134,11 @@ export function drawResults(ctx, state, input) {
   line(ctx, [[438, 215], [438, 276]], '#655a3e', 1);
   text(ctx, 'PERSONAL BEST', 465, 228, 11, '#b3c1be', 'bold');
   text(ctx, number(state.best), 463, 266, 34, '#eac66f', 'bold', true);
+  text(ctx, 'SEED ' + formatSeed(state.seed) + ' / ' + state.difficulty.toUpperCase(), 66, 317, 12, '#d6b86e', 'bold');
+  if (state.previousBestRun) {
+    const difference = state.score - state.previousBestRun.score;
+    text(ctx, (difference >= 0 ? '+' : '−') + number(Math.abs(difference)) + ' VS PREVIOUS BEST', 884, 317, 11, difference >= 0 ? '#91c9aa' : '#dda18a', 'bold', false, 'right');
+  } else text(ctx, 'YOUR NEXT PILGRIMAGE STARTS HERE', 884, 317, 11, '#a5bab4', 'bold', false, 'right');
   drawGrade(ctx, state);
 
   const stats = [

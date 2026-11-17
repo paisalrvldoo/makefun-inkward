@@ -1,5 +1,5 @@
 export function createRng(seed = 1) {
-  let value = (Number(seed) || 1) >>> 0;
+  let value = (Number(seed) >>> 0) || 1;
   return () => {
     value += 0x6D2B79F5;
     let t = Math.imul(value ^ value >>> 15, value | 1);
@@ -9,6 +9,7 @@ export function createRng(seed = 1) {
 }
 export const between = (rng, low, high) => low + rng() * (high - low);
 export const pick = (rng, items) => items[Math.floor(rng() * items.length)];
+export const formatSeed = seed => String((Number(seed) >>> 0) || 1).padStart(10, '0');
 
 export function newRunSeed(previous = 0) {
   const values = new Uint32Array(1);

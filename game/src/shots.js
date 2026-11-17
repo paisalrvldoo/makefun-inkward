@@ -89,7 +89,8 @@ export function createReplayPilot(options = {}) {
   };
 }
 export function stageShot(name, seed = 1) {
-  const state = createState(seed, 0), input = replayInput();
+  const previous = name === 'win' ? replayPreviousAttempt(seed) : null;
+  const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
   if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
@@ -121,6 +122,24 @@ export function stageShot(name, seed = 1) {
   }
   state.soundEvents.length = 0;
   return { state, input };
+}
+
+// The victory comparison is an earned record: play into winter, then let the bell fall.
+// It stays in replay memory and never writes to the player's localStorage.
+function replayPreviousAttempt(seed) {
+  const state = createState(seed), input = replayInput(), pilot = createReplayPilot();
+  startRun(state);
+  for (let frame = 0; frame < 900 / STEP && !state.ended; frame++) {
+    if (state.scroll < 8 || state.scrollTime < 12) pilot(state, input);
+    else {
+      input.clearFrame(); input.keys.clear();
+      if (input.painting) input.paintEvents.push({ type: 'end', point: { ...input.pointer } });
+      input.painting = false;
+    }
+    updateWorld(state, input, STEP);
+  }
+  if (!state.ended || state.mode !== 'lose') throw new Error('Previous-run replay missed its winter defeat');
+  return state;
 }
 
 // Run the normal world until the last Oni is surrounded by an unedited live crowd.

@@ -6,10 +6,12 @@ import { wash, blossom } from '../render/paper.js';
 import { DIFFICULTIES } from '../world/difficulty.js';
 import { ONI } from '../entities/bosses.js';
 import { drawTutorial } from './tutorial.js';
+import { formatSeed } from '../rng.js';
 
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
 export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
 export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
+export const SEED_BUTTON = { x: 64, y: 388, w: 208, h: 27 };
 export function drawTitle(ctx, state, input, audio) {
   ctx.fillStyle = '#111a27'; ctx.fillRect(0, 0, 1280, 800);
   wash(ctx, 973, 258, 352, '#ad2e2a', 0.28);
@@ -56,6 +58,9 @@ export function drawTitle(ctx, state, input, audio) {
     { x: 320, w: 178, label: (state.unlocks.includes('moonInk') ? '14' : '12') + ' BRUSH ARTS', fill: '#26766d' },
   ];
   for (const badge of badges) { panel(ctx, badge.x, 328, badge.w, 37, badge.fill, '#f0c15d'); text(ctx, badge.label, badge.x + badge.w / 2, 352, 13, '#fff7e5', 'bold', false, 'center'); }
+  panel(ctx, SEED_BUTTON.x, SEED_BUTTON.y, SEED_BUTTON.w, SEED_BUTTON.h, hitRect(input.pointer, SEED_BUTTON) ? '#30434a' : '#24313d', '#8a6b3c');
+  text(ctx, 'SEED ' + formatSeed(state.seed), 78, 406, 12, '#e7c572', 'bold');
+  text(ctx, 'R ↻', 257, 406, 10, '#b9c7bc', 'bold', false, 'right');
   if (state.unlocks.includes('moonBell')) {
     panel(ctx, SKIN_BUTTON.x, SKIN_BUTTON.y, SKIN_BUTTON.w, SKIN_BUTTON.h, '#24313d', '#8a6b3c');
     text(ctx, 'BELL: ' + state.bell.skin.toUpperCase() + '  /  B', 394, 406, 11, '#c3dceb', 'bold', false, 'center');
