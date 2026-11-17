@@ -3,12 +3,16 @@ import { pointInPolygon, polygonArea } from './geometry.js';
 import { burst, floatText, addRing } from '../render/fx.js';
 import { artLevel, comboDuration } from '../arts/levels.js';
 import { bossLoopDamage } from '../entities/bosses.js';
+import { raiseWrath, wrathMultiplier } from '../world/wrath.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
   enemy.dead = true;
   state.sealed++; state.cleared++;
-  state.score += Math.round(enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3));
+  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3);
+  const score = Math.round(base * wrathMultiplier(state));
+  state.score += score; state.wrathScore += score - Math.round(base);
+  if (enemy.hunter) state.huntersSealed++;
   burst(state, enemy.x, enemy.y, enemy.kind === 'oni' ? 65 : 18, enemy.color);
 }
 export function sealLoop(state, points) {
@@ -27,6 +31,7 @@ export function sealLoop(state, points) {
   state.peakCombo = Math.max(state.peakCombo, state.combo);
   state.largestSeal = Math.max(state.largestSeal, enclosed.length);
   const before = state.score;
+  raiseWrath(state, enclosed.length);
   for (const enemy of enclosed) {
     if (enemy.kind === 'oni') {
       const damage = bossLoopDamage(enemy, enclosed.length);

@@ -22,16 +22,16 @@ export function createReplayPilot() {
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
-    const urgent = threats.find(e => !e.sealLock && distance(e, state.bell) < 125);
-    const target = urgent || threats.find(e => e.kind === 'oni' && !e.sealLock) || threats.find(e => !e.sealLock);
-    if (!drawing && target && state.time - lastLoop > (aggressive ? 0.65 : 2.4) && state.ink > 27) {
-      const neighbours = threats.filter(e => distance(e, target) < 110);
-      const radius = target.kind === 'oni' || neighbours.length >= 2 ? 83 : 64;
+    const urgent = threats.find(e => !e.hunter && !e.sealLock && distance(e, state.bell) < 125);
+    const target = threats.find(e => e.kind === 'oni' && !e.sealLock) || urgent || threats.find(e => !e.sealLock);
+    if (!drawing && target && state.time - lastLoop > (aggressive ? 0.45 : 2.4) && state.ink > 35) {
+      const neighbours = threats.filter(e => distance(e, target) < 80);
+      const radius = target.kind === 'oni' ? 65 : neighbours.length >= 2 ? 75 : 48;
       const centre = target.kind === 'oni' ? target : neighbours.length >= 2 ? neighbours.reduce((sum, e) => ({ x: sum.x + e.x / neighbours.length, y: sum.y + e.y / neighbours.length }), { x: 0, y: 0 }) : target;
       drawing = {
         x: clamp(centre.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
         y: clamp(centre.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
-        radius, step: 0, duration: aggressive ? 16 : 47,
+        radius, step: 0, duration: aggressive ? 12 : 47,
       };
       lastLoop = state.time;
     }
@@ -58,6 +58,7 @@ export function createReplayPilot() {
     if (aggressive && (threats.length >= 6 || threats.some(e => e.kind === 'oni')) && state.qCooldown <= 0) input.pressed.add('KeyQ');
     if (aggressive && threats.some(e => distance(e, state.bell) < 110) && state.eCooldown <= 0) input.pressed.add('KeyE');
     if (aggressive && threats.length > 3 && state.splashCooldown <= 0) input.splashes.push({ x: target.x, y: target.y });
+    if (aggressive && state.monk.dashCooldown <= 0 && threats.some(e => distance(e, state.monk) < 95)) input.pressed.add('Space');
   };
 }
 export function stageShot(name, seed = 1) {

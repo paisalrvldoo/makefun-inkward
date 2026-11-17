@@ -6,7 +6,8 @@ import { findArt } from '../arts/brushArts.js';
 import { drawArtIcon, drawLevelPips } from './arts.js';
 import { comboDuration } from '../arts/levels.js';
 import { drawYokai } from './sprites.js';
-import { text, line, panel, circle, wrapText } from './primitives.js';
+import { text, line, panel, circle, wrapText, stamp } from './primitives.js';
+import { wrathLevel, wrathMultiplier } from '../world/wrath.js';
 
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
@@ -24,6 +25,13 @@ export function drawHud(ctx, state, audio) {
   text(ctx, 'PERSONAL BEST', 991, 29, 11, COLORS.faint, 'bold');
   text(ctx, String(Math.max(state.best, state.score)).padStart(6, '0'), 989, 63, 32, COLORS.gold, 'bold', true);
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1250, 77, 10, COLORS.faint, 'bold', false, 'right');
+  text(ctx, 'WRATH', 991, 101, 11, COLORS.red, 'bold');
+  text(ctx, `×${wrathMultiplier(state).toFixed(1)}`, 991, 116, 11, COLORS.gold, 'bold');
+  for (let i = 0; i < 5; i++) {
+    ctx.globalAlpha = i < wrathLevel(state) ? 1 : 0.16;
+    stamp(ctx, String(i + 1), 1063 + i * 40, 105, 26, (i % 2 ? 1 : -1) * 0.07);
+  }
+  ctx.globalAlpha = 1;
 
   panel(ctx, 28, 92, 932, 25, '#eee6d1');
   text(ctx, 'WIN  Seal all 8 scrolls', 43, 109, 12, COLORS.green, 'bold');
@@ -72,7 +80,7 @@ export function drawHud(ctx, state, audio) {
 
   panel(ctx, 984, 580, 268, 114, '#eee8d7');
   text(ctx, 'THE WAY OF THE BRUSH', 1001, 602, 12, COLORS.ink, 'bold');
-  const tip = state.enemies.find(e => e.kind === 'oni') ? 'Oni need several loops. Splash, encircle, then give the seal time to fade.' : state.scroll === 1 ? 'Hold LMB. Circle a spirit. Return to the red dot to seal it. Ink refills when released.' : YOKAI[getScroll(state).types[0]].detail + '. Group spirits behind a wall, then seal them together.';
+  const tip = state.wrath >= 3 ? 'Seals raise WRATH: faster spawns, monk hunters, up to 2× score. Wait without sealing to cool the hunt.' : state.enemies.find(e => e.kind === 'oni') ? 'Oni need several loops. Splash, encircle, then give the seal time to fade.' : state.scroll === 1 ? 'Hold LMB. Circle a spirit. Return to the red dot to seal it. Ink refills when released.' : YOKAI[getScroll(state).types[0]].detail + '. Group spirits behind a wall, then seal them together.';
   wrapText(ctx, tip, 1001, 624, 228, 19, 12);
 
   panel(ctx, 28, 708, 932, 62, '#f0e7d1');
@@ -99,6 +107,10 @@ export function drawHud(ctx, state, audio) {
   text(ctx, 'AN ORIGINAL INK-PAINTING DEFENCE', 1250, 789, 10, COLORS.faint, 'bold', false, 'right');
 }
 export function drawWaveBanner(ctx, state) {
+  if (state.huntBanner > 0) {
+    panel(ctx, 270, 235, 450, 48, '#bb4436ee', '#bb4436');
+    text(ctx, 'WRATH 5 — THE HUNT', 495, 268, 28, COLORS.white, 'bold', true, 'center');
+  }
   if (state.bannerTime <= 0) return;
   ctx.globalAlpha = Math.min(1, state.bannerTime);
   panel(ctx, 217, 174, 554, 48, '#faf3e6ef', '#bca571');

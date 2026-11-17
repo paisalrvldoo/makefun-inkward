@@ -66,6 +66,7 @@ export function splashInk(state, point) {
     if (enemy.kind === 'fox' && !enemy.small) {
       enemy.small = true; enemy.radius *= 0.7; enemy.value = 90;
       const child = spawnYokai(state, 'fox', { x: enemy.x + 22, y: enemy.y - 16 }, true);
+      child.hunter = Boolean(enemy.hunter);
       child.stun = 2.2;
       state.spawned++; state.total++;
       floatText(state, enemy.x, enemy.y - 25, 'FOX-FIRE SPLIT', '#c85c42', 16);

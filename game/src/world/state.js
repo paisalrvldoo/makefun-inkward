@@ -9,6 +9,8 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
   const state = {
     seed, difficulty: profile.id, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
     score: 0, best, combo: 1, comboTime: 0, peakCombo: 1, sealed: 0, loops: 0, largestSeal: 0,
+    wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
+    huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
     ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0 }, monk: createMonk(),
     enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
     seals: [], ghosts: [], bolts: [], arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,

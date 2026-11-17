@@ -35,6 +35,9 @@ export function createAudio() {
       } else if (name === 'seal') {
         tone(85, 0.25, 0.25, 'triangle');
         [440, 550, 660, 880].forEach((f, i) => tone(f, 0.45, 0.065, 'sine', i * 0.035));
+      } else if (name === 'wrath') {
+        tone(65 + value * 9, 0.4, 0.14, 'triangle');
+        tone(147, 0.25, 0.07, 'sawtooth', 0.08);
       } else if (name === 'bell') {
         [294, 588, 882].forEach(f => tone(f, 1.2, 0.09));
       } else if (name === 'dash' || name === 'splash') {

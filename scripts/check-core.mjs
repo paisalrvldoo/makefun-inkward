@@ -7,6 +7,7 @@ import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
 import { updateWorld } from '../game/src/world/update.js';
 import { splashInk } from '../game/src/arts/brushArts.js';
 import { replayInput, stageShot } from '../game/src/shots.js';
+import { raiseWrath, updateWrath, wrathLevel, wrathMultiplier } from '../game/src/world/wrath.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
 function circle(state, x, y, radius = 64) {
@@ -56,6 +57,18 @@ function circle(state, x, y, radius = 64) {
   assert.ok(state.strokes[0].points.at(-1).x < 330, 'Painting stops at the affordable endpoint');
 }
 const win = stageShot('win').state, loss = stageShot('end').state, draft = stageShot('draft').state;
+{
+  const state = world(); state.queue = [{ kind: 'kappa' }];
+  for (let i = 0; i < 6; i++) raiseWrath(state, 4);
+  assert.equal(wrathLevel(state), 5); assert.equal(wrathMultiplier(state), 2);
+  assert.equal(state.enemies.filter(e => e.hunter).length, 5, 'Each WRATH level adds a monk hunter');
+  assert.ok(state.huntBanner > 0);
+  state.queue = []; state.runTime = 10;
+  for (let i = 0; i < 35 / STEP; i++) updateWrath(state, STEP);
+  assert.equal(wrathLevel(state), 0, 'WRATH cools when the player stops sealing');
+  const count = state.enemies.length; raiseWrath(state, 4);
+  assert.equal(state.enemies.length, count, 'Wave-end seals cannot summon replacement hunters');
+}
 assert.equal(win.mode, 'win'); assert.equal(win.scroll, 8); assert.ok(win.bell.hp > 0);
 assert.equal(loss.mode, 'lose'); assert.equal(loss.bell.hp, 0);
 assert.equal(draft.mode, 'draft'); assert.equal(draft.draft.length, 3);

@@ -6,6 +6,7 @@ import { updateArts, draftArts } from '../arts/brushArts.js';
 import { updateEffects } from '../render/fx.js';
 import { makeThreatQueue, updateWaves } from './waves.js';
 import { getScroll } from './scrolls.js';
+import { updateWrath } from './wrath.js';
 
 export function finishRun(state, won) {
   if (state.ended) return;
@@ -37,6 +38,7 @@ export function updateWorld(state, input, dt) {
   updateMonk(state, input, dt);
   updateStrokes(state, input, dt);
   updateArts(state, input, dt);
+  updateWrath(state, dt);
   updateWaves(state, dt);
   updateBosses(state, dt);
   updateYokai(state, dt);

@@ -33,7 +33,10 @@ export function renderScene(ctx, paper, state, input, audio) {
     drawMonk(ctx, { ...state.monk, x: ghost.x, y: ghost.y, hurtTime: 0 }, state.time);
   }
   ctx.globalAlpha = 1;
-  for (const enemy of [...state.enemies].sort((a, b) => a.y - b.y)) if (!enemy.dead) drawYokai(ctx, enemy, state.time);
+  for (const enemy of [...state.enemies].sort((a, b) => a.y - b.y)) if (!enemy.dead) {
+    if (enemy.hunter) { circle(ctx, enemy.x, enemy.y, enemy.radius + 8, '#bb443618', '#bb4436', 1.5); text(ctx, 'HUNT', enemy.x, enemy.y - enemy.radius - 14, 9, '#bb4436', 'bold', false, 'center'); }
+    drawYokai(ctx, enemy, state.time);
+  }
   drawMonk(ctx, state.monk, state.time);
   drawEffects(ctx, state);
   if (state.mode === 'play') drawCursor(ctx, input, state);

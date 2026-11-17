@@ -3,6 +3,7 @@ import { getScroll } from './scrolls.js';
 import { spawnYokai } from '../entities/yokai.js';
 import { spawnBoss } from '../entities/bosses.js';
 import { difficulty } from './difficulty.js';
+import { wrathLevel } from './wrath.js';
 
 export function makeThreatQueue(state) {
   const scroll = getScroll(state);
@@ -32,5 +33,5 @@ export function updateWaves(state, dt) {
   if (threat.kind === 'oni') spawnBoss(state, threat.boss, point);
   else spawnYokai(state, threat.kind, point);
   state.spawned++;
-  state.spawnTime = getScroll(state).interval * difficulty(state).interval;
+  state.spawnTime = getScroll(state).interval * difficulty(state).interval / (1 + wrathLevel(state) * 0.12);
 }
