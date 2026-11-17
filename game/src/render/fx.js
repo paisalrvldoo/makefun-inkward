@@ -60,11 +60,13 @@ export function drawEffects(ctx, state) {
   ctx.globalAlpha = 1;
   const bigSeal = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
   for (const f of state.floats) {
-    if (bigSeal && /^(LOTUS HUSH|WRATH \d)/.test(f.text)) continue;
+    // Combo and WRATH are already readable in the permanent HUD.
+    if (/^(COMBO ×|WRATH \d)/.test(f.text) || (bigSeal && f.text === 'LOTUS HUSH')) continue;
+    const value = f.text.replace(/ · WRATH ×[\d.]+$/, '');
     ctx.globalAlpha = Math.min(1, f.life * 2);
     ctx.font = `bold ${f.size}px Georgia, serif`; ctx.textAlign = 'center';
-    ctx.lineWidth = 5; ctx.strokeStyle = '#fffaf0'; ctx.strokeText(f.text, f.x, f.y);
-    ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
+    ctx.lineWidth = 5; ctx.strokeStyle = '#fffaf0'; ctx.strokeText(value, f.x, f.y);
+    ctx.fillStyle = f.color; ctx.fillText(value, f.x, f.y);
   }
   ctx.globalAlpha = 1; ctx.textAlign = 'left';
 }

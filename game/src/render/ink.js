@@ -1,5 +1,6 @@
-import { COLORS, FIELD } from '../config.js';
-import { circle, text, stamp } from './primitives.js';
+import { COLORS, FIELD, INK, distance, clamp } from '../config.js';
+import { polygonArea } from '../ink/geometry.js';
+import { circle, text, stamp, line, panel } from './primitives.js';
 
 function strokePath(ctx, points, width, color) {
   if (points.length < 2) return;
@@ -39,14 +40,45 @@ export function drawStrokes(ctx, state) {
       const offset = 5 + Math.sin(i * 2.3) * 2;
       circle(ctx, p.x + Math.cos(angle) * offset, p.y + Math.sin(angle) * offset, 0.8 + i % 3 * 0.3, COLORS.ink);
     }
-    if (stroke === state.activeStroke) {
-      const start = stroke.points[0];
-      circle(ctx, start.x, start.y, 20, '#bb443610', COLORS.red, 1.5);
-      circle(ctx, start.x, start.y, 3, COLORS.red);
-      text(ctx, 'CLOSE HERE', start.x, start.y - 29, 10, COLORS.red, 'bold', false, 'center');
-    }
   }
   ctx.globalAlpha = 1;
+}
+
+export function loopProgress(stroke) {
+  if (!stroke || stroke.length < INK.minLength || polygonArea(stroke.points) < 900) return 0;
+  const gap = distance(stroke.points[0], stroke.points.at(-1));
+  // Estimate the closed perimeter from the painted length and remaining gap.
+  const progress = Math.round(stroke.length / (stroke.length + gap) * 100);
+  return progress >= 65 ? Math.min(99, progress) : 0;
+}
+
+export function drawInkCallouts(ctx, state) {
+  const stroke = state.activeStroke, progress = loopProgress(stroke);
+  if (stroke) {
+    const start = stroke.points[0];
+    circle(ctx, start.x, start.y, INK.closeRadius, '#d43b2f18', COLORS.red, 2);
+    circle(ctx, start.x, start.y, 8, COLORS.red, COLORS.white, 3);
+  }
+  if (progress) {
+    const start = stroke.points[0], end = stroke.points.at(-1);
+    ctx.setLineDash([4, 7]); line(ctx, [[end.x, end.y], [start.x, start.y]], COLORS.red, 3); ctx.setLineDash([]);
+    const x = clamp((start.x + end.x) / 2 - 141, FIELD.x + 10, FIELD.x + FIELD.w - 292);
+    const y = clamp(Math.max(start.y, end.y) + 18, FIELD.y + 105, FIELD.y + FIELD.h - 44);
+    panel(ctx, x, y, 282, 36, '#171c24f5', COLORS.red);
+    text(ctx, `LOOP ${progress}% · CLOSE HERE`, x + 141, y + 25, 18, '#fff5dd', 'bold', false, 'center');
+  }
+  // Mark one live collision, prioritizing the wall closest to breaking.
+  const eroding = state.strokes.filter(s => s !== stroke && s.erosion?.life > 0 && s.integrity > 0)
+    .sort((a, b) => a.integrity - b.integrity)[0];
+  if (eroding) {
+    const hit = eroding.erosion;
+    circle(ctx, hit.x, hit.y, 12, '#d43b2f28', COLORS.red, 3);
+    const x = clamp(hit.x - 235, FIELD.x + 10, FIELD.x + FIELD.w - 200);
+    const y = clamp(hit.y + 28, FIELD.y + 105, FIELD.y + FIELD.h - 40);
+    line(ctx, [[hit.x, hit.y + 12], [x + 170, y]], COLORS.red, 2);
+    panel(ctx, x, y, 190, 32, '#171c24f5', COLORS.red);
+    text(ctx, 'WALL ERODING', x + 95, y + 22, 17, '#ff8067', 'bold', false, 'center');
+  }
 }
 export function drawCursor(ctx, input, state) {
   const { x, y } = input.pointer;

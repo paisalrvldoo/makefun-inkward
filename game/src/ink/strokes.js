@@ -70,6 +70,7 @@ export function updateStrokes(state, input, dt) {
     if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);
     stroke.flash = Math.max(0, (stroke.flash || 0) - dt);
     stroke.soundCooldown = Math.max(0, (stroke.soundCooldown || 0) - dt);
+    if (stroke.erosion) stroke.erosion.life = Math.max(0, stroke.erosion.life - dt);
   }
   state.strokes = state.strokes.filter(stroke => stroke.life > 0 && stroke.integrity > 0).slice(-35);
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;

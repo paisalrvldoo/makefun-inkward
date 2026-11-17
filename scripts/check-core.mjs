@@ -25,6 +25,7 @@ function circle(state, x, y, radius = 64) {
   for (let i = 0; i < 4 / STEP; i++) updateWorld(state, replayInput(), STEP);
   assert.ok(enemy.x < 433, 'A real yokai cannot cross a live ink wall');
   assert.ok(wall.integrity < 1, 'Blocked yokai erode the wall');
+  assert.ok(wall.erosion?.life > 0, 'Live wall collisions retain their tactical warning point');
   assert.equal(state.bell.hp, 12, 'Wall protection preserves the bell');
 }
 {
@@ -67,6 +68,7 @@ assert.ok(cover.enemies.length >= 12 && new Set(cover.enemies.map(e => e.kind)).
 assert.ok(cover.enemies.some(e => e.kind === 'oni' && e.telegraph && e.hp < e.maxHp));
 assert.ok(cover.strokes.length >= 3 && cover.strokes.length <= 4 && cover.monk.dashTime > 0 && cover.ghosts.length >= 2);
 assert.equal(cover.omen.progress, 1); assert.equal(cover.bell.hp, cover.bell.maxHp - 2);
+assert.ok(cover.activeStroke && !cover.activeStroke.closed, 'Cover leaves a real mouse loop open for the next tactical decision');
 {
   const state = world(), enemy = spawnYokai(state, 'lantern', { x: 520, y: 411 });
   const input = replayInput(); input.pressed.add('KeyE'); updateWorld(state, input, STEP);

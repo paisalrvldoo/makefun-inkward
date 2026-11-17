@@ -1,27 +1,52 @@
-import { COLORS } from '../config.js';
+import { COLORS, FIELD, clamp } from '../config.js';
 import { bossPhase, ATTACK_NAMES } from '../entities/bosses.js';
 import { text, panel, circle, line } from './primitives.js';
+import { omenProgress } from '../world/omens.js';
 
 export function drawBossTelegraphs(ctx, state) {
   for (const boss of state.enemies) {
-    if (boss.kind !== 'oni' || !boss.telegraph) continue;
+    if (boss.kind !== 'oni' || boss.dead || !boss.telegraph) continue;
     const warning = boss.telegraph, progress = 1 - warning.time / warning.total;
     const color = warning.kind === 'charge' ? COLORS.red : boss.color;
     if (warning.kind === 'charge') {
       line(ctx, [[warning.x, warning.y], [warning.end.x, warning.end.y]], '#bb44361c', 76);
-      ctx.setLineDash([12, 8]); line(ctx, [[warning.x, warning.y], [warning.end.x, warning.end.y]], color, 3); ctx.setLineDash([]);
-      const a = Math.atan2(warning.end.y - warning.y, warning.end.x - warning.x);
-      const tip = { x: warning.end.x - Math.cos(a) * 42, y: warning.end.y - Math.sin(a) * 42 };
-      line(ctx, [[tip.x - Math.cos(a - 0.6) * 28, tip.y - Math.sin(a - 0.6) * 28], [tip.x, tip.y], [tip.x - Math.cos(a + 0.6) * 28, tip.y - Math.sin(a + 0.6) * 28]], color, 4);
     } else {
       circle(ctx, warning.x, warning.y, warning.radius, color + '18', color, 2);
       ctx.setLineDash([7, 8]); circle(ctx, warning.x, warning.y, warning.radius * (0.25 + progress * 0.75), null, color, 2); ctx.setLineDash([]);
       if (warning.kind === 'storm') for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; circle(ctx, warning.x + Math.cos(a) * warning.radius, warning.y + Math.sin(a) * warning.radius, 9, '#fff5da', color, 2); }
     }
-    const labelY = warning.kind === 'charge' ? Math.max(254, warning.y + 12) : Math.max(240, warning.y - warning.radius - 20);
-    const labelX = warning.kind === 'charge' ? Math.min(810, warning.x + 205) : warning.x;
-    panel(ctx, labelX - 119, labelY - 22, 238, 29, '#171c24ee', '#d5a847');
-    text(ctx, `${ATTACK_NAMES[warning.kind]} · ${warning.time.toFixed(1)}s`, labelX, labelY - 2, 14, warning.kind === 'charge' ? '#ef5b48' : '#f0c35b', 'bold', false, 'center');
+  }
+}
+
+export function drawBossCallouts(ctx, state) {
+  const boss = state.enemies.find(e => e.kind === 'oni' && !e.dead);
+  if (!boss) return;
+  if (boss.telegraph) {
+    const warning = boss.telegraph;
+    if (warning.kind === 'charge') {
+      // The bold lane stays above sprites so the shrine cannot hide its arrowhead.
+      const a = Math.atan2(warning.end.y - warning.y, warning.end.x - warning.x);
+      const start = { x: warning.x + Math.cos(a) * (boss.radius + 10), y: warning.y + Math.sin(a) * (boss.radius + 10) };
+      const tip = { x: warning.end.x - Math.cos(a) * 36, y: warning.end.y - Math.sin(a) * 36 };
+      ctx.setLineDash([18, 12]);
+      line(ctx, [[start.x, start.y], [tip.x, tip.y]], '#fffaf0', 12);
+      line(ctx, [[start.x, start.y], [tip.x, tip.y]], COLORS.red, 8); ctx.setLineDash([]);
+      const arrow = [[tip.x - Math.cos(a - 0.65) * 38, tip.y - Math.sin(a - 0.65) * 38], [tip.x, tip.y], [tip.x - Math.cos(a + 0.65) * 38, tip.y - Math.sin(a + 0.65) * 38]];
+      line(ctx, arrow, '#fffaf0', 12); line(ctx, arrow, COLORS.red, 8);
+    }
+    const x = clamp(boss.x + boss.radius + 25, FIELD.x + 10, FIELD.x + FIELD.w - 292);
+    const y = clamp(boss.y - 24, FIELD.y + 105, FIELD.y + FIELD.h - 90);
+    const color = warning.kind === 'charge' ? '#ff8067' : '#f0c35b';
+    panel(ctx, x, y, 282, 38, '#171c24f5', COLORS.red);
+    text(ctx, `${ATTACK_NAMES[warning.kind]} ${warning.time.toFixed(1)}s`, x + 141, y + 26, 20, color, 'bold', false, 'center');
+    line(ctx, [[x, y + 19], [boss.x + boss.radius + 7, boss.y]], COLORS.red, 2);
+  }
+  if (state.omen.id === 'boss') {
+    const x = clamp(boss.x - boss.radius - 194, FIELD.x + 10, FIELD.x + FIELD.w - 188);
+    const y = clamp(boss.y - 17, FIELD.y + 105, FIELD.y + FIELD.h - 40);
+    const color = state.omen.complete ? '#8bd0ac' : state.omen.failed ? '#ff8067' : '#f0c35b';
+    panel(ctx, x, y, 180, 32, '#171c24f5', COLORS.gold);
+    text(ctx, state.omen.failed ? 'OMEN MISSED' : `OMEN ${omenProgress(state.omen)}`, x + 90, y + 22, 15, color, 'bold', false, 'center');
   }
 }
 export function drawBossBanner(ctx, state) {

@@ -77,6 +77,19 @@ export function directPlayCover(state, input, pilot, trace = null) {
     const burst = state.seals.find(s => s.success && s.life > 1.2);
     const scoredGroup = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
     if (boss?.telegraph && wrathLevel(state) === 3 && state.combo >= 6 && live.length >= 12 && kinds.size >= 4 && state.strokes.length >= 3 && state.strokes.length <= 4 && burst && scoredGroup && state.monk.dashTime > 0 && state.ghosts.length >= 2) {
+      // Leave a genuine 85% brush loop open around the next group to seal.
+      const targets = live.filter(e => !e.hunter && e.kind !== 'oni' && e.x > 680 && e.x < 870 && e.y > 340 && e.y < 500);
+      if (targets.length < 3 || state.ink < 45 || state.strokes.length !== 3) continue;
+      const centre = targets.reduce((p, e) => ({ x: p.x + e.x / targets.length, y: p.y + e.y / targets.length }), { x: 0, y: 0 });
+      const radius = 110;
+      input.clearFrame(); input.keys.clear(); input.painting = true;
+      for (let i = 0; i <= 51; i++) {
+        const angle = Math.PI / 2 + i / 60 * Math.PI * 2;
+        const point = { x: centre.x + Math.cos(angle) * radius, y: centre.y + Math.sin(angle) * radius };
+        input.paintEvents.push({ type: i === 0 ? 'begin' : 'move', point }); input.pointer = point;
+      }
+      while (state.hitStop > 0) updateWorld(state, input, STEP);
+      updateWorld(state, input, STEP);
       state.soundEvents.length = 0; return { state, input };
     }
     if (state.bell.hp <= 0) break;

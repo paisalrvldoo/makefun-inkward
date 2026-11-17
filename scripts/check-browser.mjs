@@ -55,6 +55,17 @@ try {
     await call('Input.dispatchKeyEvent', { type: 'keyUp', code, key: keyValue });
   };
   const mouse = (type, x, y, button = 'left') => call('Input.dispatchMouseEvent', { type, x, y, button, buttons: type === 'mouseReleased' ? 0 : button === 'right' ? 2 : 1, clickCount: type === 'mouseMoved' ? 0 : 1 });
+  // Observe labels drawn by the real animation frame, including ordinary play.
+  const paintedLabels = () => evaluate(`(async () => {
+    const ctx = document.querySelector('#game').getContext('2d'), original = ctx.fillText, labels = [];
+    ctx.fillText = function(value, x, y, ...rest) {
+      labels.push({ text: String(value), x, y, width: this.measureText(value).width, font: this.font, align: this.textAlign });
+      return original.call(this, value, x, y, ...rest);
+    };
+    try { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
+    finally { ctx.fillText = original; }
+    return labels;
+  })()`);
   await call('Runtime.enable'); await call('Network.enable'); await call('Page.enable');
   await call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
   await call('Page.bringToFront');
@@ -79,7 +90,10 @@ try {
   const enemy = await evaluate('({x:window.inkward.state.enemies[0].x,y:window.inkward.state.enemies[0].y})');
   const cx = Math.max(108, Math.min(880, enemy.x)), cy = Math.max(208, Math.min(614, enemy.y)), radius = 66;
   await mouse('mousePressed', cx + radius, cy);
-  for (let i = 1; i <= 48; i++) { const a = i / 48 * Math.PI * 2; await mouse('mouseMoved', cx + Math.cos(a) * radius, cy + Math.sin(a) * radius); await pause(8); }
+  for (let i = 1; i <= 40; i++) { const a = i / 48 * Math.PI * 2; await mouse('mouseMoved', cx + Math.cos(a) * radius, cy + Math.sin(a) * radius); await pause(8); }
+  const liveLoopLabels = await paintedLabels();
+  assert.ok(liveLoopLabels.some(label => /^LOOP \d+% · CLOSE HERE$/.test(label.text)), 'An ordinary mouse loop draws its live closure decision');
+  for (let i = 41; i <= 48; i++) { const a = i / 48 * Math.PI * 2; await mouse('mouseMoved', cx + Math.cos(a) * radius, cy + Math.sin(a) * radius); await pause(8); }
   await mouse('mouseReleased', cx + radius, cy); await pause(60);
   assert.ok(await evaluate('window.inkward.state.sealed') > 0, 'A real mouse loop seals a naturally spawned yokai');
   await mouse('mousePressed', 450, 350, 'right'); await mouse('mouseReleased', 450, 350, 'right');
@@ -97,6 +111,22 @@ try {
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
+    if (scene === 'play') {
+      const labels = await paintedLabels();
+      for (const value of ['LOOP 85% · CLOSE HERE', 'WALL ERODING', 'BELL CHARGE 2.1s', 'OMEN 1 / 2 LOOPS']) {
+        const label = labels.find(label => label.text === value);
+        assert.ok(label, `Play renderer draws ${value}`);
+        assert.ok(label.x - label.width / 2 >= 18 && label.x + label.width / 2 <= 996 && label.y >= 233 && label.y <= 694, `${value} fits the visible field below the boss HUD`);
+      }
+      assert.ok(!labels.some(label => /^(COMBO ×|WRATH \d|1 \/ 2 LOOPS$)/.test(label.text)), 'Tactical field removes duplicate HUD values');
+      const arrowPixel = await evaluate(`(() => {
+        const w = inkward.state.enemies.find(e => e.kind === 'oni').telegraph;
+        const angle = Math.atan2(w.end.y - w.y, w.end.x - w.x);
+        return Array.from(document.querySelector('#game').getContext('2d').getImageData(Math.round(w.end.x - Math.cos(angle) * 36), Math.round(w.end.y - Math.sin(angle) * 36), 1, 1).data);
+      })()`);
+      assert.ok(arrowPixel[0] > 160 && arrowPixel[1] < 100 && arrowPixel[2] < 100, 'Vermilion charge arrowhead remains visible over the shrine');
+      console.log('Live tactics OK: closure progress, collision erosion, timed bell lane and boss omen; labels fit the field');
+    }
     if (scene === 'draft') {
       assert.equal(state.scroll, 5, 'Draft shot stops after scroll 5');
       assert.equal(state.arts, 5, 'Draft shot shows five held arts');
@@ -123,7 +153,7 @@ try {
   assert.equal(await evaluate('window.inkward.state.bell.hp'), 12, 'Restart restores bell HP');
   assert.equal(await evaluate('window.inkward.state.score'), 0, 'Restart clears score');
   assert.deepEqual(errors, [], `Browser errors: ${JSON.stringify(errors)}`);
-  console.log('Browser OK: title click, WASD, dash, real wall/loop, splash, Q/E, mute, pause, all scenes including the earned five-art draft, save and restart; zero console exceptions or failed resources');
+  console.log('Browser OK: title click, WASD, dash, real wall/loop and tactical call-outs, splash, Q/E, mute, pause, all scenes including the earned five-art draft, save and restart; zero console exceptions or failed resources');
 } finally {
   ws?.close(); chrome.kill('SIGTERM');
   await new Promise(resolve => { if (chrome.exitCode !== null) resolve(); else chrome.once('exit', resolve); });

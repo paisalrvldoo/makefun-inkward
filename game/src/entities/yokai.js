@@ -53,6 +53,7 @@ export function wallCollision(state, enemy, next, dt) {
       const nearest = nearestOnSegment(next, stroke.points[i - 1], stroke.points[i]);
       if (nearest.distance >= enemy.radius + INK.width / 2) continue;
       stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / (1 + artLevel(state, 'stone') * 0.25);
+      stroke.erosion = { x: nearest.x, y: nearest.y, life: 0.75 };
       if (!stroke.soundCooldown) {
         stroke.flash = 0.25; stroke.soundCooldown = 0.6;
         state.soundEvents.push({ name: 'wallHit' });

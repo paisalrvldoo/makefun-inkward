@@ -85,9 +85,10 @@ export function drawHud(ctx, state, audio) {
   text(ctx, '12 ARTS · EVERY RUN A NEW BRUSH', 1028, 551, 9, '#f0c35b', 'bold');
 
   panel(ctx, 1014, 580, 248, 114, '#171c24', COLORS.gold);
+  const bossOmen = state.mode === 'play' && state.omen.id === 'boss' && state.enemies.some(e => e.kind === 'oni' && !e.dead);
   text(ctx, 'OMEN / OPTIONAL', 1028, 602, 12, '#f0c35b', 'bold');
   wrapText(ctx, state.omen.label, 1028, 626, 216, 20, 16, '#f4eddb');
-  text(ctx, omenProgress(state.omen), 1028, 675, 11, state.omen.complete ? '#8bd0ac' : '#ef5b48', 'bold');
+  if (!bossOmen) text(ctx, omenProgress(state.omen), 1028, 675, 11, state.omen.complete ? '#8bd0ac' : '#ef5b48', 'bold');
   text(ctx, omenReward(state.omen), 1246, 675, 9, '#f0c35b', 'bold', false, 'right');
 
   panel(ctx, 18, 708, 978, 62, '#222936', COLORS.gold);

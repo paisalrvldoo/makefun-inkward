@@ -1,7 +1,7 @@
 import { WIDTH, HEIGHT, FIELD } from '../config.js';
 import { drawGarden } from './paper.js';
 import { drawBell, drawMonk, drawYokai } from './sprites.js';
-import { drawStrokes, drawCursor } from './ink.js';
+import { drawStrokes, drawCursor, drawInkCallouts } from './ink.js';
 import { drawEffects } from './fx.js';
 import { drawHud, drawWaveBanner } from './hud.js';
 import { drawTitle } from '../screens/title.js';
@@ -10,7 +10,7 @@ import { drawResults } from '../screens/results.js';
 import { drawPause } from '../screens/pause.js';
 import { spawnPoint } from '../world/waves.js';
 import { circle, text } from './primitives.js';
-import { drawBossBanner, drawBossTelegraphs } from './bosses.js';
+import { drawBossBanner, drawBossTelegraphs, drawBossCallouts } from './bosses.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -39,7 +39,11 @@ export function renderScene(ctx, paper, state, input, audio) {
   }
   drawMonk(ctx, state.monk, state.time);
   drawEffects(ctx, state);
-  if (state.mode === 'play') drawCursor(ctx, input, state);
+  if (state.mode === 'play') {
+    drawCursor(ctx, input, state);
+    drawInkCallouts(ctx, state);
+    drawBossCallouts(ctx, state);
+  }
   if (state.flash > 0) { ctx.fillStyle = `rgba(187,68,54,${state.flash * 0.4})`; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); }
   ctx.restore();
   drawHud(ctx, state, audio);
