@@ -42,7 +42,11 @@ try {
     return result.result.value;
   };
   const until = async expression => {
-    for (let attempt = 0; attempt < 150; attempt++) { if (await evaluate(expression)) return; await pause(30); }
+    for (let attempt = 0; attempt < 150; attempt++) {
+      try { if (await evaluate(expression)) return; }
+      catch (error) { if (!/Execution context was destroyed|Cannot find context|Inspected target navigated/.test(error.message)) throw error; }
+      await pause(30);
+    }
     throw new Error(`Timed out: ${expression}`);
   };
   const key = async (code, keyValue) => {
@@ -88,8 +92,9 @@ try {
   assert.equal(await evaluate('window.inkward.state.runTime'), pausedTime, 'Pause freezes simulation');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "play"');
   for (const scene of ['start', 'play', 'draft', 'end', 'win']) {
+    const expectedMode = { start: 'title', play: 'play', draft: 'draft', end: 'lose', win: 'win' }[scene];
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
-    await until('document.documentElement.dataset.shotReady === "true" && window.inkward'); await pause(80);
+    await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score })');
     assert.equal(state.mode, { start: 'title', play: 'play', draft: 'draft', end: 'lose', win: 'win' }[scene]);
     const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
@@ -101,6 +106,7 @@ try {
   await evaluate(`(async () => { const { replayInput, createReplayPilot } = await import('./src/shots.js'); const { updateWorld, nextScroll } = await import('./src/world/update.js'); const { startRun } = await import('./src/world/state.js'); const s = inkward.state; const input = replayInput(); const pilot = createReplayPilot(); startRun(s); for (let i = 0; i < 12000 && s.mode !== 'lose'; i++) { if (s.runTime < 35) pilot(s, input); else { input.clearFrame(); input.keys.clear(); } updateWorld(s, input, 1/60); } })()`);
   await until('window.inkward.state.mode === "lose"'); await pause(60);
   const lossScore = await evaluate('window.inkward.state.score');
+  await until(`Number(localStorage.getItem('inkward.best.v1')) >= ${lossScore}`);
   assert.ok(await evaluate('Number(localStorage.getItem("inkward.best.v1"))') >= lossScore, 'Best score persists');
   await key('KeyR', 'r'); await until('window.inkward.state.mode === "play"');
   assert.equal(await evaluate('window.inkward.state.bell.hp'), 12, 'Restart restores bell HP');

@@ -1,6 +1,34 @@
 [
-  { "name": "1-play.jpg", "query": "?shot=play&seed=1" },
-  { "name": "2-title.jpg", "query": "?shot=start&seed=1" },
-  { "name": "3-draft.jpg", "query": "?shot=draft&seed=1" },
-  { "name": "4-results.jpg", "query": "?shot=win&seed=1" }
+  {
+    "name": "1-play.jpg",
+    "query": "?shot=play&seed=1",
+    "width": 1280,
+    "height": 800,
+    "bytes": 177948,
+    "caption": "Autumn Oni fight: WRATH 3, twelve-spirit seal, combo x8, dash, five arts, omen 1/2."
+  },
+  {
+    "name": "2-title.jpg",
+    "query": "?shot=start&seed=1",
+    "width": 1280,
+    "height": 800,
+    "bytes": 120240,
+    "caption": "Title, rules, controls, difficulty and start."
+  },
+  {
+    "name": "3-draft.jpg",
+    "query": "?shot=draft&seed=1",
+    "width": 1280,
+    "height": 800,
+    "bytes": 84272,
+    "caption": "Three real level-one brush art choices after scroll one."
+  },
+  {
+    "name": "4-results.jpg",
+    "query": "?shot=win&seed=1",
+    "width": 1280,
+    "height": 800,
+    "bytes": 83478,
+    "caption": "Eight-scroll victory, score, omens, WRATH statistics and restart."
+  }
 ]
