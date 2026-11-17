@@ -20,7 +20,7 @@ Paint ink walls, encircle wandering yokai, and guard the last bell through eight
 
 Protect the shrine bell from incoming yokai. Hold the left mouse button to paint walls that block spirits, then close a loop around them by returning to the red starting dot or crossing your own stroke. Sealing groups earns score, builds combos, and refunds ink. Release the brush to refill; walls fade and erode under pressure.
 
-Clear every spirit in a scroll to advance and choose a brush art. Clear all **eight scrolls**, including their bosses, to win. You lose when the bell's health reaches zero; its damage carries between scrolls. Choose Novice (16 bell health), Monk (12), or Master (10) on the title screen. Your best score saves locally in the browser.
+Clear every spirit in a scroll to advance and choose a brush art. Clear all **eight scrolls**, including their bosses, to win. You lose when the bell's health reaches zero; its damage carries between scrolls. Start with Novice (16 bell health) or Monk (12). Your first victory permanently unlocks Master (10), two new brush arts, and the Moon Bell skin. Best scores, per-scroll records, unlocks, and your selected skin save locally in the browser.
 
 ### Controls
 
@@ -36,8 +36,10 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | 1–3 / click | Select difficulty on the title screen or a brush art during a draft; 4 selects an extra draft option when available |
 | P / Esc | Pause or resume during play |
 | M | Toggle sound |
-| R / restart button | Start another run from the results screen |
+| R / Run again | Start another run with a fresh seed from the results screen |
+| S / Same seed | Replay the finished run's seed and difficulty |
 | Esc / title button | Return to the title from the results screen |
+| B / bell skin button | Switch between Bronze and the unlocked Moon Bell on the title |
 
 Dash, splash, and rituals have cooldowns. Q and E are available from the start; their brush arts strengthen them.
 
@@ -67,6 +69,8 @@ Between scrolls, choose one of three offered arts (four with an omen reward). Pi
 | Echo of the bell | Keeps combos alive longer |
 | Winter lotus | Strengthens Q's freeze and reduces its cooldown |
 | Mending prayer | Repairs three bell health immediately and strengthens E's ward |
+| Moonlit ink (victory unlock) | Reduces painting costs while Bell Ward is active |
+| Afterglow prayer (victory unlock) | Repairs the bell after each completed scroll |
 
 ### Bosses
 

@@ -16,6 +16,8 @@ export const BRUSH_ARTS = [
   { id: 'echo', name: 'Echo of the bell', rune: 'O', type: 'COMBO' },
   { id: 'lotus', name: 'Winter lotus', rune: 'Q', type: 'RITUAL' },
   { id: 'mending', name: 'Mending prayer', rune: 'E', type: 'BELL' },
+  { id: 'moonInk', name: 'Moonlit ink', rune: 'M', type: 'INK', unlock: 'moonInk' },
+  { id: 'afterglow', name: 'Afterglow prayer', rune: 'A', type: 'BELL', unlock: 'afterglow' },
 ];
 export const findArt = id => BRUSH_ARTS.find(art => art.id === id);
 export function describeArt(id, level = 1) {
@@ -32,12 +34,14 @@ export function describeArt(id, level = 1) {
     echo: [`Keep combos for ${7 + level * 7} seconds`, 'Every successful loop refreshes the combo timer.'],
     lotus: [`Q hush: ${(2.5 + level * 1.4).toFixed(1)}s · ${Math.max(6, 14 - level * 3)}s recharge`, 'Freezes every spirit and exposes an Oni to stronger seals.'],
     mending: ['Repair 3 bell cracks now', `E protects for ${8.5 + level * 1.5}s, reaches ${155 + level * 55}px, recharges in ${Math.max(8, 18 - level * 4)}s.`],
+    moonInk: ['Ward painting costs ' + level * 15 + '% less ink', 'While E protects the bell, spend less ink on every wall and loop. Combines with Feather hand.'],
+    afterglow: ['Repair ' + level + ' bell crack' + (level > 1 ? 's' : '') + ' after each scroll', 'A lasting prayer. Bell repairs carry forward through all eight scrolls.'],
   };
   const [description, detail] = descriptions[id];
   return { description, detail };
 }
 export function draftArts(state) {
-  const pool = BRUSH_ARTS.filter(art => artLevel(state, art.id) < MAX_ART_LEVEL);
+  const pool = BRUSH_ARTS.filter(art => (!art.unlock || state.unlocks.includes(art.unlock)) && artLevel(state, art.id) < MAX_ART_LEVEL);
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(state.rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   state.draft = pool.slice(0, state.bonusDraft ? 4 : 3);
 }

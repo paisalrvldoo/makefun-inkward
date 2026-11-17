@@ -4,12 +4,13 @@ import { createState, startRun } from '../game/src/world/state.js';
 import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { spawnBoss, updateBosses } from '../game/src/entities/bosses.js';
 import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
-import { updateWorld } from '../game/src/world/update.js';
+import { updateWorld, finishRun } from '../game/src/world/update.js';
 import { splashInk } from '../game/src/arts/brushArts.js';
 import { replayInput, stageShot } from '../game/src/shots.js';
 import { raiseWrath, updateWrath, wrathLevel, wrathMultiplier } from '../game/src/world/wrath.js';
 import { beginOmen, finishOmen } from '../game/src/world/omens.js';
 import { draftArts } from '../game/src/arts/brushArts.js';
+import { readBest, readProgress, recordRun, selectBellSkin, UNLOCKS } from '../game/src/save.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
 function circle(state, x, y, radius = 64) {
@@ -115,4 +116,49 @@ assert.ok(draft.bonusDraft, 'The scroll-five unharmed omen unlocks a fourth choi
 assert.ok(draft.omenHistory.some(o => o.scroll === 4 && o.complete), 'The replay earns the crane omen with a real group seal');
 assert.ok(draft.omenHistory.some(o => o.scroll === 5 && o.complete), 'The replay earns the scroll-five no-hit omen');
 assert.equal(stageShot('win').state.score, win.score, 'Fixed-seed replays are deterministic');
+assert.equal(win.scrollScores.length, 8);
+assert.ok(win.scrollScores.every(score => score > 0), 'Each cleared scroll has a real score bar');
+assert.equal(win.scrollScores.reduce((sum, score) => sum + score, 0), win.score, 'Scroll bars include every score and victory bonus');
+assert.equal(loss.scrollScores.reduce((sum, score) => sum + score, 0), loss.score, 'Loss charts include the unfinished scroll');
+{
+  const originalStorage = globalThis.localStorage, store = new Map();
+  globalThis.localStorage = { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)) };
+  try {
+    store.set('inkward.best.v1', '125');
+    assert.equal(readBest(), 125, 'Existing v1 best scores migrate without a reset');
+    recordRun(win); recordRun(win);
+    const progress = readProgress();
+    assert.equal(progress.runs, 1, 'An ended run is recorded once');
+    assert.equal(progress.wins, 1);
+    assert.deepEqual(progress.unlocks, UNLOCKS.map(u => u.id), 'A real eight-scroll win unlocks the next-run rewards');
+    assert.deepEqual(progress.bestRun.scrollScores, win.scrollScores, 'The best record saves all eight real scroll scores');
+    assert.equal(progress.bestRun.seed, win.seed);
+    assert.ok(selectBellSkin(progress, 'moon'));
+    const again = createState(2, readBest(), 'monk', readProgress());
+    assert.equal(again.bell.skin, 'moon', 'The selected skin survives a fresh state');
+    startRun(again); finishRun(again, false); recordRun(again);
+    assert.equal(again.newBest, false); assert.deepEqual(again.newUnlocks, []);
+    assert.equal(readProgress().wins, 1); assert.equal(readProgress().runs, 2);
+    assert.deepEqual(readProgress().unlocks, progress.unlocks, 'A later loss retains victory unlocks');
+    const offered = new Set();
+    for (let i = 0; i < 40; i++) { draftArts(again); again.draft.forEach(a => offered.add(a.id)); }
+    assert.ok(offered.has('moonInk') && offered.has('afterglow'), 'Unlocked arts enter real drafts');
+    store.set('inkward.progress.v2', '{broken');
+    assert.deepEqual(readProgress().unlocks, [], 'A corrupt profile safely starts fresh');
+    store.set('inkward.best.v1', 'Infinity');
+    assert.equal(readBest(), 0, 'Invalid scores cannot become immortal records');
+  } finally {
+    if (originalStorage === undefined) delete globalThis.localStorage; else globalThis.localStorage = originalStorage;
+  }
+}
+{
+  const normal = world(), moon = world();
+  moon.arts = ['moonInk']; moon.artLevels.moonInk = 2; moon.bell.wardTime = 3;
+  for (const state of [normal, moon]) { beginStroke(state, { x: 200, y: 300 }); paintPoint(state, { x: 400, y: 300 }); endStroke(state); }
+  assert.ok(Math.abs((100 - moon.ink) / (100 - normal.ink) - 0.7) < 0.001, 'Moonlit ink reduces actual ward painting cost');
+  const prayer = world(); prayer.arts = ['afterglow']; prayer.artLevels.afterglow = 2; prayer.bell.hp = 8;
+  updateWorld(prayer, replayInput(), STEP);
+  assert.equal(prayer.mode, 'draft'); assert.equal(prayer.bell.hp, 10, 'Afterglow repairs the bell on a real scroll clear');
+}
+console.log('Progression OK: eight score bars, legacy/corrupt saves, persistent one-time victory unlocks, next-run arts and Moon Bell');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

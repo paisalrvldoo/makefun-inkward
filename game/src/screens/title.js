@@ -9,6 +9,7 @@ import { drawTutorial } from './tutorial.js';
 
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
 export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
+export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
 export function drawTitle(ctx, state, input, audio) {
   ctx.fillStyle = '#111a27'; ctx.fillRect(0, 0, 1280, 800);
   wash(ctx, 973, 258, 352, '#ad2e2a', 0.28);
@@ -38,7 +39,7 @@ export function drawTitle(ctx, state, input, audio) {
     { kind: 'oni', x: 1194, y: 405, s: 1.35 },
   ];
   enemies.forEach(e => drawYokai(ctx, { ...e, color: e.kind === 'oni' ? ONI.ember.color : YOKAI[e.kind].color, phase: 0, radius: 22, maxHp: 5, hp: 4 }, state.time, e.s));
-  drawBell(ctx, { x: 930, y: 448, hp: 12, maxHp: 12, hitTime: 0 }, state.time, 1.6);
+  drawBell(ctx, { x: 930, y: 448, hp: 12, maxHp: 12, hitTime: 0, skin: state.bell.skin }, state.time, 1.6);
   drawMonk(ctx, { x: 755, y: 454, hurtTime: 0 }, state.time, 2.15);
   stamp(ctx, 'WARD', 1189, 512, 66, -0.12);
   ctx.restore();
@@ -52,17 +53,23 @@ export function drawTitle(ctx, state, input, audio) {
   const badges = [
     { x: 64, w: 122, label: '8 SCROLLS', fill: '#b8342b' },
     { x: 197, w: 112, label: '3 ONI', fill: '#b77926' },
-    { x: 320, w: 178, label: '12 BRUSH ARTS', fill: '#26766d' },
+    { x: 320, w: 178, label: (state.unlocks.includes('moonInk') ? '14' : '12') + ' BRUSH ARTS', fill: '#26766d' },
   ];
   for (const badge of badges) { panel(ctx, badge.x, 328, badge.w, 37, badge.fill, '#f0c15d'); text(ctx, badge.label, badge.x + badge.w / 2, 352, 13, '#fff7e5', 'bold', false, 'center'); }
+  if (state.unlocks.includes('moonBell')) {
+    panel(ctx, SKIN_BUTTON.x, SKIN_BUTTON.y, SKIN_BUTTON.w, SKIN_BUTTON.h, '#24313d', '#8a6b3c');
+    text(ctx, 'BELL: ' + state.bell.skin.toUpperCase() + '  /  B', 394, 406, 11, '#c3dceb', 'bold', false, 'center');
+  }
 
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
   DIFFICULTY_RECTS.forEach((rect, i) => {
     const selected = state.difficulty === rect.id;
+    const locked = rect.id === 'master' && !state.unlocks.includes('master');
     panel(ctx, rect.x, rect.y, rect.w, rect.h, selected ? '#bd382d' : '#24313d', selected ? '#f5c65c' : '#8a6b3c');
-    text(ctx, DIFFICULTIES[i].name, rect.x + rect.w / 2, rect.y + 21, 12, '#fff3d9', 'bold', false, 'center');
+    text(ctx, DIFFICULTIES[i].name + (locked ? ' · LOCKED' : ''), rect.x + rect.w / 2, rect.y + 21, locked ? 10 : 12, locked ? '#90999c' : '#fff3d9', 'bold', false, 'center');
   });
   text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 578, 12, '#d0c9b8');
+  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 600, 11, '#e5b854');
 
   drawTutorial(ctx);
   text(ctx, 'WASD MOVE', 68, 775, 12, '#f0c15d', 'bold');

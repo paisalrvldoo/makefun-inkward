@@ -25,7 +25,8 @@ export function paintPoint(state, point) {
   const previous = stroke.points[stroke.points.length - 1];
   let length = distance(previous, point);
   if (length < 3) return;
-  const cost = INK.cost * (1 - artLevel(state, 'feather') * 0.18);
+  const wardDiscount = state.bell.wardTime > 0 ? 1 - artLevel(state, 'moonInk') * 0.15 : 1;
+  const cost = INK.cost * (1 - artLevel(state, 'feather') * 0.18) * wardDiscount;
   const available = state.ink / cost;
   const end = length > available ? { x: previous.x + (point.x - previous.x) * available / length, y: previous.y + (point.y - previous.y) * available / length } : { ...point };
   length = Math.min(length, available);

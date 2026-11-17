@@ -119,9 +119,15 @@ export function drawBell(ctx, bell, time = 0, scale = 1) {
   line(ctx, [[-53, -46], [0, -55], [53, -46]], COLORS.ink, 6); line(ctx, [[-48, -40], [48, -40]], COLORS.red, 5);
   ctx.save(); ctx.rotate(bell.hitTime > 0 ? Math.sin(time * 28) * 0.1 : Math.sin(time * 1.1) * 0.015);
   line(ctx, [[0, -48], [0, -28]], '#a88c52', 3);
-  ctx.fillStyle = bell.hp <= 3 ? '#b58955' : '#d7b467'; ctx.strokeStyle = '#695737'; ctx.lineWidth = 2;
+  const moon = bell.skin === 'moon';
+  ctx.fillStyle = moon ? '#c3dceb' : bell.hp <= 3 ? '#b58955' : '#d7b467'; ctx.strokeStyle = moon ? '#526b88' : '#695737'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(-20, 8); ctx.lineTo(-16, -16); ctx.quadraticCurveTo(0, -39, 16, -16); ctx.lineTo(20, 8); ctx.quadraticCurveTo(0, 16, -20, 8); ctx.fill(); ctx.stroke();
   line(ctx, [[-15, 0], [15, 0]], '#af8945', 2); circle(ctx, 0, 15, 4, '#695737');
+  if (moon) {
+    circle(ctx, 0, -12, 7, '#edf7fc');
+    circle(ctx, 3, -14, 6, '#c3dceb');
+    circle(ctx, -9, -23, 1.4, '#fff8d9'); circle(ctx, 10, -8, 1.2, '#fff8d9');
+  }
   if (bell.hp < (bell.maxHp || 12)) line(ctx, [[7, -21], [3, -10], [9, -4], [4, 5]], '#70543a', 1.6);
   if (bell.hp <= (bell.maxHp || 12) - 2) line(ctx, [[-8, -18], [-5, -10], [-10, -1]], '#70543a', 1.8);
   ctx.restore();

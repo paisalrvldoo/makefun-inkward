@@ -17,6 +17,16 @@ export function drawArtIcon(ctx, id, x, y, size = 23, palette = {}) {
   else if (id === 'well') { circle(ctx, 0, 0, 7, null, blue, 2); circle(ctx, 0, 0, 3, null, blue, 1.5); }
   else if (id === 'stone') line(ctx, [[-7, 5], [-5, -4], [2, -6], [7, 3], [-7, 5]], ink, 2);
   else if (id === 'lotus') { for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.ellipse(i * 4, 0, 3, 6, i * 0.5, 0, Math.PI * 2); ctx.strokeStyle = blue; ctx.lineWidth = 1.5; ctx.stroke(); } }
+  else if (id === 'moonInk') {
+    ctx.fillStyle = blue; ctx.beginPath(); ctx.arc(0, -1, 7, 0, Math.PI * 2); ctx.fill();
+    circle(ctx, 3, -3, 6, fill);
+    line(ctx, [[-6, 8], [0, 6], [6, 8]], blue, 1.5);
+  }
+  else if (id === 'afterglow') {
+    circle(ctx, 0, -1, 5, null, gold, 1.8);
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; line(ctx, [[Math.cos(a) * 7, Math.sin(a) * 7 - 1], [Math.cos(a) * 9, Math.sin(a) * 9 - 1]], gold, 1); }
+    line(ctx, [[-6, 8], [6, 8]], red, 2);
+  }
   else line(ctx, [[-7, 4], [-7, -5], [7, -5], [7, 4], [-7, 4], [0, 7]], red, 1.8);
   ctx.restore();
 }

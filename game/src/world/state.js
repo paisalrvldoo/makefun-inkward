@@ -4,16 +4,19 @@ import { createMonk } from '../entities/monk.js';
 import { makeThreatQueue } from './waves.js';
 import { DIFFICULTIES } from './difficulty.js';
 import { beginOmen } from './omens.js';
+import { emptyProgress } from '../save.js';
 
-export function createState(seed = 1, best = 0, difficultyId = 'monk') {
+export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress()) {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
   const state = {
-    seed, difficulty: profile.id, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
+    seed: (Number(seed) >>> 0) || 1, difficulty: profile.id, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
+    progress, unlocks: [...progress.unlocks], previousBestRun: progress.bestRun, newUnlocks: [], newBest: false, runRecorded: false,
+    scrollScores: Array(8).fill(0), scrollStartScore: 0,
     score: 0, best, combo: 1, comboTime: 0, peakCombo: 1, sealed: 0, loops: 0, largestSeal: 0,
     wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
     omen: null, omenHistory: [], omenScore: 0, bonusDraft: false,
-    ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0, wardTime: 0 }, monk: createMonk(),
+    ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0, wardTime: 0, skin: progress.selectedSkin }, monk: createMonk(),
     enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
     seals: [], ghosts: [], bolts: [], arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
     spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,

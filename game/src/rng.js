@@ -9,3 +9,11 @@ export function createRng(seed = 1) {
 }
 export const between = (rng, low, high) => low + rng() * (high - low);
 export const pick = (rng, items) => items[Math.floor(rng() * items.length)];
+
+export function newRunSeed(previous = 0) {
+  const values = new Uint32Array(1);
+  if (globalThis.crypto?.getRandomValues) globalThis.crypto.getRandomValues(values);
+  else values[0] = Math.floor(Math.random() * 0xffffffff);
+  const seed = values[0] || 1;
+  return seed === previous ? (seed + 1) >>> 0 || 1 : seed;
+}

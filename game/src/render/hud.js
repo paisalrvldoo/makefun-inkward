@@ -82,7 +82,7 @@ export function drawHud(ctx, state, audio) {
       drawLevelPips(ctx, state, id, 1210, y - 4);
     });
   }
-  text(ctx, '12 ARTS · EVERY RUN A NEW BRUSH', 1028, 551, 9, '#f0c35b', 'bold');
+  text(ctx, (state.unlocks.includes('moonInk') ? '14' : '12') + ' ARTS · EVERY RUN A NEW BRUSH', 1028, 551, 9, '#f0c35b', 'bold');
 
   panel(ctx, 1014, 580, 248, 114, '#171c24', COLORS.gold);
   const bossOmen = state.mode === 'play' && state.omen.id === 'boss' && state.enemies.some(e => e.kind === 'oni' && !e.dead);

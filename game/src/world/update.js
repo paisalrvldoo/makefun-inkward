@@ -8,6 +8,13 @@ import { makeThreatQueue, updateWaves } from './waves.js';
 import { getScroll } from './scrolls.js';
 import { updateWrath } from './wrath.js';
 import { beginOmen, finishOmen } from './omens.js';
+import { gradeRun } from './state.js';
+import { recordRun } from '../save.js';
+import { artLevel } from '../arts/levels.js';
+
+export function recordScroll(state) {
+  state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
+}
 
 export function finishRun(state, won) {
   if (state.ended) return;
@@ -16,11 +23,13 @@ export function finishRun(state, won) {
   finishOmen(state, won);
   state.mode = won ? 'win' : 'lose';
   if (won) state.score += state.bell.hp * 500 + 3000;
-  state.best = Math.max(state.best, state.score);
+  recordScroll(state); state.grade = gradeRun(state);
+  recordRun(state, { persist: false });
   state.soundEvents.push({ name: won ? 'win' : 'lose' });
 }
 export function nextScroll(state) {
   state.scroll++;
+  state.scrollStartScore = state.score;
   state.scrollTime = 0; state.cleared = 0;
   state.strokes = []; state.activeStroke = null; state.waitRelease = false;
   state.queue = makeThreatQueue(state); state.total = state.queue.length; state.spawnTime = 2;
@@ -52,9 +61,11 @@ export function updateWorld(state, input, dt) {
   if (!state.queue.length && !state.enemies.length) {
     finishOmen(state, true);
     endStroke(state);
+    state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + artLevel(state, 'afterglow'));
     if (state.scroll === 8) finishRun(state, true);
     else {
       state.score += 400 + state.bell.hp * 25;
+      recordScroll(state);
       state.mode = 'draft'; draftArts(state);
       state.soundEvents.push({ name: 'draft' });
     }
