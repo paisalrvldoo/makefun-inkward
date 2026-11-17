@@ -56,13 +56,13 @@ export function drawGarden(ctx, state) {
   const season = getSeason(state);
   ctx.save(); ctx.beginPath(); ctx.rect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.clip();
   ctx.fillStyle = '#faf5e6'; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h);
-  wash(ctx, FIELD.x + 70, FIELD.y + 80, 220, season.wash, 0.55);
-  wash(ctx, FIELD.x + FIELD.w - 10, FIELD.y + FIELD.h - 40, 250, season.wash, 0.5);
+  wash(ctx, FIELD.x + 70, FIELD.y + 80, 220, season.wash, 0.72);
+  wash(ctx, FIELD.x + FIELD.w - 10, FIELD.y + FIELD.h - 40, 250, season.wash, 0.66);
   wash(ctx, 495, 410, 210, '#ebdbac', 0.25);
   if (season.motif === 'maple') {
-    wash(ctx, 100, 550, 290, '#e57c35', 0.38);
-    wash(ctx, 840, 290, 260, '#db8839', 0.4);
-    wash(ctx, 480, 230, 310, '#edb85f', 0.3);
+    wash(ctx, 100, 550, 290, '#e57c35', 0.54);
+    wash(ctx, 840, 290, 260, '#db8839', 0.56);
+    wash(ctx, 480, 230, 310, '#edb85f', 0.43);
   }
   // Distant sumi mountains and a torii dissolve into the seasonal watercolor.
   ctx.globalAlpha = 0.09; ctx.fillStyle = '#4f6258';
@@ -106,10 +106,10 @@ export function drawGarden(ctx, state) {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
-  ctx.strokeStyle = COLORS.line; ctx.lineWidth = 1; ctx.strokeRect(FIELD.x + 0.5, FIELD.y + 0.5, FIELD.w - 1, FIELD.h - 1);
+  ctx.strokeStyle = '#817044'; ctx.lineWidth = 2; ctx.strokeRect(FIELD.x + 0.5, FIELD.y + 0.5, FIELD.w - 1, FIELD.h - 1);
   // Registration marks frame the garden like a printed scroll.
-  for (const [x, y, dx, dy] of [[28, 128, 1, 1], [960, 128, -1, 1], [28, 694, 1, -1], [960, 694, -1, -1]]) {
+  for (const [x, y, dx, dy] of [[FIELD.x, FIELD.y, 1, 1], [FIELD.x + FIELD.w, FIELD.y, -1, 1], [FIELD.x, FIELD.y + FIELD.h, 1, -1], [FIELD.x + FIELD.w, FIELD.y + FIELD.h, -1, -1]]) {
     line(ctx, [[x + dx * 5, y + dy * 23], [x + dx * 5, y + dy * 5], [x + dx * 23, y + dy * 5]], '#9e9278', 2);
   }
-  text(ctx, 'THE SHRINE GARDEN', 48, 155, 10, '#948f7b', 'bold');
+  text(ctx, 'THE SHRINE GARDEN', FIELD.x + 20, FIELD.y + 27, 10, '#65583d', 'bold');
 }

@@ -1,8 +1,8 @@
 export const SEASONS = [
-  { name: 'SPRING', subtitle: 'The waking garden', color: '#cf878a', wash: '#efc6c0', motif: 'blossom' },
-  { name: 'SUMMER', subtitle: 'The emerald rain', color: '#648e75', wash: '#bed8b5', motif: 'leaf' },
-  { name: 'AUTUMN', subtitle: 'The wandering embers', color: '#c36532', wash: '#ec9c4d', motif: 'maple' },
-  { name: 'WINTER', subtitle: 'The last snowfall', color: '#7191a6', wash: '#c7dce3', motif: 'snow' },
+  { name: 'SPRING', subtitle: 'The waking garden', color: '#bd5364', wash: '#ed9c9f', motif: 'blossom' },
+  { name: 'SUMMER', subtitle: 'The emerald rain', color: '#397b57', wash: '#91c987', motif: 'leaf' },
+  { name: 'AUTUMN', subtitle: 'The wandering embers', color: '#bd4e22', wash: '#f18132', motif: 'maple' },
+  { name: 'WINTER', subtitle: 'The last snowfall', color: '#3d789e', wash: '#94cce5', motif: 'snow' },
 ];
 export const SCROLLS = [
   { name: 'A bell in bloom', season: 0, types: ['kappa', 'crane'], count: 16, interval: 2.0, boss: null },

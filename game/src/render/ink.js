@@ -1,4 +1,4 @@
-import { COLORS } from '../config.js';
+import { COLORS, FIELD } from '../config.js';
 import { circle, text, stamp } from './primitives.js';
 
 function strokePath(ctx, points, width, color) {
@@ -24,8 +24,8 @@ export function drawStrokes(ctx, state) {
   ctx.globalAlpha = 1;
   for (const stroke of state.strokes) {
     ctx.globalAlpha = Math.min(1, stroke.life / 2) * (0.42 + stroke.integrity * 0.58);
-    strokePath(ctx, stroke.points, 12, '#33383022');
-    strokePath(ctx, stroke.points, 8.5, state.arts.includes('vermilion') ? '#983d34' : COLORS.ink);
+    strokePath(ctx, stroke.points, 14, '#33383030');
+    strokePath(ctx, stroke.points, 10, state.arts.includes('vermilion') ? '#983d34' : COLORS.ink);
     strokePath(ctx, stroke.points, 1, '#f8f1d82b');
     if (stroke.flash > 0) {
       ctx.globalAlpha = Math.min(1, stroke.flash * 4);
@@ -50,7 +50,7 @@ export function drawStrokes(ctx, state) {
 }
 export function drawCursor(ctx, input, state) {
   const { x, y } = input.pointer;
-  if (x < 28 || x > 960 || y < 128 || y > 694) return;
+  if (x < FIELD.x || x > FIELD.x + FIELD.w || y < FIELD.y || y > FIELD.y + FIELD.h) return;
   circle(ctx, x, y, input.painting ? 7 : 12, null, state.ink < 5 ? COLORS.red : COLORS.ink, 1);
   circle(ctx, x, y, 2, COLORS.ink);
   if (state.activeStroke) {
