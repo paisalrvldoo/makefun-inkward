@@ -12,7 +12,7 @@ Paint ink walls, encircle wandering yokai, and guard the last bell through eight
 
 ![INKWARD title screen](screenshots/2-title.jpg)
 
-![INKWARD winter Oni fight](screenshots/3-winter.jpg)
+![INKWARD brush-art draft after scroll five](screenshots/3-draft.jpg)
 
 ![INKWARD victory results](screenshots/4-victory.jpg)
 
@@ -47,7 +47,7 @@ Successful seals raise **WRATH** through five levels. Each level adds 20% to spi
 
 ### Omens
 
-Each scroll offers an optional challenge: seal three cranes in one loop, finish with the bell unharmed, or defeat the boss within two loops that enclose it. Fulfilling an omen awards bonus score or a fourth option in the next brush-art draft. Missing one still lets you advance.
+Each scroll offers an optional challenge: seal three cranes in one loop, finish with the bell unharmed, or defeat the boss within two loops that enclose it. Fulfilling an omen awards bonus score or a fourth option in the next brush-art draft; the scroll-five unharmed omen unlocks an extra art choice for the Maple Oni ahead. Missing one still lets you advance.
 
 ### Brush arts
 
@@ -118,7 +118,7 @@ game/
     screens/           Title, draft, pause, and results
     shots.js           Submission-view staging
     coverReplay.js     Gameplay replay for the cover
-screenshots/           Four submission JPEGs: play, title, winter, and victory
+screenshots/           Four submission JPEGs: play, title, draft, and victory
 shots.json             Submission view definitions
 scripts/               Syntax, core-mechanics, and browser checks
 serve.ts               Local static server

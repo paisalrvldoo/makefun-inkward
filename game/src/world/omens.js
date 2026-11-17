@@ -5,7 +5,7 @@ const OMENS = [
   ['unharmed', 'Finish with bell unharmed', 1, 'draft'],
   ['boss', 'Seal the boss inside 2 loops', 2, 5000],
   ['cranes', 'Seal 3 cranes in one loop', 3, 'draft'],
-  ['unharmed', 'Finish with bell unharmed', 1, 4000],
+  ['unharmed', 'Finish with bell unharmed', 1, 'draft'],
   ['boss', 'Seal the boss inside 2 loops', 2, 'draft'],
   ['cranes', 'Seal 3 cranes in one loop', 3, 6000],
   ['boss', 'Seal the boss inside 2 loops', 2, 8000],

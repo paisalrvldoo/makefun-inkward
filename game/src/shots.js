@@ -3,7 +3,7 @@
 import { STEP, FIELD, distance, clamp } from './config.js';
 import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
-import { chooseArt } from './arts/brushArts.js';
+import { chooseArt, draftArts } from './arts/brushArts.js';
 import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 
@@ -24,18 +24,28 @@ export function createReplayPilot(options = {}) {
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
-    const urgent = threats.find(e => !e.hunter && !e.sealLock && distance(e, state.bell) < 125);
-    const target = threats.find(e => e.kind === 'oni' && !e.sealLock) || urgent || threats.find(e => !e.sealLock);
+    const craneOmen = options.omenScroll === state.scroll && state.omen?.id === 'cranes';
+    const cranes = craneOmen ? threats.filter(e => e.kind === 'crane' && !e.hunter && !e.sealLock) : [];
+    const craneCentre = cranes.length >= 3
+      ? cranes.slice(0, 3).reduce((sum, e) => ({ x: sum.x + e.x / 3, y: sum.y + e.y / 3 }), { x: 0, y: 0 })
+      : null;
+    const craneRadius = craneCentre ? Math.max(...cranes.slice(0, 3).map(e => distance(e, craneCentre))) : Infinity;
+    const craneGroup = craneCentre && craneRadius < 230 ? { x: craneCentre.x, y: craneCentre.y, kind: 'omen-group' } : null;
+    const available = craneOmen && !craneGroup ? threats.filter(e => e.kind !== 'crane') : threats;
+    const urgent = available.find(e => !e.hunter && !e.sealLock && distance(e, state.bell) < 125);
+    const target = craneGroup || available.find(e => e.kind === 'oni' && !e.sealLock) || urgent || available.find(e => !e.sealLock);
     if (!drawing && target && state.time - lastLoop > (aggressive ? 0.45 : 2.4) && state.ink > 35) {
       const neighbours = threats.filter(e => distance(e, target) < 80);
-      const radius = target.kind === 'oni' ? 65 : neighbours.length >= 2 ? 75 : 48;
-      const centre = target.kind === 'oni' ? target : neighbours.length >= 2 ? neighbours.reduce((sum, e) => ({ x: sum.x + e.x / neighbours.length, y: sum.y + e.y / neighbours.length }), { x: 0, y: 0 }) : target;
-      drawing = {
-        x: clamp(centre.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
-        y: clamp(centre.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
-        radius, step: 0, duration: aggressive ? 12 : 47,
-      };
-      lastLoop = state.time;
+      const radius = craneGroup ? craneRadius + 26 : target.kind === 'oni' ? 65 : neighbours.length >= 2 ? 75 : 48;
+      const centre = craneGroup ? craneCentre : target.kind === 'oni' ? target : neighbours.length >= 2 ? neighbours.reduce((sum, e) => ({ x: sum.x + e.x / neighbours.length, y: sum.y + e.y / neighbours.length }), { x: 0, y: 0 }) : target;
+      if (!craneGroup || state.ink >= radius * 0.46 + 6) {
+        drawing = {
+          x: clamp(centre.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
+          y: clamp(centre.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
+          radius, step: 0, duration: craneGroup ? 26 : aggressive ? 12 : 47,
+        };
+        lastLoop = state.time;
+      }
     }
     if (drawing) {
       const a = drawing.step / drawing.duration * Math.PI * 2;
@@ -59,7 +69,7 @@ export function createReplayPilot(options = {}) {
     if (y > state.monk.y + 8) input.keys.add('KeyS'); else if (y < state.monk.y - 8) input.keys.add('KeyW');
     if (aggressive && (threats.length >= 6 || threats.some(e => e.kind === 'oni')) && state.qCooldown <= 0) input.pressed.add('KeyQ');
     if (aggressive && threats.some(e => distance(e, state.bell) < 110) && state.eCooldown <= 0) input.pressed.add('KeyE');
-    if (aggressive && threats.length > 3 && state.splashCooldown <= 0) input.splashes.push({ x: target.x, y: target.y });
+    if (aggressive && target && threats.length > 3 && state.splashCooldown <= 0) input.splashes.push({ x: target.x, y: target.y });
     if (aggressive && state.monk.dashCooldown <= 0 && threats.some(e => distance(e, state.monk) < 95)) input.pressed.add('Space');
   };
 }
@@ -68,8 +78,13 @@ export function stageShot(name, seed = 1) {
   if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
+  if (name === 'draft') {
+    // This replay begins with one previously owned art, then earns the other four through real drafts.
+    draftArts(state);
+    chooseArt(state, 0);
+  }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play' });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null });
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);
@@ -80,11 +95,14 @@ export function stageShot(name, seed = 1) {
   }
   const limit = name === 'end' ? 280 : 900;
   for (let i = 0; i < limit / STEP; i++) {
-    if (name === 'draft' && state.mode === 'draft') break;
+    if (name === 'draft' && state.mode === 'draft' && state.scroll === 5) break;
     if (name === 'end' && state.runTime > 35) { input.clearFrame(); input.keys.clear(); }
     else pilot(state, input, name !== 'play' || state.scroll < 3);
     updateWorld(state, input, STEP);
     if (state.mode === 'win' || state.mode === 'lose') break;
+  }
+  if (name === 'draft' && (state.mode !== 'draft' || state.scroll !== 5 || !state.bonusDraft || state.arts.length !== 5 || state.draft.length !== 4)) {
+    throw new Error('Draft director missed its frame: scroll ' + state.scroll + ', mode ' + state.mode + ', bonus ' + state.bonusDraft + ', arts ' + state.arts.length + ', choices ' + state.draft.length);
   }
   state.soundEvents.length = 0;
   return { state, input };

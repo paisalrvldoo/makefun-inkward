@@ -95,8 +95,19 @@ try {
     const expectedMode = { title: 'title', play: 'play', draft: 'draft', end: 'lose', winter: 'play', win: 'win' }[scene];
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
-    const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score })');
+    const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
+    if (scene === 'draft') {
+      assert.equal(state.scroll, 5, 'Draft shot stops after scroll 5');
+      assert.equal(state.arts, 5, 'Draft shot shows five held arts');
+      assert.equal(state.choices, 4, 'Earned omen displays its fourth choice');
+      assert.equal(state.bonus, true, 'Scroll-five omen reward is live');
+      const lacquer = await evaluate('(() => { const c = document.querySelector("#game").getContext("2d"); const p = (x, y) => Array.from(c.getImageData(x, y, 1, 1).data); return { backdrop: p(10, 10), card: p(55, 300), seal: p(184, 394) }; })()');
+      console.log('Draft pixels', JSON.stringify(lacquer));
+      assert.deepEqual(lacquer.backdrop, [8, 15, 25, 255], 'Draft covers the game scene with opaque lacquer');
+      assert.ok(lacquer.card[0] < 50 && lacquer.card[2] < 70, 'Draft card uses a dark lacquer surface');
+      assert.ok(Math.max(...lacquer.seal.slice(0, 3)) > 130, 'Draft art seal has a bright colored face');
+    }
     const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
     writeFileSync(`/tmp/ink-${scene}.jpg`, Buffer.from(screenshot.data, 'base64'));
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
@@ -112,7 +123,7 @@ try {
   assert.equal(await evaluate('window.inkward.state.bell.hp'), 12, 'Restart restores bell HP');
   assert.equal(await evaluate('window.inkward.state.score'), 0, 'Restart clears score');
   assert.deepEqual(errors, [], `Browser errors: ${JSON.stringify(errors)}`);
-  console.log('Browser OK: title click, WASD, dash, real wall/loop, splash, Q/E, mute, pause, all scenes, save and restart; zero console exceptions or failed resources');
+  console.log('Browser OK: title click, WASD, dash, real wall/loop, splash, Q/E, mute, pause, all scenes including the earned five-art draft, save and restart; zero console exceptions or failed resources');
 } finally {
   ws?.close(); chrome.kill('SIGTERM');
   await new Promise(resolve => { if (chrome.exitCode !== null) resolve(); else chrome.once('exit', resolve); });

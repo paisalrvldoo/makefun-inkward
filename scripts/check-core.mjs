@@ -107,6 +107,10 @@ assert.equal(cover.omen.progress, 1); assert.equal(cover.bell.hp, cover.bell.max
 }
 assert.equal(win.mode, 'win'); assert.equal(win.scroll, 8); assert.ok(win.bell.hp > 0);
 assert.equal(loss.mode, 'lose'); assert.equal(loss.bell.hp, 0);
-assert.equal(draft.mode, 'draft'); assert.equal(draft.draft.length, 3);
+assert.equal(draft.mode, 'draft'); assert.equal(draft.scroll, 5);
+assert.equal(draft.arts.length, 5); assert.equal(draft.draft.length, 4);
+assert.ok(draft.bonusDraft, 'The scroll-five unharmed omen unlocks a fourth choice');
+assert.ok(draft.omenHistory.some(o => o.scroll === 4 && o.complete), 'The replay earns the crane omen with a real group seal');
+assert.ok(draft.omenHistory.some(o => o.scroll === 5 && o.complete), 'The replay earns the scroll-five no-hit omen');
 assert.equal(stageShot('win').state.score, win.score, 'Fixed-seed replays are deterministic');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);
