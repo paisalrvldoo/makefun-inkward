@@ -5,6 +5,7 @@ import { text, line, panel, button, hitRect, stamp, circle } from '../render/pri
 import { wash, blossom } from '../render/paper.js';
 import { DIFFICULTIES } from '../world/difficulty.js';
 import { ONI } from '../entities/bosses.js';
+import { drawTutorial } from './tutorial.js';
 
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
 export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
@@ -63,23 +64,12 @@ export function drawTitle(ctx, state, input, audio) {
   });
   text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 578, 12, '#d0c9b8');
 
-  const cards = [
-    { x: 64, n: '01', title: 'PAINT A WALL', detail: 'Ink blocks spirits from the bell.' },
-    { x: 457, n: '02', title: 'CLOSE A LOOP', detail: 'Circle yokai to seal whole groups.' },
-    { x: 850, n: '03', title: 'KEEP THE BELL', detail: 'Clear 8 scrolls. Draft stronger arts.' },
-  ];
-  for (const card of cards) {
-    panel(ctx, card.x, 604, 366, 92, '#192632', '#82693e');
-    text(ctx, card.n, card.x + 18, 641, 25, '#f0bd53', 'bold', true);
-    text(ctx, card.title, card.x + 65, 639, 17, '#fff1d2', 'bold', true);
-    text(ctx, card.detail, card.x + 19, 675, 14, '#d0c9b8');
-  }
-  panel(ctx, 64, 716, 1152, 50, '#0c141f', '#80673e');
-  text(ctx, 'WASD MOVE', 87, 747, 13, '#f0c15d', 'bold');
-  text(ctx, 'SPACE DASH', 258, 747, 13, '#f0c15d', 'bold');
-  text(ctx, 'LMB PAINT + CLOSE', 428, 747, 13, '#f0c15d', 'bold');
-  text(ctx, 'RMB SPLASH', 658, 747, 13, '#f0c15d', 'bold');
-  text(ctx, 'Q LOTUS  ·  E BELL  ·  P PAUSE', 826, 747, 13, '#f0c15d', 'bold');
-  text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1195, 747, 11, '#fff1d2', 'bold', false, 'right');
+  drawTutorial(ctx);
+  text(ctx, 'WASD MOVE', 68, 775, 12, '#f0c15d', 'bold');
+  text(ctx, 'SPACE DASH', 226, 775, 12, '#f0c15d', 'bold');
+  text(ctx, 'LMB PAINT + CLOSE', 390, 775, 12, '#f0c15d', 'bold');
+  text(ctx, 'RMB SPLASH', 612, 775, 12, '#f0c15d', 'bold');
+  text(ctx, 'Q LOTUS  ·  E BELL  ·  P PAUSE', 782, 775, 12, '#f0c15d', 'bold');
+  text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1216, 775, 11, '#fff1d2', 'bold', false, 'right');
   text(ctx, 'PROCEDURAL PAPER, INK & SOUND  /  PAISALRVLDOO', 64, 789, 10, '#9a9a91');
 }
