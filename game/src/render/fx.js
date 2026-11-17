@@ -4,7 +4,7 @@ export function burst(state, x, y, count = 16, color = null) {
   const ink = color || getSeason(state).color;
   for (let i = 0; i < count; i++) {
     const angle = state.rng() * Math.PI * 2, speed = 35 + state.rng() * 150;
-    state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0.7 + state.rng() * 0.6, maxLife: 1.3, size: 2 + state.rng() * 6, angle, color: i % 4 ? ink : '#262b2a' });
+    state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0.7 + state.rng() * 0.6, maxLife: 1.3, size: 2 + state.rng() * 6, angle, petal: i % 3 === 0, color: i % 4 ? ink : '#262b2a' });
   }
 }
 export function floatText(state, x, y, text, color = '#bb4436', size = 24) {
@@ -48,7 +48,14 @@ export function drawEffects(ctx, state) {
   for (const p of state.particles) {
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
     ctx.globalAlpha = Math.min(1, p.life * 2); ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.ellipse(0, 0, p.size, p.size * 0.42, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.beginPath();
+    if (p.petal) {
+      ctx.moveTo(-p.size, 0); ctx.quadraticCurveTo(0, -p.size, p.size, 0);
+      ctx.quadraticCurveTo(p.size * 0.2, p.size * 0.65, -p.size, 0);
+    } else ctx.ellipse(0, 0, p.size * 0.65, p.size * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (!p.petal) { ctx.beginPath(); ctx.arc(p.size * 1.8, -p.size, p.size * 0.22, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
   }
   ctx.globalAlpha = 1;
   for (const f of state.floats) {

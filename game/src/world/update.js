@@ -29,9 +29,11 @@ export function nextScroll(state) {
   state.banner = `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
   state.bannerTime = 4; state.mode = 'play';
   state.bonusDraft = false; beginOmen(state);
+  state.soundEvents.push({ name: 'scrollIntro' });
 }
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
+  if (state.hitStop > 0) { state.hitStop = Math.max(0, state.hitStop - dt); return; }
   state.time += dt; state.runTime += dt; state.scrollTime += dt;
   state.bannerTime = Math.max(0, state.bannerTime - dt);
   state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);

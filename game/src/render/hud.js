@@ -9,6 +9,7 @@ import { drawYokai } from './sprites.js';
 import { text, line, panel, circle, wrapText, stamp } from './primitives.js';
 import { wrathLevel, wrathMultiplier } from '../world/wrath.js';
 import { omenReward, omenProgress } from '../world/omens.js';
+import { ONI } from '../entities/bosses.js';
 
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
@@ -81,7 +82,6 @@ export function drawHud(ctx, state, audio) {
 
   panel(ctx, 984, 580, 268, 114, '#eee8d7');
   text(ctx, 'OMEN / OPTIONAL', 1001, 602, 12, COLORS.gold, 'bold');
-  const tip = state.wrath >= 3 ? 'Seals raise WRATH: faster spawns, monk hunters, up to 2× score. Wait without sealing to cool the hunt.' : state.enemies.find(e => e.kind === 'oni') ? 'Oni need several loops. Splash, encircle, then give the seal time to fade.' : state.scroll === 1 ? 'Hold LMB. Circle a spirit. Return to the red dot to seal it. Ink refills when released.' : YOKAI[getScroll(state).types[0]].detail + '. Group spirits behind a wall, then seal them together.';
   wrapText(ctx, state.omen.label, 1001, 626, 228, 20, 17, COLORS.ink);
   text(ctx, omenProgress(state.omen), 1001, 675, 11, state.omen.complete ? COLORS.green : COLORS.red, 'bold');
   text(ctx, omenReward(state.omen), 1235, 675, 10, COLORS.gold, 'bold', false, 'right');
@@ -116,7 +116,10 @@ export function drawWaveBanner(ctx, state) {
   }
   if (state.bannerTime <= 0) return;
   ctx.globalAlpha = Math.min(1, state.bannerTime);
-  panel(ctx, 217, 174, 554, 48, '#faf3e6ef', '#bca571');
-  text(ctx, state.banner, 494, 204, 21, COLORS.ink, 'bold', true, 'center');
+  const scroll = getScroll(state), season = getSeason(state);
+  panel(ctx, 207, 255, 574, 123, '#faf3e6f5', season.color);
+  text(ctx, `SCROLL ${state.scroll} — ${season.name}`, 494, 286, 17, season.color, 'bold', false, 'center');
+  text(ctx, scroll.boss ? ONI[scroll.boss].short : scroll.name.toUpperCase(), 494, 324, 28, COLORS.ink, 'bold', true, 'center');
+  text(ctx, 'GUARD THE BELL · DRAW THE WARD · SEAL THE WANDERERS', 494, 353, 11, COLORS.faint, 'bold', false, 'center');
   ctx.globalAlpha = 1;
 }

@@ -27,6 +27,11 @@ export function drawStrokes(ctx, state) {
     strokePath(ctx, stroke.points, 12, '#33383022');
     strokePath(ctx, stroke.points, 8.5, state.arts.includes('vermilion') ? '#983d34' : COLORS.ink);
     strokePath(ctx, stroke.points, 1, '#f8f1d82b');
+    if (stroke.flash > 0) {
+      ctx.globalAlpha = Math.min(1, stroke.flash * 4);
+      strokePath(ctx, stroke.points, 13, '#bb443655');
+      strokePath(ctx, stroke.points, 4, '#fffaf0');
+    }
     // Dry-brush fibers and edge speckles follow the actual painted line.
     for (let i = 2; i < stroke.points.length; i += 5) {
       const p = stroke.points[i]; const prev = stroke.points[i - 1];

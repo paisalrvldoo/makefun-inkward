@@ -36,7 +36,7 @@ export function damageBell(state, enemy) {
   state.shake = 9; state.flash = 0.2;
   burst(state, state.bell.x, state.bell.y, 20, '#bb4436');
   floatText(state, state.bell.x, state.bell.y - 45, 'BELL CRACKED', '#bb4436', 22);
-  state.soundEvents.push({ name: 'bell' });
+  state.soundEvents.push({ name: 'bellHit' });
 }
 export function wallCollision(state, enemy, next, dt) {
   if (enemy.kind === 'lantern') return false;
@@ -46,6 +46,10 @@ export function wallCollision(state, enemy, next, dt) {
       const nearest = nearestOnSegment(next, stroke.points[i - 1], stroke.points[i]);
       if (nearest.distance >= enemy.radius + INK.width / 2) continue;
       stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / (1 + artLevel(state, 'stone') * 0.25);
+      if (!stroke.soundCooldown) {
+        stroke.flash = 0.25; stroke.soundCooldown = 0.6;
+        state.soundEvents.push({ name: 'wallHit' });
+      }
       enemy.blocked += dt;
       if (artLevel(state, 'vermilion')) {
         enemy.hitTime = 0.15;

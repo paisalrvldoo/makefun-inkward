@@ -16,6 +16,7 @@ export function drawResults(ctx, state, input) {
   text(ctx, String(state.score).padStart(6, '0'), 528, 373, 64, COLORS.ink, 'bold', true, 'center');
   stamp(ctx, gradeRun(state), 831, 337, 88, -0.09);
   text(ctx, 'BRUSH GRADE', 831, 402, 11, COLORS.red, 'bold', false, 'center');
+  text(ctx, `WRATH PEAK ${state.peakWrath}/5  ·  HUNTERS SEALED ${state.huntersSealed}  ·  HUNT ${Math.round(state.huntTime)}s`, 256, 405, 12, COLORS.red, 'bold');
   const stats = [
     ['SCROLLS', `${won ? 8 : state.scroll - 1} / 8`], ['SPIRITS FREED', String(state.sealed)],
     ['BEST COMBO', `×${state.peakCombo.toFixed(1)}`], ['BIGGEST SEAL', `×${state.largestSeal}`],

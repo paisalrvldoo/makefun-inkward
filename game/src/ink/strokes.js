@@ -66,7 +66,11 @@ export function updateStrokes(state, input, dt) {
     else if (event.type === 'move') paintPoint(state, event.point);
     else { paintPoint(state, event.point); endStroke(state); state.waitRelease = false; }
   }
-  for (const stroke of state.strokes) if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);
+  for (const stroke of state.strokes) {
+    if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);
+    stroke.flash = Math.max(0, (stroke.flash || 0) - dt);
+    stroke.soundCooldown = Math.max(0, (stroke.soundCooldown || 0) - dt);
+  }
   state.strokes = state.strokes.filter(stroke => stroke.life > 0 && stroke.integrity > 0).slice(-35);
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
   if (!state.activeStroke) state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3));

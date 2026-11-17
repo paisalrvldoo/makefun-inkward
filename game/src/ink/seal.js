@@ -26,11 +26,16 @@ export function sealLoop(state, points) {
     floatText(state, centre.x, centre.y, 'EMPTY SEAL', '#77796b', 16);
     return true;
   }
+  const previousCombo = state.combo;
   state.combo = state.comboTime > 0 ? Math.min(8, state.combo + 0.5) : 1;
   if (enclosed.length >= 3) state.combo = Math.min(8, state.combo + 0.5);
   state.comboTime = comboDuration(state);
   state.peakCombo = Math.max(state.peakCombo, state.combo);
   state.largestSeal = Math.max(state.largestSeal, enclosed.length);
+  if (Math.floor(state.combo) > Math.floor(previousCombo)) {
+    floatText(state, state.monk.x, state.monk.y + 40, `COMBO ×${state.combo.toFixed(1)}`, '#bb4436', 22);
+    state.soundEvents.push({ name: 'combo', value: state.combo });
+  }
   const before = state.score;
   raiseWrath(state, enclosed.length);
   for (const enemy of enclosed) {
@@ -53,15 +58,21 @@ export function sealLoop(state, points) {
     if (neighbour) {
       releaseSpirit(state, neighbour); addRing(state, neighbour.x, neighbour.y, 55, '#b68a36');
       state.bolts.push({ x: source.x, y: source.y, endX: neighbour.x, endY: neighbour.y, life: 0.8 });
+      state.soundEvents.push({ name: 'thunder' });
     }
   }
   const centre = enclosed.reduce((p, e) => ({ x: p.x + e.x / enclosed.length, y: p.y + e.y / enclosed.length }), { x: 0, y: 0 });
   const refund = 9 + enclosed.length * (5 + artLevel(state, 'well') * 4);
   state.ink = Math.min(state.maxInk, state.ink + refund);
-  floatText(state, centre.x, centre.y - 24, `SEALED ×${enclosed.length}`, '#bb4436', 32);
-  floatText(state, centre.x, centre.y + 4, `+${state.score - before}  ·  +${refund} INK`, '#b68a36', 19);
+  floatText(state, centre.x, centre.y - 24, `SEALED ×${enclosed.length} +${(state.score - before).toLocaleString('en-US')}`, '#bb4436', 29);
+  floatText(state, centre.x, centre.y + 4, `+${refund} INK · WRATH ×${wrathMultiplier(state).toFixed(1)}`, '#b68a36', 17);
   addRing(state, centre.x, centre.y, 95, '#bb4436', 0.7);
   state.shake = 3; state.soundEvents.push({ name: 'seal' });
+  state.soundEvents.push({ name: 'petals' });
+  if (enclosed.length >= 4 || enclosed.some(e => e.kind === 'oni' && e.dead)) {
+    state.hitStop = 0.075; state.shake = 5;
+    state.soundEvents.push({ name: 'bigSeal' });
+  }
   state.tutorial = 'WALLS BUY TIME. CLOSED LOOPS SET THEM FREE.';
   return true;
 }

@@ -70,6 +70,15 @@ const win = stageShot('win').state, loss = stageShot('end').state, draft = stage
   assert.equal(state.draft.length, 4, 'Unharmed omen grants a fourth real draft choice');
 }
 {
+  const state = world();
+  for (let i = 0; i < 4; i++) spawnYokai(state, 'kappa', { x: 260 + i * 8, y: 350 });
+  circle(state, 270, 350);
+  assert.ok(state.hitStop > 0 && state.particles.some(p => p.petal), 'Big seals have hit-stop and petals');
+  const time = state.runTime; updateWorld(state, replayInput(), STEP);
+  assert.equal(state.runTime, time, 'Hit-stop briefly freezes real simulation');
+  assert.ok(state.floats.some(f => /SEALED ×4 \+/.test(f.text)), 'Seal score floats include the group and points');
+}
+{
   const state = world(); state.queue = [{ kind: 'kappa' }];
   for (let i = 0; i < 6; i++) raiseWrath(state, 4);
   assert.equal(wrathLevel(state), 5); assert.equal(wrathMultiplier(state), 2);

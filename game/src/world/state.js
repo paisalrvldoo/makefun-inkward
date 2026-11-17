@@ -17,7 +17,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
     enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
     seals: [], ghosts: [], bolts: [], arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
     spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,
-    banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, soundEvents: [], nextId: 1,
+    banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, hitStop: 0, soundEvents: [], nextId: 1,
     tutorial: 'DRAW A LOOP AROUND THE SPIRITS', ended: false,
   };
   state.queue = makeThreatQueue(state);
@@ -25,7 +25,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
   beginOmen(state);
   return state;
 }
-export function startRun(state) { state.mode = 'play'; state.soundEvents.push({ name: 'click' }); }
+export function startRun(state) { state.mode = 'play'; state.soundEvents.push({ name: 'scrollIntro' }); }
 export function hasArt(state, id) { return state.arts.includes(id); }
 export function gradeRun(state) {
   const skill = state.sealed / Math.max(1, state.spawned);
