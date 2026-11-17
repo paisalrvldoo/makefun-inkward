@@ -1,0 +1,53 @@
+import { updateMonk } from '../entities/monk.js';
+import { updateYokai } from '../entities/yokai.js';
+import { updateBosses } from '../entities/bosses.js';
+import { endStroke, updateStrokes } from '../ink/strokes.js';
+import { updateArts, draftArts } from '../arts/brushArts.js';
+import { updateEffects } from '../render/fx.js';
+import { makeThreatQueue, updateWaves } from './waves.js';
+import { getScroll } from './scrolls.js';
+
+export function finishRun(state, won) {
+  if (state.ended) return;
+  endStroke(state);
+  state.ended = true;
+  state.mode = won ? 'win' : 'lose';
+  if (won) state.score += state.bell.hp * 500 + 3000;
+  state.best = Math.max(state.best, state.score);
+  state.soundEvents.push({ name: won ? 'win' : 'lose' });
+}
+export function nextScroll(state) {
+  state.scroll++;
+  state.scrollTime = 0; state.cleared = 0;
+  state.strokes = []; state.activeStroke = null; state.waitRelease = false;
+  state.queue = makeThreatQueue(state); state.total = state.queue.length; state.spawnTime = 2;
+  state.ink = state.maxInk; state.comboTime = 7;
+  state.qCooldown = 0; state.eCooldown = 0; state.splashCooldown = 0;
+  state.banner = `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
+  state.bannerTime = 4; state.mode = 'play';
+}
+export function updateWorld(state, input, dt) {
+  if (state.mode !== 'play') return;
+  state.time += dt; state.runTime += dt; state.scrollTime += dt;
+  state.bannerTime = Math.max(0, state.bannerTime - dt);
+  state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);
+  state.comboTime = Math.max(0, state.comboTime - dt);
+  if (state.comboTime <= 0) state.combo = 1;
+  updateEffects(state, dt);
+  updateMonk(state, input, dt);
+  updateStrokes(state, input, dt);
+  updateArts(state, input, dt);
+  updateWaves(state, dt);
+  updateBosses(state, dt);
+  updateYokai(state, dt);
+  if (state.bell.hp <= 0) { finishRun(state, false); return; }
+  if (!state.queue.length && !state.enemies.length) {
+    endStroke(state);
+    if (state.scroll === 8) finishRun(state, true);
+    else {
+      state.score += 400 + state.bell.hp * 25;
+      state.mode = 'draft'; draftArts(state);
+      state.soundEvents.push({ name: 'draft' });
+    }
+  }
+}

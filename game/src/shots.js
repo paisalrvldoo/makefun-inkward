@@ -1,79 +1,80 @@
-// The screenshot scenes behind ?shot=start|play|end. Each one plays the real rules forward from a
-// fresh world for a fixed number of steps, steered by a simple autopilot (look ahead each way the
-// paddle could move, keep clear of blocks, chase the lowest coin when that is safe), so the frame
-// is what a short game really looks like and the same seed always gives the same frame.
-import { FIELD, PLAYER, STEP } from './config.js';
-import { EVENT_OVER, KIND_BLOCK } from './world.js';
-import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE } from './render.js';
+// Screenshot replays send mouse paths and keyboard actions through the real fixed-step game.
+// They never create a pretend score, spawn a staged boss, or select an end screen directly.
+import { STEP, FIELD, distance, clamp } from './config.js';
+import { createState, startRun } from './world/state.js';
+import { updateWorld, nextScroll } from './world/update.js';
+import { chooseArt } from './arts/brushArts.js';
 
-const START_SECONDS = 5;
-const PLAY_SECONDS = 26;
-const END_LIMIT_SECONDS = 600;
-/**
- * How far ahead, in seconds, the autopilot checks each way it could move: the play scene's pilot
- * looks well ahead and keeps all its lives; the end scene's looks only a moment ahead, so it is
- * caught out once the blocks speed up, as a hurried player is.
- */
-const HORIZON_PLAY = 0.7;
-const HORIZON_END = 0.25;
-const SAMPLE = 1 / 30;
-const DIRECTIONS = [0, -1, 1];
-/** Extra room, each side, it keeps between the paddle and a block. */
-const MARGIN = 10;
-
-/** Seconds until moving in `direction` (-1, 0, 1) runs the paddle into a block; Infinity when it never does. */
-function timeToHit(state, direction, horizon) {
-  const player = state.player;
-  for (let t = SAMPLE; t <= horizon; t += SAMPLE) {
-    const x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * t));
-    for (let index = 0; index < state.items.length; index += 1) {
-      const item = state.items[index];
-      if (!item.active || item.kind !== KIND_BLOCK) continue;
-      const y = item.y + item.speed * t;
-      if (y + item.height > player.y && y < player.y + player.height && item.x < x + player.width + MARGIN && item.x + item.width > x - MARGIN) return t;
-    }
-  }
-  return Infinity;
+export function replayInput() {
+  return {
+    keys: new Set(), pressed: new Set(), pointer: { x: 640, y: 410 }, paintEvents: [], clicks: [], splashes: [], painting: false,
+    clearFrame() { this.pressed.clear(); this.paintEvents.length = 0; this.clicks.length = 0; this.splashes.length = 0; },
+  };
 }
-
-/** Of the safe ways to move, the one toward the lowest coin (or the centre); else the one that is hit last. */
-function autopilot(state, horizon) {
-  const player = state.player;
-  let coin = null;
-  for (let index = 0; index < state.items.length; index += 1) {
-    const item = state.items[index];
-    if (item.active && item.kind !== KIND_BLOCK && (coin === null || item.y > coin.y)) coin = item;
-  }
-  const target = coin === null ? FIELD.width / 2 : coin.x + coin.width / 2;
-  const centre = player.x + player.width / 2;
-  const wanted = target > centre + 8 ? 1 : target < centre - 8 ? -1 : 0;
-  let best = wanted;
-  let bestTime = timeToHit(state, wanted, horizon);
-  for (let index = 0; index < DIRECTIONS.length && bestTime !== Infinity; index += 1) {
-    const time = timeToHit(state, DIRECTIONS[index], horizon);
-    if (time > bestTime) {
-      bestTime = time;
-      best = DIRECTIONS[index];
+export function createReplayPilot() {
+  let drawing = null, lastLoop = -3, lastWall = -20;
+  return (state, input, aggressive = true) => {
+    input.clearFrame();
+    if (state.mode === 'draft') {
+      const preferred = ['breath', 'feather', 'thunder', 'mending', 'gold', 'lotus', 'echo', 'well', 'stone', 'willow', 'twin', 'vermilion'];
+      const index = [...state.draft].sort((a, b) => preferred.indexOf(a.id) - preferred.indexOf(b.id))[0];
+      chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
-  }
-  return best;
+    const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
+    const target = threats.find(e => !e.sealLock);
+    if (!drawing && target && state.time - lastLoop > (aggressive ? 1.55 : 4.2) && state.ink > 27) {
+      const radius = target.kind === 'oni' ? 76 : 64;
+      drawing = {
+        x: clamp(target.x, FIELD.x + radius + 12, FIELD.x + FIELD.w - radius - 12),
+        y: clamp(target.y, FIELD.y + radius + 12, FIELD.y + FIELD.h - radius - 12),
+        radius, step: 0, duration: 47,
+      };
+      lastLoop = state.time;
+    }
+    if (drawing) {
+      const a = drawing.step / drawing.duration * Math.PI * 2;
+      const point = { x: drawing.x + Math.cos(a) * drawing.radius, y: drawing.y + Math.sin(a) * drawing.radius };
+      input.pointer = point; input.painting = true;
+      input.paintEvents.push({ type: drawing.step === 0 ? 'begin' : 'move', point });
+      drawing.step++;
+      if (drawing.step > drawing.duration) {
+        input.paintEvents.push({ type: 'end', point }); input.painting = false; drawing = null;
+      }
+    } else if (state.time - lastWall > 12 && state.ink > 65 && threats.length > 1) {
+      // Open strokes are also ordinary mouse input, buying time around the shrine.
+      const points = [{ x: 373, y: 309 }, { x: 335, y: 362 }, { x: 336, y: 455 }, { x: 375, y: 495 }];
+      input.paintEvents.push({ type: 'begin', point: points[0] }, ...points.slice(1).map(point => ({ type: 'move', point })), { type: 'end', point: points.at(-1) });
+      lastWall = state.time;
+    }
+    input.keys.clear();
+    // Circle the shrine while drawing, avoiding ink-stealing collisions.
+    const x = state.bell.x + Math.cos(state.time * 0.27) * 145, y = state.bell.y + Math.sin(state.time * 0.27) * 125;
+    if (x > state.monk.x + 8) input.keys.add('KeyD'); else if (x < state.monk.x - 8) input.keys.add('KeyA');
+    if (y > state.monk.y + 8) input.keys.add('KeyS'); else if (y < state.monk.y - 8) input.keys.add('KeyW');
+    if (aggressive && threats.some(e => e.kind === 'oni') && state.qCooldown <= 0) input.pressed.add('KeyQ');
+    if (aggressive && threats.some(e => distance(e, state.bell) < 110) && state.eCooldown <= 0) input.pressed.add('KeyE');
+  };
 }
-
-/**
- * Set `world` to the named scene (start, play or end; any other name is start) and return the
- * screen to draw over it and the best score to show.
- */
-export function stageShot(name, world) {
-  world.reset();
-  if (name !== 'play' && name !== 'end') {
-    for (let index = 0; index < START_SECONDS / STEP; index += 1) world.step(STEP, 0, true);
-    return { screen: SCREEN_TITLE, best: 0 };
+export function stageShot(name, seed = 1) {
+  const state = createState(seed, 0), input = replayInput();
+  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft'].includes(name)) {
+    state.time = 3.5; return { state, input };
   }
-  const limit = name === 'end' ? END_LIMIT_SECONDS : PLAY_SECONDS;
-  const horizon = name === 'end' ? HORIZON_END : HORIZON_PLAY;
-  for (let index = 0; index < limit / STEP; index += 1) {
-    if (world.step(STEP, autopilot(world.state, horizon), false) & EVENT_OVER) break;
+  startRun(state);
+  const pilot = createReplayPilot();
+  let snapshot = null;
+  const limit = name === 'end' ? 280 : 900;
+  for (let i = 0; i < limit / STEP; i++) {
+    if (name === 'draft' && state.mode === 'draft') break;
+    if (name === 'play' && state.scroll === 3 && state.enemies.some(e => e.kind === 'oni') && state.enemies.length >= 3 && state.activeStroke) break;
+    if (name === 'end' && state.runTime > 35) { input.clearFrame(); input.keys.clear(); }
+    else pilot(state, input, name !== 'play' || state.scroll < 3);
+    updateWorld(state, input, STEP);
+    if (state.mode === 'play') snapshot = { ...state };
+    if (state.mode === 'win' || state.mode === 'lose') break;
   }
-  const over = world.state.lives === 0;
-  return { screen: over ? SCREEN_OVER : SCREEN_PLAY, best: world.state.score };
+  // A requested play shot stays a genuine non-terminal frame even if the pilot loses later.
+  if (name === 'play' && state.mode !== 'play' && snapshot) Object.assign(state, snapshot);
+  state.soundEvents.length = 0;
+  return { state, input };
 }

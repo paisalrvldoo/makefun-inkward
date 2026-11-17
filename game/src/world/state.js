@@ -1,0 +1,29 @@
+import { BELL, INK } from '../config.js';
+import { createRng } from '../rng.js';
+import { createMonk } from '../entities/monk.js';
+import { makeThreatQueue } from './waves.js';
+
+export function createState(seed = 1, best = 0) {
+  const state = {
+    seed, rng: createRng(seed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
+    score: 0, best, combo: 1, comboTime: 0, peakCombo: 1, sealed: 0, loops: 0, largestSeal: 0,
+    ink: INK.max, maxInk: INK.max, bell: { ...BELL, hitTime: 0 }, monk: createMonk(),
+    enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
+    seals: [], ghosts: [], arts: [], draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
+    spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,
+    banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, soundEvents: [], nextId: 1,
+    tutorial: 'DRAW A LOOP AROUND THE SPIRITS', ended: false,
+  };
+  state.queue = makeThreatQueue(state);
+  state.total = state.queue.length;
+  return state;
+}
+export function startRun(state) { state.mode = 'play'; state.soundEvents.push({ name: 'click' }); }
+export function hasArt(state, id) { return state.arts.includes(id); }
+export function gradeRun(state) {
+  const skill = state.sealed / Math.max(1, state.spawned);
+  if (state.scroll === 8 && state.bell.hp >= 7 && skill > 0.85) return 'S';
+  if (state.scroll >= 5 && skill > 0.72) return 'A';
+  if (state.scroll >= 3 || state.sealed >= 16) return 'B';
+  return 'C';
+}

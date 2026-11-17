@@ -1,53 +1,52 @@
-// Keyboard and pointer input. Held keys give a steering direction; one-shot presses (start or
-// restart, pause) are queued as bit flags and taken once by the loop, so a press between two
-// frames is never lost and never counted twice.
+import { WIDTH, HEIGHT } from './config.js';
 
-export const ACTION_CONFIRM = 1;
-export const ACTION_PAUSE = 2;
-
-const LEFT = new Set(['ArrowLeft', 'KeyA']);
-const RIGHT = new Set(['ArrowRight', 'KeyD']);
-const CONFIRM = new Set(['Space', 'Enter']);
-const PAUSE = new Set(['KeyP', 'Escape']);
-
-export function createInput(target) {
-  let left = false;
-  let right = false;
-  let actions = 0;
-
-  window.addEventListener('keydown', (event) => {
-    if (LEFT.has(event.code)) left = true;
-    else if (RIGHT.has(event.code)) right = true;
-    else if (CONFIRM.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_CONFIRM;
-    } else if (PAUSE.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_PAUSE;
-    } else return;
-    event.preventDefault();
-  });
-  window.addEventListener('keyup', (event) => {
-    if (LEFT.has(event.code)) left = false;
-    else if (RIGHT.has(event.code)) right = false;
-  });
-  // A key released while the tab is hidden never sends keyup: let go of everything on blur.
-  window.addEventListener('blur', () => {
-    left = false;
-    right = false;
-  });
-  target.addEventListener('pointerdown', () => {
-    actions |= ACTION_CONFIRM;
-  });
-
-  return {
-    /** -1 for left, 1 for right, 0 for neither or both. */
-    direction() {
-      return (right ? 1 : 0) - (left ? 1 : 0);
-    },
-    /** The one-shot presses since the last call, as ACTION_* flags. */
-    takeActions() {
-      const taken = actions;
-      actions = 0;
-      return taken;
-    },
+export function createInput(canvas, unlockAudio) {
+  const input = {
+    keys: new Set(), pressed: new Set(), pointer: { x: 494, y: 411 },
+    paintEvents: [], clicks: [], splashes: [], painting: false,
+    clearFrame() { this.pressed.clear(); this.paintEvents.length = 0; this.clicks.length = 0; this.splashes.length = 0; },
+    release() { this.keys.clear(); this.painting = false; this.paintEvents.push({ type: 'end', point: { ...this.pointer } }); },
   };
+  const point = event => {
+    const rect = canvas.getBoundingClientRect();
+    return { x: (event.clientX - rect.left) * WIDTH / rect.width, y: (event.clientY - rect.top) * HEIGHT / rect.height };
+  };
+  const updatePointer = event => { input.pointer = point(event); };
+  window.addEventListener('keydown', event => {
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
+    if (!input.keys.has(event.code)) input.pressed.add(event.code);
+    input.keys.add(event.code);
+    unlockAudio();
+  });
+  window.addEventListener('keyup', event => input.keys.delete(event.code));
+  canvas.addEventListener('pointerdown', event => {
+    updatePointer(event);
+    unlockAudio();
+    canvas.focus();
+    canvas.setPointerCapture(event.pointerId);
+    if (event.button === 0) {
+      input.painting = true;
+      input.paintEvents.push({ type: 'begin', point: { ...input.pointer } });
+      input.clicks.push({ ...input.pointer });
+    }
+    if (event.button === 2) input.splashes.push({ ...input.pointer });
+  });
+  canvas.addEventListener('pointermove', event => {
+    const events = event.getCoalescedEvents?.() || [event];
+    for (const sample of events) {
+      updatePointer(sample);
+      if (input.painting) input.paintEvents.push({ type: 'move', point: { ...input.pointer } });
+    }
+  });
+  const end = event => {
+    if (event.button !== 0 && event.type !== 'pointercancel') return;
+    updatePointer(event);
+    input.paintEvents.push({ type: 'end', point: { ...input.pointer } });
+    input.painting = false;
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+  canvas.addEventListener('contextmenu', event => event.preventDefault());
+  window.addEventListener('blur', () => input.release());
+  return input;
 }

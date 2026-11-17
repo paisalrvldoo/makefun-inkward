@@ -1,61 +1,14 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
-
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
-
-/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
+export const WIDTH = 1280;
+export const HEIGHT = 800;
 export const STEP = 1 / 60;
-
-export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
+export const FIELD = { x: 28, y: 128, w: 932, h: 566 };
+export const BELL = { x: 494, y: 411, radius: 33, hp: 12 };
+export const MONK = { speed: 220, radius: 14, dashSpeed: 720, dashTime: 0.18, dashCooldown: 1.65 };
+export const INK = { max: 100, regen: 11, cost: 0.065, width: 9, lifetime: 16, closeRadius: 26, minLength: 135 };
+export const COLORS = {
+  paper: '#f6f0df', ink: '#262b2a', faint: '#77796b', red: '#bb4436', gold: '#b68a36',
+  line: '#d2c6ad', green: '#537f72', pink: '#e9b6b3', blue: '#799caf', white: '#fffaf0',
 };
-
-export const LIVES = 3;
-
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
-};
-
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
-};
-
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
-
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
-
-export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
-  text: '#eef1f5',
-  muted: '#8b93a3',
-};
-
-export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+export const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+export const inField = p => p.x >= FIELD.x + 8 && p.x <= FIELD.x + FIELD.w - 8 && p.y >= FIELD.y + 8 && p.y <= FIELD.y + FIELD.h - 8;
