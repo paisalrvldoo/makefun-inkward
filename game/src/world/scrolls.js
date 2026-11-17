@@ -1,7 +1,7 @@
 export const SEASONS = [
   { name: 'SPRING', subtitle: 'The waking garden', color: '#cf878a', wash: '#efc6c0', motif: 'blossom' },
   { name: 'SUMMER', subtitle: 'The emerald rain', color: '#648e75', wash: '#bed8b5', motif: 'leaf' },
-  { name: 'AUTUMN', subtitle: 'The wandering embers', color: '#ba793e', wash: '#efd1a0', motif: 'maple' },
+  { name: 'AUTUMN', subtitle: 'The wandering embers', color: '#c36532', wash: '#ec9c4d', motif: 'maple' },
   { name: 'WINTER', subtitle: 'The last snowfall', color: '#7191a6', wash: '#c7dce3', motif: 'snow' },
 ];
 export const SCROLLS = [

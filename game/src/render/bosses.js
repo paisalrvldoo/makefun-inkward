@@ -18,9 +18,10 @@ export function drawBossTelegraphs(ctx, state) {
       ctx.setLineDash([7, 8]); circle(ctx, warning.x, warning.y, warning.radius * (0.25 + progress * 0.75), null, color, 2); ctx.setLineDash([]);
       if (warning.kind === 'storm') for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; circle(ctx, warning.x + Math.cos(a) * warning.radius, warning.y + Math.sin(a) * warning.radius, 9, '#fff5da', color, 2); }
     }
-    const labelY = Math.max(240, warning.y - warning.radius - 20);
-    panel(ctx, warning.x - 119, labelY - 22, 238, 29, '#fff4dfed', color);
-    text(ctx, `${ATTACK_NAMES[warning.kind]} · ${warning.time.toFixed(1)}s`, warning.x, labelY - 2, 14, color, 'bold', false, 'center');
+    const labelY = warning.kind === 'charge' ? Math.max(254, warning.y + 12) : Math.max(240, warning.y - warning.radius - 20);
+    const labelX = warning.kind === 'charge' ? Math.min(810, warning.x + 205) : warning.x;
+    panel(ctx, labelX - 119, labelY - 22, 238, 29, '#fff4dfed', color);
+    text(ctx, `${ATTACK_NAMES[warning.kind]} · ${warning.time.toFixed(1)}s`, labelX, labelY - 2, 14, color, 'bold', false, 'center');
   }
 }
 export function drawBossBanner(ctx, state) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { STEP } from '../game/src/config.js';
 import { createState, startRun } from '../game/src/world/state.js';
-import { spawnYokai } from '../game/src/entities/yokai.js';
+import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { spawnBoss, updateBosses } from '../game/src/entities/bosses.js';
 import { beginStroke, paintPoint, endStroke } from '../game/src/ink/strokes.js';
 import { updateWorld } from '../game/src/world/update.js';
@@ -59,6 +59,21 @@ function circle(state, x, y, radius = 64) {
   assert.ok(state.strokes[0].points.at(-1).x < 330, 'Painting stops at the affordable endpoint');
 }
 const win = stageShot('win').state, loss = stageShot('end').state, draft = stageShot('draft').state;
+const cover = stageShot('play').state;
+assert.equal(cover.scroll, 6); assert.equal(cover.mode, 'play');
+assert.ok(cover.best > cover.score && cover.arts.length === 5 && cover.combo >= 6);
+assert.equal(wrathLevel(cover), 3);
+assert.ok(cover.enemies.length >= 12 && new Set(cover.enemies.map(e => e.kind)).size >= 4);
+assert.ok(cover.enemies.some(e => e.kind === 'oni' && e.telegraph && e.hp < e.maxHp));
+assert.ok(cover.strokes.length >= 3 && cover.strokes.length <= 4 && cover.monk.dashTime > 0 && cover.ghosts.length >= 2);
+assert.equal(cover.omen.progress, 1); assert.equal(cover.bell.hp, cover.bell.maxHp - 2);
+{
+  const state = world(), enemy = spawnYokai(state, 'lantern', { x: 520, y: 411 });
+  const input = replayInput(); input.pressed.add('KeyE'); updateWorld(state, input, STEP);
+  damageBell(state, enemy);
+  assert.equal(state.bell.hp, 12, 'Bell Ward deflects an attacker while active');
+  assert.ok(!enemy.dead && enemy.stun > 0, 'Deflection returns the spirit to the fight');
+}
 {
   const state = world();
   for (let i = 0; i < 3; i++) spawnYokai(state, 'crane', { x: 260 + i * 9, y: 350 });

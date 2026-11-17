@@ -58,7 +58,9 @@ export function drawEffects(ctx, state) {
     ctx.restore();
   }
   ctx.globalAlpha = 1;
+  const bigSeal = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
   for (const f of state.floats) {
+    if (bigSeal && /^(LOTUS HUSH|WRATH \d)/.test(f.text)) continue;
     ctx.globalAlpha = Math.min(1, f.life * 2);
     ctx.font = `bold ${f.size}px Georgia, serif`; ctx.textAlign = 'center';
     ctx.lineWidth = 5; ctx.strokeStyle = '#fffaf0'; ctx.strokeText(f.text, f.x, f.y);

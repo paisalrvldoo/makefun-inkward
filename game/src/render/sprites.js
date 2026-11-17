@@ -109,6 +109,9 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1) {
 export function drawBell(ctx, bell, time = 0, scale = 1) {
   ctx.save(); ctx.translate(bell.x, bell.y); ctx.scale(scale, scale);
   shadow(ctx, 0, 20, 55);
+  if (bell.wardTime > 0) {
+    circle(ctx, 0, 0, 60 + Math.sin(time * 5) * 3, '#d7b46713', '#b68a3677', 1.5);
+  }
   // A small vermilion shrine protects a warm bronze bell.
   ctx.fillStyle = '#d9ceb0'; ctx.beginPath(); ctx.ellipse(0, 28, 56, 25, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#d5c6a5'; ctx.fillRect(-45, 15, 90, 20); ctx.strokeStyle = '#958568'; ctx.lineWidth = 1.4; ctx.strokeRect(-45, 15, 90, 20);
@@ -119,8 +122,8 @@ export function drawBell(ctx, bell, time = 0, scale = 1) {
   ctx.fillStyle = bell.hp <= 3 ? '#b58955' : '#d7b467'; ctx.strokeStyle = '#695737'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(-20, 8); ctx.lineTo(-16, -16); ctx.quadraticCurveTo(0, -39, 16, -16); ctx.lineTo(20, 8); ctx.quadraticCurveTo(0, 16, -20, 8); ctx.fill(); ctx.stroke();
   line(ctx, [[-15, 0], [15, 0]], '#af8945', 2); circle(ctx, 0, 15, 4, '#695737');
-  if (bell.hp < 9) line(ctx, [[7, -21], [3, -10], [9, -4], [4, 5]], '#70543a', 1.6);
-  if (bell.hp < 5) line(ctx, [[-8, -18], [-5, -10], [-10, -1]], '#70543a', 1.8);
+  if (bell.hp < (bell.maxHp || 12)) line(ctx, [[7, -21], [3, -10], [9, -4], [4, 5]], '#70543a', 1.6);
+  if (bell.hp <= (bell.maxHp || 12) - 2) line(ctx, [[-8, -18], [-5, -10], [-10, -1]], '#70543a', 1.8);
   ctx.restore();
   text(ctx, 'GUARD THE BELL', 0, 64, 10, '#8b7954', 'bold', false, 'center');
   ctx.restore();

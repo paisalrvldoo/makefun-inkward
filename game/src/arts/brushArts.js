@@ -4,18 +4,18 @@ import { burst, addRing, floatText } from '../render/fx.js';
 import { artLevel, MAX_ART_LEVEL } from './levels.js';
 
 export const BRUSH_ARTS = [
-  { id: 'vermilion', name: 'Vermilion edge', rune: 'V', type: 'WALL', description: 'Ink walls slow attackers further', detail: 'Contact briefly stuns spirits and reduces wall erosion.' },
-  { id: 'breath', name: 'Long breath', rune: 'L', type: 'INK', description: '+30 ink capacity · faster refill', detail: 'Hold longer strokes. Ink regenerates 30% faster.' },
-  { id: 'twin', name: 'Twin brush', rune: 'T', type: 'WALL', description: 'Mirror every open stroke', detail: 'A second wall appears across the shrine at no ink cost.' },
-  { id: 'thunder', name: 'Thunder seal', rune: 'Z', type: 'SEAL', description: 'Seals chain to a nearby spirit', detail: 'Every successful loop frees one extra spirit within 90px.' },
-  { id: 'willow', name: 'Willow dash', rune: 'W', type: 'MOVE', description: 'Dash almost twice as often', detail: 'Dash cooldown becomes 0.95s. Dash through spirits to stun.' },
-  { id: 'gold', name: 'Gold leaf', rune: 'G', type: 'SCORE', description: '+30% score from every spirit', detail: 'A bolder path to the S rank. Combos multiply the bonus.' },
-  { id: 'well', name: 'Bottomless well', rune: 'B', type: 'INK', description: 'Almost double seal ink refunds', detail: 'Successful loops return 9 ink per spirit instead of 5.' },
-  { id: 'stone', name: 'Stone ink', rune: 'S', type: 'WALL', description: 'Walls last 50% longer', detail: 'Open strokes remain on the paper for 24 seconds.' },
-  { id: 'feather', name: 'Feather hand', rune: 'F', type: 'INK', description: 'Painting costs 25% less ink', detail: 'Bigger circles, more walls, more room to improvise.' },
-  { id: 'echo', name: 'Echo of the bell', rune: 'O', type: 'COMBO', description: 'Keep your combo for 10 seconds', detail: 'Take a breath between seals without losing your multiplier.' },
-  { id: 'lotus', name: 'Winter lotus', rune: 'Q', type: 'RITUAL', description: 'Q freezes all spirits longer', detail: 'Lotus hush lasts 4.5 seconds and recharges faster.' },
-  { id: 'mending', name: 'Mending prayer', rune: 'E', type: 'BELL', description: 'Repair 3 bell cracks now', detail: 'Also makes the E bell ward wider and faster to recharge.' },
+  { id: 'vermilion', name: 'Vermilion edge', rune: 'V', type: 'WALL' },
+  { id: 'breath', name: 'Long breath', rune: 'L', type: 'INK' },
+  { id: 'twin', name: 'Twin brush', rune: 'T', type: 'WALL' },
+  { id: 'thunder', name: 'Thunder seal', rune: 'Z', type: 'SEAL' },
+  { id: 'willow', name: 'Willow dash', rune: 'W', type: 'MOVE' },
+  { id: 'gold', name: 'Gold leaf', rune: 'G', type: 'SCORE' },
+  { id: 'well', name: 'Bottomless well', rune: 'B', type: 'INK' },
+  { id: 'stone', name: 'Stone ink', rune: 'S', type: 'WALL' },
+  { id: 'feather', name: 'Feather hand', rune: 'F', type: 'INK' },
+  { id: 'echo', name: 'Echo of the bell', rune: 'O', type: 'COMBO' },
+  { id: 'lotus', name: 'Winter lotus', rune: 'Q', type: 'RITUAL' },
+  { id: 'mending', name: 'Mending prayer', rune: 'E', type: 'BELL' },
 ];
 export const findArt = id => BRUSH_ARTS.find(art => art.id === id);
 export function describeArt(id, level = 1) {
@@ -29,9 +29,9 @@ export function describeArt(id, level = 1) {
     well: [`Seal refund: 9 + ${5 + level * 4} ink per spirit`, 'An enclosed group gives more ink for your next stroke.'],
     stone: [`Walls last ${16 * (1 + level * 0.5)} seconds`, `Also reduces contact erosion by ${Math.round((1 - 1 / (1 + level * 0.25)) * 100)}%.`],
     feather: [`Painting costs ${level * 18}% less ink`, 'Bigger circles, more walls, more room to improvise.'],
-    echo: [`Keep combos for ${7 + level * 3} seconds`, 'Every successful loop refreshes the combo timer.'],
+    echo: [`Keep combos for ${7 + level * 7} seconds`, 'Every successful loop refreshes the combo timer.'],
     lotus: [`Q hush: ${(2.5 + level * 1.4).toFixed(1)}s · ${Math.max(6, 14 - level * 3)}s recharge`, 'Freezes every spirit and exposes an Oni to stronger seals.'],
-    mending: ['Repair 3 bell cracks now', `E ward reaches ${155 + level * 55}px and recharges in ${Math.max(8, 18 - level * 4)}s.`],
+    mending: ['Repair 3 bell cracks now', `E protects for ${8.5 + level * 1.5}s, reaches ${155 + level * 55}px, recharges in ${Math.max(8, 18 - level * 4)}s.`],
   };
   const [description, detail] = descriptions[id];
   return { description, detail };
@@ -88,6 +88,7 @@ export function updateArts(state, input, dt) {
   if (input.pressed.has('KeyE') && state.eCooldown <= 0) {
     const level = artLevel(state, 'mending');
     state.eCooldown = Math.max(8, 18 - level * 4);
+    state.bell.wardTime = 8.5 + level * 1.5;
     const range = 155 + level * 55;
     for (const enemy of state.enemies) {
       const length = distance(enemy, state.bell) || 1;

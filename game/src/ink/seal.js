@@ -33,7 +33,7 @@ export function sealLoop(state, points) {
   state.peakCombo = Math.max(state.peakCombo, state.combo);
   state.largestSeal = Math.max(state.largestSeal, enclosed.length);
   if (Math.floor(state.combo) > Math.floor(previousCombo)) {
-    floatText(state, state.monk.x, state.monk.y + 40, `COMBO ×${state.combo.toFixed(1)}`, '#bb4436', 22);
+    floatText(state, state.monk.x, state.monk.y + 66, `COMBO ×${state.combo.toFixed(1)}`, '#bb4436', 22);
     state.soundEvents.push({ name: 'combo', value: state.combo });
   }
   const before = state.score;

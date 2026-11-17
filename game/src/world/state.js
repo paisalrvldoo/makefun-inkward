@@ -13,7 +13,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
     wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
     omen: null, omenHistory: [], omenScore: 0, bonusDraft: false,
-    ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0 }, monk: createMonk(),
+    ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0, wardTime: 0 }, monk: createMonk(),
     enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
     seals: [], ghosts: [], bolts: [], arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
     spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,

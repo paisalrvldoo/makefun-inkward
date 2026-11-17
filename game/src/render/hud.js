@@ -25,7 +25,7 @@ export function drawHud(ctx, state, audio) {
   text(ctx, 'SCORE', 708, 29, 11, COLORS.faint, 'bold');
   text(ctx, String(state.score).padStart(6, '0'), 706, 63, 34, COLORS.ink, 'bold', true);
   text(ctx, 'PERSONAL BEST', 991, 29, 11, COLORS.faint, 'bold');
-  text(ctx, String(Math.max(state.best, state.score)).padStart(6, '0'), 989, 63, 32, COLORS.gold, 'bold', true);
+  text(ctx, String(state.best).padStart(6, '0'), 989, 63, 32, COLORS.gold, 'bold', true);
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1250, 77, 10, COLORS.faint, 'bold', false, 'right');
   text(ctx, 'WRATH', 991, 101, 11, COLORS.red, 'bold');
   text(ctx, `×${wrathMultiplier(state).toFixed(1)}`, 991, 116, 11, COLORS.gold, 'bold');
@@ -72,9 +72,9 @@ export function drawHud(ctx, state, audio) {
     wrapText(ctx, 'Clear a scroll. Choose 1 of 3 arts. Shape your own way to win.', 1001, 462, 225, 20, 13);
   } else {
     state.arts.forEach((id, i) => {
-      const art = findArt(id), x = 1001, y = 429 + i * 17;
-      drawArtIcon(ctx, id, x + 9, y - 4, 16);
-      text(ctx, art.name, x + 24, y, 12, COLORS.ink, 'bold');
+      const art = findArt(id), x = 1001, y = 432 + i * (state.arts.length <= 5 ? 23 : 17);
+      drawArtIcon(ctx, id, x + 9, y - 4, 19);
+      text(ctx, art.name, x + 24, y, state.arts.length <= 5 ? 14 : 12, COLORS.ink, 'bold');
       drawLevelPips(ctx, state, id, 1196, y - 4);
     });
   }

@@ -15,7 +15,7 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, 'INKWARD', 55, 221, 118, COLORS.ink, 'bold', true);
   text(ctx, 'Guard the last bell.', 64, 273, 40, COLORS.red, 'normal', true);
   text(ctx, 'Paint ink walls. Encircle the yokai.', 67, 324, 22, COLORS.ink, 'normal', true);
-  text(ctx, 'Set wandering spirits free before they crack your shrine.', 67, 357, 17, COLORS.faint);
+  text(ctx, 'Seals feed WRATH. Fulfill omens. Shape your own brush.', 67, 357, 17, COLORS.faint);
   text(ctx, '8 SCROLLS     4 SEASONS     3 ONI BOSSES     12 BRUSH ARTS', 67, 399, 12, COLORS.gold, 'bold');
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
   DIFFICULTY_RECTS.forEach((rect, i) => {

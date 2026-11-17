@@ -4,6 +4,7 @@ import { STEP, FIELD, distance, clamp } from './config.js';
 import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt } from './arts/brushArts.js';
+import { directPlayCover } from './coverReplay.js';
 
 export function replayInput() {
   return {
@@ -11,14 +12,14 @@ export function replayInput() {
     clearFrame() { this.pressed.clear(); this.paintEvents.length = 0; this.clicks.length = 0; this.splashes.length = 0; },
   };
 }
-export function createReplayPilot() {
+export function createReplayPilot(options = {}) {
   let drawing = null, lastLoop = -3, lastWall = -20;
   return (state, input, aggressive = true) => {
     input.clearFrame();
     if (state.mode === 'draft') {
       const preferred = ['well', 'breath', 'feather', 'thunder', 'lotus', 'mending', 'gold', 'willow', 'echo', 'stone', 'twin', 'vermilion'];
       const value = art => preferred.indexOf(art.id) + (state.arts.includes(art.id) ? 20 : 0);
-      const index = [...state.draft].sort((a, b) => value(a) - value(b))[0];
+      const index = (options.cover && state.scroll === 5 && state.draft.find(a => a.id === 'echo')) || [...state.draft].sort((a, b) => value(a) - value(b))[0];
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
     const threats = state.enemies.filter(e => !e.dead).sort((a, b) => distance(a, state.bell) - distance(b, state.bell));
@@ -67,20 +68,19 @@ export function stageShot(name, seed = 1) {
     state.time = 3.5; return { state, input };
   }
   startRun(state);
-  const pilot = createReplayPilot();
-  let snapshot = null;
+  const pilot = createReplayPilot({ cover: name === 'play' });
+  if (name === 'play') {
+    state.best = stageShot('win', seed).state.score;
+    return directPlayCover(state, input, pilot);
+  }
   const limit = name === 'end' ? 280 : 900;
   for (let i = 0; i < limit / STEP; i++) {
     if (name === 'draft' && state.mode === 'draft') break;
-    if (name === 'play' && state.scroll === 3 && state.enemies.some(e => e.kind === 'oni') && state.enemies.length >= 3 && state.activeStroke?.points.length >= 32 && state.bannerTime <= 0 && state.bell.hitTime <= 0 && state.comboTime > 3) break;
     if (name === 'end' && state.runTime > 35) { input.clearFrame(); input.keys.clear(); }
     else pilot(state, input, name !== 'play' || state.scroll < 3);
     updateWorld(state, input, STEP);
-    if (state.mode === 'play') snapshot = { ...state };
     if (state.mode === 'win' || state.mode === 'lose') break;
   }
-  // A requested play shot stays a genuine non-terminal frame even if the pilot loses later.
-  if (name === 'play' && state.mode !== 'play' && snapshot) Object.assign(state, snapshot);
   state.soundEvents.length = 0;
   return { state, input };
 }

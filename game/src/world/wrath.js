@@ -29,7 +29,7 @@ export function raiseWrath(state, count) {
 }
 export function updateWrath(state, dt) {
   state.huntBanner = Math.max(0, state.huntBanner - dt);
-  if (state.runTime - state.lastSealTime > 5) state.wrath = Math.max(0, state.wrath - dt * 0.16);
+  if (state.runTime - state.lastSealTime > 3) state.wrath = Math.max(0, state.wrath - dt * 0.3);
   const level = wrathLevel(state);
   if (level === 5) state.huntTime += dt;
   state.hunterTimer -= dt;

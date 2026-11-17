@@ -27,6 +27,13 @@ export function spawnYokai(state, kind, point, small = false) {
 }
 export function damageBell(state, enemy) {
   if (enemy.hunter) return;
+  if (state.bell.wardTime > 0) {
+    const dx = enemy.x - state.bell.x, dy = enemy.y - state.bell.y, length = Math.hypot(dx, dy) || 1;
+    enemy.x += dx / length * 85; enemy.y += dy / length * 85;
+    enemy.stun = 1.2; enemy.charge = null; enemy.actionTime = 0;
+    addRing(state, state.bell.x, state.bell.y, 63, '#b68a36', 0.4);
+    state.soundEvents.push({ name: 'bell' }); return;
+  }
   enemy.dead = true;
   state.cleared++;
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));

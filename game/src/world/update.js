@@ -37,6 +37,7 @@ export function updateWorld(state, input, dt) {
   state.time += dt; state.runTime += dt; state.scrollTime += dt;
   state.bannerTime = Math.max(0, state.bannerTime - dt);
   state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);
+  state.bell.wardTime = Math.max(0, state.bell.wardTime - dt);
   state.comboTime = Math.max(0, state.comboTime - dt);
   if (state.comboTime <= 0) state.combo = 1;
   updateEffects(state, dt);
