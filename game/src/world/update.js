@@ -7,11 +7,13 @@ import { updateEffects } from '../render/fx.js';
 import { makeThreatQueue, updateWaves } from './waves.js';
 import { getScroll } from './scrolls.js';
 import { updateWrath } from './wrath.js';
+import { beginOmen, finishOmen } from './omens.js';
 
 export function finishRun(state, won) {
   if (state.ended) return;
   endStroke(state);
   state.ended = true;
+  finishOmen(state, won);
   state.mode = won ? 'win' : 'lose';
   if (won) state.score += state.bell.hp * 500 + 3000;
   state.best = Math.max(state.best, state.score);
@@ -26,6 +28,7 @@ export function nextScroll(state) {
   state.qCooldown = 0; state.eCooldown = 0; state.splashCooldown = 0;
   state.banner = `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
   state.bannerTime = 4; state.mode = 'play';
+  state.bonusDraft = false; beginOmen(state);
 }
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
@@ -44,6 +47,7 @@ export function updateWorld(state, input, dt) {
   updateYokai(state, dt);
   if (state.bell.hp <= 0) { finishRun(state, false); return; }
   if (!state.queue.length && !state.enemies.length) {
+    finishOmen(state, true);
     endStroke(state);
     if (state.scroll === 8) finishRun(state, true);
     else {

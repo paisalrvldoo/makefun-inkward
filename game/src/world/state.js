@@ -3,6 +3,7 @@ import { createRng } from '../rng.js';
 import { createMonk } from '../entities/monk.js';
 import { makeThreatQueue } from './waves.js';
 import { DIFFICULTIES } from './difficulty.js';
+import { beginOmen } from './omens.js';
 
 export function createState(seed = 1, best = 0, difficultyId = 'monk') {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
@@ -11,6 +12,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
     score: 0, best, combo: 1, comboTime: 0, peakCombo: 1, sealed: 0, loops: 0, largestSeal: 0,
     wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
+    omen: null, omenHistory: [], omenScore: 0, bonusDraft: false,
     ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0 }, monk: createMonk(),
     enemies: [], strokes: [], activeStroke: null, waitRelease: false, particles: [], floats: [], rings: [],
     seals: [], ghosts: [], bolts: [], arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
@@ -20,6 +22,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk') {
   };
   state.queue = makeThreatQueue(state);
   state.total = state.queue.length;
+  beginOmen(state);
   return state;
 }
 export function startRun(state) { state.mode = 'play'; state.soundEvents.push({ name: 'click' }); }

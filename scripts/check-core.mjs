@@ -8,6 +8,8 @@ import { updateWorld } from '../game/src/world/update.js';
 import { splashInk } from '../game/src/arts/brushArts.js';
 import { replayInput, stageShot } from '../game/src/shots.js';
 import { raiseWrath, updateWrath, wrathLevel, wrathMultiplier } from '../game/src/world/wrath.js';
+import { beginOmen, finishOmen } from '../game/src/world/omens.js';
+import { draftArts } from '../game/src/arts/brushArts.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
 function circle(state, x, y, radius = 64) {
@@ -57,6 +59,16 @@ function circle(state, x, y, radius = 64) {
   assert.ok(state.strokes[0].points.at(-1).x < 330, 'Painting stops at the affordable endpoint');
 }
 const win = stageShot('win').state, loss = stageShot('end').state, draft = stageShot('draft').state;
+{
+  const state = world();
+  for (let i = 0; i < 3; i++) spawnYokai(state, 'crane', { x: 260 + i * 9, y: 350 });
+  circle(state, 270, 350);
+  assert.ok(state.omen.complete); assert.equal(state.omenScore, 2400);
+  finishOmen(state, true); finishOmen(state, true);
+  assert.equal(state.omenHistory.length, 1, 'Omens settle once');
+  state.scroll = 2; beginOmen(state); finishOmen(state, true); draftArts(state);
+  assert.equal(state.draft.length, 4, 'Unharmed omen grants a fourth real draft choice');
+}
 {
   const state = world(); state.queue = [{ kind: 'kappa' }];
   for (let i = 0; i < 6; i++) raiseWrath(state, 4);

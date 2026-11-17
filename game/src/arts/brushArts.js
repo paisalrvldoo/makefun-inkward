@@ -39,7 +39,7 @@ export function describeArt(id, level = 1) {
 export function draftArts(state) {
   const pool = BRUSH_ARTS.filter(art => artLevel(state, art.id) < MAX_ART_LEVEL);
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(state.rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  state.draft = pool.slice(0, 3);
+  state.draft = pool.slice(0, state.bonusDraft ? 4 : 3);
 }
 export function chooseArt(state, index) {
   const art = state.draft[index];

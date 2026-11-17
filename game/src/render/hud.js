@@ -8,6 +8,7 @@ import { comboDuration } from '../arts/levels.js';
 import { drawYokai } from './sprites.js';
 import { text, line, panel, circle, wrapText, stamp } from './primitives.js';
 import { wrathLevel, wrathMultiplier } from '../world/wrath.js';
+import { omenReward, omenProgress } from '../world/omens.js';
 
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
@@ -79,9 +80,11 @@ export function drawHud(ctx, state, audio) {
   text(ctx, '12 ARTS · EVERY RUN A NEW BRUSH', 1001, 551, 10, COLORS.gold, 'bold');
 
   panel(ctx, 984, 580, 268, 114, '#eee8d7');
-  text(ctx, 'THE WAY OF THE BRUSH', 1001, 602, 12, COLORS.ink, 'bold');
+  text(ctx, 'OMEN / OPTIONAL', 1001, 602, 12, COLORS.gold, 'bold');
   const tip = state.wrath >= 3 ? 'Seals raise WRATH: faster spawns, monk hunters, up to 2× score. Wait without sealing to cool the hunt.' : state.enemies.find(e => e.kind === 'oni') ? 'Oni need several loops. Splash, encircle, then give the seal time to fade.' : state.scroll === 1 ? 'Hold LMB. Circle a spirit. Return to the red dot to seal it. Ink refills when released.' : YOKAI[getScroll(state).types[0]].detail + '. Group spirits behind a wall, then seal them together.';
-  wrapText(ctx, tip, 1001, 624, 228, 19, 12);
+  wrapText(ctx, state.omen.label, 1001, 626, 228, 20, 17, COLORS.ink);
+  text(ctx, omenProgress(state.omen), 1001, 675, 11, state.omen.complete ? COLORS.green : COLORS.red, 'bold');
+  text(ctx, omenReward(state.omen), 1235, 675, 10, COLORS.gold, 'bold', false, 'right');
 
   panel(ctx, 28, 708, 932, 62, '#f0e7d1');
   text(ctx, 'INK', 46, 729, 12, COLORS.ink, 'bold');

@@ -1,6 +1,7 @@
 import { COLORS } from '../config.js';
 import { gradeRun } from '../world/state.js';
 import { text, panel, stamp, button, hitRect } from '../render/primitives.js';
+import { omenReward } from '../world/omens.js';
 
 export const RESTART_BUTTON = { x: 446, y: 622, w: 388, h: 66 };
 export const TITLE_BUTTON = { x: 497, y: 705, w: 286, h: 34 };
@@ -21,11 +22,18 @@ export function drawResults(ctx, state, input) {
   ];
   stats.forEach(([label, value], i) => {
     const x = 256 + i * 193;
-    panel(ctx, x, 447, 183, 94, '#f0e7d1');
-    text(ctx, label, x + 91, 475, 11, COLORS.faint, 'bold', false, 'center');
-    text(ctx, value, x + 91, 519, 33, COLORS.ink, 'bold', true, 'center');
+    panel(ctx, x, 424, 183, 75, '#f0e7d1');
+    text(ctx, label, x + 91, 446, 11, COLORS.faint, 'bold', false, 'center');
+    text(ctx, value, x + 91, 482, 29, COLORS.ink, 'bold', true, 'center');
   });
-  text(ctx, `PERSONAL BEST  ${String(state.best).padStart(6, '0')}     ·     ${state.arts.length} BRUSH ARTS HELD`, 640, 581, 16, COLORS.gold, 'bold', true, 'center');
+  const fulfilled = state.omenHistory.filter(o => o.complete);
+  text(ctx, `OMENS FULFILLED  ${fulfilled.length}/${state.omenHistory.length}`, 256, 522, 13, COLORS.green, 'bold');
+  fulfilled.forEach((omen, i) => {
+    const label = { cranes: '3 CRANES / ONE LOOP', unharmed: 'BELL UNHARMED', boss: 'BOSS / TWO LOOPS' }[omen.id];
+    text(ctx, `S${omen.scroll} · ${label} · ${omenReward(omen)}`, 256 + Math.floor(i / 4) * 400, 545 + i % 4 * 17, 11, COLORS.ink, 'bold');
+  });
+  if (!fulfilled.length) text(ctx, 'An optional challenge awaits in every scroll.', 256, 551, 14, COLORS.faint, 'normal', true);
+  text(ctx, `PERSONAL BEST ${String(state.best).padStart(6, '0')}  ·  ${state.arts.length} BRUSH ARTS`, 640, 609, 13, COLORS.gold, 'bold', true, 'center');
   button(ctx, 'PAINT ANOTHER WARD', RESTART_BUTTON, hitRect(input.pointer, RESTART_BUTTON), 'CLICK TO RESTART  /  R');
   text(ctx, 'RETURN TO TITLE  /  ESC', 640, 727, 12, hitRect(input.pointer, TITLE_BUTTON) ? COLORS.red : COLORS.faint, 'bold', false, 'center');
 }

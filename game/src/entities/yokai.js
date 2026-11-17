@@ -4,6 +4,7 @@ import { burst, floatText, addRing } from '../render/fx.js';
 import { difficulty } from '../world/difficulty.js';
 import { artLevel } from '../arts/levels.js';
 import { wrathMultiplier } from '../world/wrath.js';
+import { recordOmenBellHit } from '../world/omens.js';
 
 export const YOKAI = {
   kappa: { name: 'KAPPA', detail: 'Lunges toward the bell', color: '#63846d', speed: 30, radius: 17, value: 100 },
@@ -29,6 +30,7 @@ export function damageBell(state, enemy) {
   enemy.dead = true;
   state.cleared++;
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));
+  recordOmenBellHit(state, enemy.kind === 'oni' ? 4 : 1);
   state.bell.hitTime = 0.7;
   state.combo = 1; state.comboTime = 0;
   state.shake = 9; state.flash = 0.2;

@@ -4,6 +4,7 @@ import { burst, floatText, addRing } from '../render/fx.js';
 import { artLevel, comboDuration } from '../arts/levels.js';
 import { bossLoopDamage } from '../entities/bosses.js';
 import { raiseWrath, wrathMultiplier } from '../world/wrath.js';
+import { recordOmenSeal } from '../world/omens.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
@@ -45,6 +46,7 @@ export function sealLoop(state, points) {
       } else releaseSpirit(state, enemy);
     } else releaseSpirit(state, enemy);
   }
+  recordOmenSeal(state, enclosed);
   for (let i = 0; i < artLevel(state, 'thunder'); i++) {
     const source = enclosed[0];
     const neighbour = state.enemies.find(e => !e.dead && e.kind !== 'oni' && enclosed.some(target => distance(e, target) < 90 + artLevel(state, 'thunder') * 20));

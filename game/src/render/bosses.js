@@ -35,6 +35,6 @@ export function drawBossBanner(ctx, state) {
   ctx.fillStyle = boss.color; ctx.fillRect(64, 180, 757 * boss.hp / boss.maxHp, 12);
   for (let i = 1; i < boss.maxHp; i++) { ctx.fillStyle = '#fff5e599'; ctx.fillRect(64 + i * 757 / boss.maxHp, 180, 2, 12); }
   text(ctx, `${boss.hp} / ${boss.maxHp}`, 922, 192, 17, boss.color, 'bold', false, 'right');
-  text(ctx, boss.rule, 64, 209, 11, COLORS.faint, 'bold');
+  text(ctx, boss.rule + ' · +1 HIT / 2 MINIONS (MAX +3)', 64, 209, 10, COLORS.faint, 'bold');
   text(ctx, boss.telegraph ? 'WARNING' : boss.exposed > 0 || boss.stun > 0 ? 'EXPOSED' : 'GUARDED', 922, 209, 11, boss.color, 'bold', false, 'right');
 }

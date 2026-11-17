@@ -9,7 +9,7 @@ import { endStroke } from './ink/strokes.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { START_BUTTON, DIFFICULTY_RECTS } from './screens/title.js';
-import { DRAFT_RECTS } from './screens/draft.js';
+import { draftRects } from './screens/draft.js';
 import { RESTART_BUTTON, TITLE_BUTTON } from './screens/results.js';
 import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
@@ -54,8 +54,8 @@ function handleMenus() {
   } else if (state.mode === 'pause') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; input.clearFrame(); }
   } else if (state.mode === 'draft') {
-    for (let i = 0; i < 3; i++) {
-      if (input.pressed.has(`Digit${i + 1}`) || clicked(DRAFT_RECTS[i])) {
+    for (let i = 0; i < state.draft.length; i++) {
+      if (input.pressed.has(`Digit${i + 1}`) || clicked(draftRects(state)[i])) {
         if (chooseArt(state, i)) { nextScroll(state); input.release(); input.clearFrame(); }
         break;
       }

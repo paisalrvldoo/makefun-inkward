@@ -26,7 +26,8 @@ export function bossLoopDamage(enemy, enclosedCount) {
   if (enemy.sealLock > 0) return 0;
   const vulnerable = enemy.stun > 0 || enemy.exposed > 0;
   if (enemy.boss === 'frost' && !vulnerable && enclosedCount < 3) return 0;
-  return vulnerable || (enemy.boss === 'ember' && enemy.telegraph?.kind === 'charge') ? 2 : 1;
+  const base = vulnerable || (enemy.boss === 'ember' && enemy.telegraph?.kind === 'charge') ? 2 : 1;
+  return base + Math.min(3, Math.floor((enclosedCount - 1) / 2));
 }
 function warnAttack(state, enemy) {
   const phase = bossPhase(enemy), attacks = enemy.attacks[phase];
