@@ -4,31 +4,31 @@
     "query": "?shot=play&seed=1",
     "width": 1280,
     "height": 800,
-    "bytes": 177948,
+    "bytes": 187832,
     "caption": "Autumn Oni fight: WRATH 3, twelve-spirit seal, combo x8, dash, five arts, omen 1/2."
   },
   {
     "name": "2-title.jpg",
-    "query": "?shot=start&seed=1",
+    "query": "?shot=title&seed=1",
     "width": 1280,
     "height": 800,
-    "bytes": 120240,
+    "bytes": 140910,
     "caption": "Title, rules, controls, difficulty and start."
   },
   {
-    "name": "3-draft.jpg",
-    "query": "?shot=draft&seed=1",
+    "name": "3-winter.jpg",
+    "query": "?shot=winter&seed=1",
     "width": 1280,
     "height": 800,
-    "bytes": 84272,
-    "caption": "Three real level-one brush art choices after scroll one."
+    "bytes": 178952,
+    "caption": "The final winter Oni, surrounded by yokai during a live seal."
   },
   {
-    "name": "4-results.jpg",
+    "name": "4-victory.jpg",
     "query": "?shot=win&seed=1",
     "width": 1280,
     "height": 800,
-    "bytes": 83478,
+    "bytes": 94762,
     "caption": "Eight-scroll victory, score, omens, WRATH statistics and restart."
   }
 ]

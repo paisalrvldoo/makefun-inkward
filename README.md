@@ -8,6 +8,14 @@ Paint ink walls, encircle wandering yokai, and guard the last bell through eight
 
 ![INKWARD gameplay: ink walls and yokai around the shrine bell](screenshots/1-play.jpg)
 
+## Screenshots
+
+![INKWARD title screen](screenshots/2-title.jpg)
+
+![INKWARD winter Oni fight](screenshots/3-winter.jpg)
+
+![INKWARD victory results](screenshots/4-victory.jpg)
+
 ## How to play
 
 Protect the shrine bell from incoming yokai. Hold the left mouse button to paint walls that block spirits, then close a loop around them by returning to the red starting dot or crossing your own stroke. Sealing groups earns score, builds combos, and refunds ink. Release the brush to refill; walls fade and erode under pressure.
@@ -110,7 +118,7 @@ game/
     screens/           Title, draft, pause, and results
     shots.js           Submission-view staging
     coverReplay.js     Gameplay replay for the cover
-screenshots/           Four submission JPEGs; 1-play.jpg is the cover
+screenshots/           Four submission JPEGs: play, title, winter, and victory
 shots.json             Submission view definitions
 scripts/               Syntax, core-mechanics, and browser checks
 serve.ts               Local static server

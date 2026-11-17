@@ -91,12 +91,12 @@ try {
   const pausedTime = await evaluate('window.inkward.state.runTime'); await pause(180);
   assert.equal(await evaluate('window.inkward.state.runTime'), pausedTime, 'Pause freezes simulation');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "play"');
-  for (const scene of ['start', 'play', 'draft', 'end', 'win']) {
-    const expectedMode = { start: 'title', play: 'play', draft: 'draft', end: 'lose', win: 'win' }[scene];
+  for (const scene of ['title', 'play', 'draft', 'end', 'winter', 'win']) {
+    const expectedMode = { title: 'title', play: 'play', draft: 'draft', end: 'lose', winter: 'play', win: 'win' }[scene];
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score })');
-    assert.equal(state.mode, { start: 'title', play: 'play', draft: 'draft', end: 'lose', win: 'win' }[scene]);
+    assert.equal(state.mode, expectedMode);
     const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
     writeFileSync(`/tmp/ink-${scene}.jpg`, Buffer.from(screenshot.data, 'base64'));
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
