@@ -9,13 +9,13 @@ import { drawTutorial } from './tutorial.js';
 import { formatSeed, dailyDateString } from '../rng.js';
 import { ACHIEVEMENTS, drawAchievementIcon, drawAchievementPanel } from '../achievements.js';
 
-export const ASCENSION_BUTTON = { x: 510, y: 562, w: 310, h: 34 };
-export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
-export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 30, id: d.id }));
-export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
-export const SEED_BUTTON = { x: 64, y: 388, w: 208, h: 27 };
-export const ACHIEVEMENTS_BUTTON = { x: 510, y: 388, w: 208, h: 27 };
-export const DAILY_BUTTON = { x: 728, y: 388, w: 208, h: 27 };
+export const ASCENSION_BUTTON = { x: 64, y: 420, w: 213, h: 28 };
+export const START_BUTTON = { x: 64, y: 458, w: 434, h: 66 };
+export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 148, y: 534, w: 138, h: 28, id: d.id }));
+export const SKIN_BUTTON = { x: 285, y: 420, w: 213, h: 28 };
+export const SEED_BUTTON = { x: 64, y: 386, w: 140, h: 28 };
+export const ACHIEVEMENTS_BUTTON = { x: 212, y: 386, w: 140, h: 28 };
+export const DAILY_BUTTON = { x: 360, y: 386, w: 138, h: 28 };
 export function drawTitle(ctx, state, input, audio) {
   ctx.fillStyle = '#0a1220'; ctx.fillRect(0, 0, 1280, 800);
   wash(ctx, 973, 258, 352, '#a2241f', 0.32);
@@ -67,17 +67,17 @@ export function drawTitle(ctx, state, input, audio) {
   ];
   for (const badge of badges) { panel(ctx, badge.x, 336, badge.w, 37, badge.fill, '#e4b550'); text(ctx, badge.label, badge.x + badge.w / 2, 360, 13, '#fff2db', 'bold', false, 'center'); }
   panel(ctx, SEED_BUTTON.x, SEED_BUTTON.y, SEED_BUTTON.w, SEED_BUTTON.h, hitRect(input.pointer, SEED_BUTTON) ? '#2c3f4a' : '#1e2d39', '#7a5a32');
-  text(ctx, 'SEED ' + formatSeed(state.seed), 78, 406, 12, '#deba64', 'bold');
-  text(ctx, 'R \u21bb', 257, 406, 10, '#b9c7bc', 'bold', false, 'right');
+  text(ctx, 'SEED ' + formatSeed(state.seed), 74, 405, 10, '#deba64', 'bold');
+  text(ctx, 'R \u21bb', 198, 405, 10, '#b9c7bc', 'bold', false, 'right');
   if (state.unlocks.includes('moonBell')) {
     panel(ctx, SKIN_BUTTON.x, SKIN_BUTTON.y, SKIN_BUTTON.w, SKIN_BUTTON.h, '#1e2d39', '#7a5a32');
-    text(ctx, 'BELL: ' + state.bell.skin.toUpperCase() + '  /  B', 394, 406, 11, '#c3dceb', 'bold', false, 'center');
+    text(ctx, 'BELL: ' + state.bell.skin.toUpperCase() + '  /  B', 391, 439, 10, '#c3dceb', 'bold', false, 'center');
   }
   const earned = (state.progress.achievements || []).length;
   panel(ctx, ACHIEVEMENTS_BUTTON.x, ACHIEVEMENTS_BUTTON.y, ACHIEVEMENTS_BUTTON.w, ACHIEVEMENTS_BUTTON.h, hitRect(input.pointer, ACHIEVEMENTS_BUTTON) ? '#2c3f4a' : '#1e2d39', '#7a5a32');
-  text(ctx, 'ACHIEVEMENTS ' + earned + '/' + ACHIEVEMENTS.length + '  /  TAB', 614, 406, 11, '#e4b550', 'bold', false, 'center');
+  text(ctx, 'ACHIEVEMENTS ' + earned + '/' + ACHIEVEMENTS.length + '  /  TAB', 282, 405, 10, '#e4b550', 'bold', false, 'center');
   panel(ctx, DAILY_BUTTON.x, DAILY_BUTTON.y, DAILY_BUTTON.w, DAILY_BUTTON.h, state.daily ? '#704e92' : hitRect(input.pointer, DAILY_BUTTON) ? '#2c3f4a' : '#1e2d39', '#a07ad0');
-  text(ctx, 'DAILY SCROLL ' + (state.daily ? 'ON / D' : '/ D') + ' · ' + dailyDateString(), 832, 406, 10, '#dcc2f6', 'bold', false, 'center');
+  text(ctx, 'DAILY ' + dailyDateString() + (state.daily ? ' ON' : '') + ' / D', 429, 405, 10, '#dcc2f6', 'bold', false, 'center');
 
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
   DIFFICULTY_RECTS.forEach((rect, i) => {
@@ -89,10 +89,9 @@ export function drawTitle(ctx, state, input, audio) {
 
   const endless = state.unlocks.includes('ascension');
   panel(ctx, ASCENSION_BUTTON.x, ASCENSION_BUTTON.y, ASCENSION_BUTTON.w, ASCENSION_BUTTON.h, state.expedition === 'ascension' ? '#704e92' : '#1e2d39', endless ? '#d8b5fa' : '#6c5a40');
-  text(ctx, endless ? (state.expedition === 'ascension' ? 'ASCENSION SELECTED / A' : 'ENDLESS ASCENSION / A') : 'ASCENSION \u00b7 WIN TO UNLOCK', 665, ASCENSION_BUTTON.y + 14, 12, endless ? '#f3d5ff' : '#a9a89b', 'bold', false, 'center');
-  text(ctx, endless ? 'Keep your build \u00b7 higher WRATH every circuit' : '3 SHRINE RELICS \u00b7 8 SPIRIT TACTICS', 665, ASCENSION_BUTTON.y + 27, 10, '#d9c99d', 'bold', false, 'center');
-  text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 566, 12, '#d0c9b8');
-  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 582, 10, '#e0a84b');
+  text(ctx, endless ? (state.expedition === 'ascension' ? 'ASCENSION SELECTED / A' : 'ENDLESS ASCENSION / A') : 'ASCENSION \u00b7 WIN TO UNLOCK', 170, ASCENSION_BUTTON.y + 19, 10, endless ? '#f3d5ff' : '#a9a89b', 'bold', false, 'center');
+  text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 580, 12, '#d0c9b8');
+  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 596, 10, '#e0a84b');
   drawTutorial(ctx);
   text(ctx, input.touch ? 'ONE FINGER PAINT' : 'WASD MOVE', 68, 775, 12, '#e4b550', 'bold');
   text(ctx, input.touch ? 'DASH BUTTON' : 'SPACE DASH', 226, 775, 12, '#e4b550', 'bold');

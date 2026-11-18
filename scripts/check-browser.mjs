@@ -158,9 +158,10 @@ try {
     }
     if (scene === 'action') {
       const labels = await paintedLabels();
-      const total = await evaluate('inkward.state.scoreBurst.total.toLocaleString("en-US")');
-      assert.ok(labels.some(label => label.text === '+' + total), 'Action dossier shows the actual settled score slam');
-      assert.ok(labels.some(label => label.text.includes('COMBO ×8.0') && label.text.includes('WRATH ×1.6')));
+      // The cover keeps one hero callout and a few small hit numbers; the stacked score slam is staged out.
+      assert.equal(await evaluate('inkward.state.scoreBurst'), null, 'Action dossier stages out the stacked score slam');
+      assert.ok(await evaluate('inkward.state.combatTexts.filter(t => t.kind === "chain").length === 1'), 'Action dossier keeps exactly one hero CHAIN callout');
+      assert.ok(await evaluate('inkward.state.combatTexts.length <= 4'), 'Action dossier keeps only a few combat numbers');
     }
     if (scene === 'draft') {
       assert.equal(state.scroll, 5, 'Draft shot stops after scroll 5');
