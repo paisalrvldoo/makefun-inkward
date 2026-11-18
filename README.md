@@ -179,6 +179,12 @@ From the repository root:
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
+Verify that two independent builds are byte-identical (including the dossier and four JPEGs):
+
+```sh
+node scripts/check-package.mjs
+```
+
 The entry script copies the playable site into `out/game/`, copies the four submission JPEGs into `out/screenshots/`, and uses the bundled make.fun library to generate `out/dossier.json`. Without `MAKEFUN_OUTPUT_DIR`, it writes to `/output`.
 
 ## Source layout
@@ -214,6 +220,8 @@ shots.json             Submission view definitions
 scripts/               Syntax, mechanics, depth, juice, controls, systems and finale checks
   browser/             Shared Chrome harness and JPEG cap validation
   capture-screenshots.mjs  Reproducible four-view capture with dimension/byte gates
+  check-package.mjs    Two independent builds and complete byte comparison
+verification.json      Final package fingerprint and screenshot-cap evidence
 serve.ts               Local static server
 main.ts                Submission packaging entry
 vendor/makefun-game.ts  Bundled make.fun dossier builder

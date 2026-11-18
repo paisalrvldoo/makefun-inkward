@@ -1,0 +1,45 @@
+{
+  "schema": "inkward-verification/v1",
+  "method": "Two independent MAKEFUN_OUTPUT_DIR builds; compare every path and every byte, including dossier.json and all four JPEGs.",
+  "files": 102,
+  "bytes": 2344210,
+  "sha256": "ad804bb0e7d373360083554b991cea07c0bed8babdd7f9a9a8279208ca75fd98",
+  "screenshots": [
+    {
+      "name": "1-title.jpg",
+      "width": 1280,
+      "height": 800,
+      "bytes": 197118
+    },
+    {
+      "name": "2-play.jpg",
+      "width": 1280,
+      "height": 800,
+      "bytes": 242081
+    },
+    {
+      "name": "3-draft.jpg",
+      "width": 1280,
+      "height": 800,
+      "bytes": 191436
+    },
+    {
+      "name": "4-victory.jpg",
+      "width": 1280,
+      "height": 800,
+      "bytes": 180743
+    }
+  ],
+  "checks": [
+    "syntax",
+    "core mechanics and deterministic victory/defeat",
+    "two real ascension circuits and shrine passives",
+    "score/pickup/landing juice",
+    "buffered and touch controls",
+    "school/boss/cast systems",
+    "finale and one-time records",
+    "Chrome browser: real input, rendering, fallback, ending, saves, ascension and touch; zero errors"
+  ],
+  "largestGameSourceLines": 208,
+  "imagesViewed": 3
+}
