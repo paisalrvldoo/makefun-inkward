@@ -2,37 +2,37 @@
   {
     "name": "1-title.jpg",
     "query": "?shot=title&seed=1",
-    "caption": "Brush logo, earned best score, seed/difficulty selection and illustrated paint, loop, dash and ritual controls.",
+    "caption": "Bold brush-stroke logo over a vermilion moon, best score, seed/difficulty select, unclipped Master-unlock hint and illustrated paint/loop/dash/ritual controls.",
     "width": 1280,
     "height": 800,
-    "bytes": 197118,
+    "bytes": 200901,
     "quality": 90
   },
   {
     "name": "2-play.jpg",
     "query": "?shot=action&seed=1",
-    "caption": "Real scroll-six action: the earned +20,757 score slam, combo \u00d78 and WRATH \u00d71.6, pickup vacuum, vivid ink loops, full wave/health/ink HUD, relic charms and a marked boss-charge lane.",
+    "caption": "Real peak action: earned +20,757 score slam, combo ×8 + WRATH ×1.6, combo heat flame meter, sealed-ink glow, deep seasonal palette, pickup vacuum and boss-charge lane.",
     "width": 1280,
     "height": 800,
-    "bytes": 242081,
+    "bytes": 248388,
     "quality": 90
   },
   {
     "name": "3-draft.jpg",
     "query": "?shot=path&seed=1",
-    "caption": "Six earned scrolls: branching fight/rest/shrine map, two held relics and a third passive preview, rarity-glowing brush cards, real school synergies and level upgrades.",
+    "caption": "Pilgrim's Path: six earned scrolls on a branching map with fight/swarm/rest/shrine node icons, two held relics, rarity-glowing brush cards, school synergy and relic panels.",
     "width": 1280,
     "height": 800,
-    "bytes": 191436,
+    "bytes": 205553,
     "quality": 90
   },
   {
     "name": "4-victory.jpg",
     "query": "?shot=win&seed=1",
-    "caption": "Earned eight-boss victory: dawn shrine, S grade, animated score record, health/combo/omen/time stats, best-run ghost and five permanent unlocks including endless ascension.",
+    "caption": "Earned eight-boss victory: dawn shrine, S grade, animated score record with best-run ghost, health/combo/omen/time stats, and five permanent unlocks including endless ascension.",
     "width": 1280,
     "height": 800,
-    "bytes": 180743,
+    "bytes": 184033,
     "quality": 90
   }
 ]
