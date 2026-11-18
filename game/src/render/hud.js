@@ -36,10 +36,10 @@ export function drawHud(ctx, state, audio) {
   text(ctx, 'SCORE', 690, 28, 11, COLORS.gold, 'bold');
   text(ctx, String(Math.round(state.scoreShown ?? state.score)).padStart(6, '0'), 688, 64, 34, COLORS.white, 'bold', true);
   text(ctx, 'PERSONAL BEST', 906, 28, 11, COLORS.gold, 'bold');
-  text(ctx, String(state.best).padStart(6, '0'), 904, 62, 30, '#f0c35b', 'bold', true);
+  text(ctx, String(state.best).padStart(6, '0'), 904, 62, 24, '#f0c35b', 'bold', true);
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1250, 77, 10, '#e5dfd0', 'bold', false, 'right');
-  text(ctx, isAscension(state) ? 'WRATH / ' + wrathCap(state) : 'WRATH', 1020, 28, 11, '#ef5b48', 'bold');
-  text(ctx, `×${wrathMultiplier(state).toFixed(1)}`, 1020, 47, 11, '#f0c35b', 'bold');
+  text(ctx, isAscension(state) ? 'WRATH / ' + wrathCap(state) : 'WRATH', 1090, 28, 11, '#ef5b48', 'bold');
+  text(ctx, `×${wrathMultiplier(state).toFixed(1)}`, 1250, 28, 11, '#f0c35b', 'bold', false, 'right');
   for (let i = 0; i < 5; i++) {
     ctx.globalAlpha = i < wrathLevel(state) ? 1 : 0.16;
     stamp(ctx, String(i + 1), 1078 + i * 35, 76, 24, (i % 2 ? 1 : -1) * 0.07);
@@ -55,8 +55,7 @@ export function drawHud(ctx, state, audio) {
   ctx.fillStyle = '#e24937'; ctx.fillRect(620, 99, 222 * progress, 7);
   text(ctx, `${state.cleared}/${state.total}`, 980, 107, 12, COLORS.white, 'bold', false, 'right');
 
-  text(ctx, 'INK-GOLD', 980, 28, 11, COLORS.gold, 'bold', false, 'right');
-  text(ctx, '\u25c9 ' + (state.inkGold || 0), 980, 50, 20, '#f0c35b', 'bold', true, 'right');
+  text(ctx, 'INK-GOLD', 1090, 47, 9, '#d4cfbf', 'bold'); text(ctx, '\u25c9 ' + (state.inkGold || 0), 1250, 50, 16, '#f0c35b', 'bold', true, 'right');
 
   panel(ctx, 1014, 128, 248, 240, '#171c24', COLORS.gold);
   text(ctx, 'THREAT QUEUE', 1028, 153, 17, '#f0c35b', 'bold', true);
@@ -136,7 +135,7 @@ export function drawHud(ctx, state, audio) {
       ctx.fillStyle = comboColor + '66'; ctx.beginPath(); ctx.moveTo(x - 4, 753); ctx.quadraticCurveTo(x - 6, 739, x + 2, 733 - rise); ctx.quadraticCurveTo(x + 7, 741, x + 4, 753); ctx.fill();
     }
   }
-  text(ctx, `×${state.combo.toFixed(1)}`, 772, 751, 28 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
+  text(ctx, `×${state.combo.toFixed(1)}`, 734, 751, 28 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
   ctx.fillStyle = '#4a4d51'; ctx.fillRect(710, 741, 80, 6);
   ctx.fillStyle = '#ef5b48'; ctx.fillRect(710, 741, 80 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   if (state.comboHeat > 0.01) {
@@ -154,30 +153,34 @@ export function drawHud(ctx, state, audio) {
     }
     if (heat >= 1) text(ctx, '+25%', hx + hw + 2, hy + 12, 9, '#ffb84d', 'bold');
   }
-  text(ctx, 'RITUALS', 681, 729, 10, '#d4cfbf', 'bold');
+  line(ctx, [[800, 720], [800, 754]], '#806c3e', 1);
+  text(ctx, 'RITUALS', 812, 722, 11, '#f0c35b', 'bold');
   text(ctx, `SPACE ${state.monk.dashCooldown > 0 ? state.monk.dashCooldown.toFixed(1) + 's' : 'READY'} · SPLASH ${state.splashCooldown > 0 ? state.splashCooldown.toFixed(1) + 's' : 'READY'}`, 294, 690, 10, '#171c24', 'bold');
-  text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 681, 751, 12, '#8dc8e2', 'bold');
-  text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 758, 751, 12, '#f0c35b', 'bold');
+  text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 812, 740, 11, '#8dc8e2', 'bold');
+  text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 812, 757, 11, '#f0c35b', 'bold');
+  line(ctx, [[872, 720], [872, 754]], '#806c3e', 1);
   // ULTIMATE — Great Seal meter and R keycap; glows when full.
   const ultFull = ultReady(state), ultFill = ultRatio(state);
-  const ultX = 826;
+  const ultX = 882;
   if (ultFull) {
-    const glow = 0.5 + Math.sin(state.time * 8) * 0.3;
-    ctx.fillStyle = `rgba(255,210,115,${glow})`; ctx.fillRect(ultX - 4, 716, 86, 40);
+    const glow = 0.35 + Math.sin(state.time * 8) * 0.2;
+    ctx.fillStyle = `rgba(255,210,115,${glow})`; ctx.fillRect(ultX - 4, 714, 110, 48);
   }
-  ctx.fillStyle = ultFull ? '#ffd273' : '#2a3040'; ctx.fillRect(ultX, 720, 24, 24);
-  ctx.strokeStyle = ultFull ? '#fffaf0' : '#5a606e'; ctx.lineWidth = 1.5; ctx.strokeRect(ultX + 0.5, 720.5, 23, 23);
-  text(ctx, 'R', ultX + 12, 737, 15, ultFull ? '#0a0f16' : '#9aa0ae', 'bold', true, 'center');
-  text(ctx, 'ULT', ultX + 52, 731, 11, ultFull ? '#ffd273' : '#d4cfbf', 'bold');
-  ctx.fillStyle = '#4a4d51'; ctx.fillRect(ultX + 32, 738, 50, 7);
+  ctx.fillStyle = ultFull ? '#ffd273' : '#2a3040'; ctx.fillRect(ultX, 720, 28, 28);
+  ctx.strokeStyle = ultFull ? '#fffaf0' : '#5a606e'; ctx.lineWidth = 1.5; ctx.strokeRect(ultX + 0.5, 720.5, 27, 27);
+  text(ctx, 'R', ultX + 14, 740, 17, ultFull ? '#0a0f16' : '#9aa0ae', 'bold', true, 'center');
+  text(ctx, 'ULT', ultX + 36, 729, 11, ultFull ? '#ffd273' : '#d4cfbf', 'bold');
+  ctx.fillStyle = '#4a4d51'; ctx.fillRect(ultX + 36, 737, 62, 8);
   const ultColor = ultFill >= 1 ? '#ffd273' : ultFill >= 0.5 ? '#e8682a' : '#c93127';
-  ctx.fillStyle = ultColor; ctx.fillRect(ultX + 32, 738, 50 * ultFill, 7);
-  if (ultFill >= 1) text(ctx, 'READY', ultX + 57, 759, 9, '#ffd273', 'bold', false, 'center');
-  text(ctx, 'GRADE', 927, 727, 9, '#d4cfbf', 'bold', false, 'center');
-  text(ctx, gradeRun(state), 927, 754, 29, COLORS.white, 'bold', true, 'center');
+  ctx.fillStyle = ultColor; ctx.fillRect(ultX + 36, 737, 62 * ultFill, 8);
+  text(ctx, ultFill >= 1 ? 'READY' : Math.floor(ultFill * 100) + '%', ultX + 36, 758, 9, ultFill >= 1 ? '#ffd273' : '#d4cfbf', 'bold');
+  // Run record sits in its own panel to the right of the HUD bar.
+  panel(ctx, 1004, 708, 258, 58, '#222936', COLORS.gold);
+  text(ctx, 'GRADE', 1036, 724, 9, '#d4cfbf', 'bold', false, 'center');
+  text(ctx, gradeRun(state), 1036, 754, 29, COLORS.white, 'bold', true, 'center');
   const mastery = Math.floor(state.sealed / 8) + state.circuits;
-  text(ctx, `LV ${mastery + 1}  ·  ${state.sealed % 8}/8 SEALS`, 884, 751, 10, '#c4a4f0', 'bold');
-  text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 996, 729, 12, COLORS.white, 'bold', true, 'right');
+  text(ctx, `LV ${mastery + 1}  ·  ${state.sealed % 8}/8 SEALS`, 1068, 731, 11, '#c4a4f0', 'bold');
+  text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 1068, 753, 12, COLORS.white, 'bold', true);
   const hints = [['WASD', 'MOVE'], ['LMB', 'PAINT'], ['RMB', 'SPLASH'], ['SPACE', 'DASH'], ['Q', 'LOTUS'], ['E', 'BELL'], ['R', 'ULT'], ['P', 'PAUSE'], ['M', 'SOUND']];
   let kx = 20;
   for (const [key, label] of hints) {

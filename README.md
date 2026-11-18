@@ -26,7 +26,7 @@
 
 ![INKWARD title: brush logo, earned best score and controls](screenshots/2-title.jpg)
 
-![INKWARD Pilgrim's Path: six cleared scrolls, held relics, a third shrine passive and rarity drafts](screenshots/3-draft.jpg)
+![INKWARD Pilgrim's Shrine shop: four priced upgrades bought with ink-gold from sealed yokai](screenshots/3-shop.jpg)
 
 ![INKWARD dawn ending record: S grade, stats, unlocks and best ghost](screenshots/4-victory.jpg)
 

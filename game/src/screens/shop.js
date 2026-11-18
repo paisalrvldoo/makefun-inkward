@@ -61,13 +61,14 @@ export function drawShop(ctx, state, input) {
     panel(ctx, rect.x, rect.y, rect.w, rect.h, cardBg, cardStroke);
     panel(ctx, rect.x + 4, rect.y + 4, rect.w - 8, rect.h - 8, cardBg, '#36494f');
 
-    drawItemIcon(ctx, item, rect.x + 30, rect.y + 30, 18);
-    text(ctx, item.name.toUpperCase(), rect.x + 58, rect.y + 28, 13, '#fff0d8', 'bold');
+    const cx = rect.x + rect.w / 2;
+    if (!sold) { ctx.fillStyle = 'rgba(240,195,91,0.10)'; ctx.beginPath(); ctx.arc(cx, rect.y + 60, 42, 0, Math.PI * 2); ctx.fill(); }
+    drawItemIcon(ctx, item, cx, rect.y + 60, 30);
+    text(ctx, item.name.toUpperCase(), cx, rect.y + 122, 15, '#fff0d8', 'bold', false, 'center');
+    wrapText(ctx, item.blurb, rect.x + 16, rect.y + 150, rect.w - 32, 18, 12, '#c0c8c6');
 
     const priceColor = sold ? '#4a4d51' : canAfford ? '#f0c35b' : '#ef5b48';
-    text(ctx, '\u25c9 ' + item.price, rect.x + rect.w - 20, rect.y + 28, 13, priceColor, 'bold', false, 'right');
-
-    wrapText(ctx, item.blurb, rect.x + 14, rect.y + 94, rect.w - 28, 18, 12, '#c0c8c6');
+    text(ctx, '\u25c9 ' + item.price, cx, rect.y + rect.h - 66, 22, priceColor, 'bold', true, 'center');
 
     const btnX = rect.x + 12, btnY = rect.y + rect.h - 52, btnW = rect.w - 24, btnH = 36;
     const btnHover = hover && !sold && canAfford;

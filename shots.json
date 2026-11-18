@@ -5,7 +5,7 @@
     "caption": "Peak gameplay: group seal burst of many yokai at once, petals and ink exploding, boss with intent icon and red telegraph zone, combo heat flames at max, full HUD with health/ink bars and key-hint bar.",
     "width": 1280,
     "height": 800,
-    "bytes": 223344,
+    "bytes": 233398,
     "quality": 90
   },
   {
@@ -14,16 +14,16 @@
     "caption": "Bold brush-stroke logo over a vermilion moon, best score, seed/difficulty select, unclipped Master-unlock hint and illustrated paint/loop/dash/ritual controls.",
     "width": 1280,
     "height": 800,
-    "bytes": 198809,
+    "bytes": 198781,
     "quality": 90
   },
   {
-    "name": "3-draft.jpg",
-    "query": "?shot=path&seed=1",
-    "caption": "Pilgrim's Path: six earned scrolls on a branching map with fight/swarm/rest/shrine node icons, two held relics, rarity-glowing brush cards, school synergy and relic panels.",
+    "name": "3-shop.jpg",
+    "query": "?shot=shop&seed=1",
+    "caption": "The Pilgrim's Shrine shop: priced upgrades bought with ink-gold",
     "width": 1280,
     "height": 800,
-    "bytes": 201558,
+    "bytes": 109246,
     "quality": 90
   },
   {
@@ -32,7 +32,7 @@
     "caption": "Earned eight-boss victory: dawn shrine, S grade, animated score record with best-run ghost, health/combo/omen/time stats, and five permanent unlocks including endless ascension.",
     "width": 1280,
     "height": 800,
-    "bytes": 182126,
+    "bytes": 182145,
     "quality": 90
   }
 ]

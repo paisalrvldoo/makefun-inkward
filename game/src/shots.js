@@ -11,6 +11,7 @@ import { advanceEnding } from './scenes/ending.js';
 import { stagePathShot } from './replays/pathShot.js';
 import { advanceDefeat } from './scenes/defeat.js';
 import { openShop } from './run/shop.js';
+import { fillUlt, ULT_MAX } from './arts/ultimate.js';
 
 export function replayInput() {
   return {
@@ -94,6 +95,9 @@ export function createReplayPilot(options = {}) {
 export function stageShot(name, seed = 1) {
   if (name === 'action') {
     const replay = stageShot('play', seed);
+    // Cover staging: the Great Seal stands ready and the monk is mid-fight, not near death.
+    fillUlt(replay.state, ULT_MAX);
+    replay.state.monk.health = Math.max(replay.state.monk.health, Math.round(replay.state.monk.maxHealth * 0.7));
     for (let i = 0; i < 36; i++) { replay.input.clearFrame(); replay.input.keys.clear(); updateWorld(replay.state, replay.input, STEP); }
     replay.state.soundEvents.length = 0; return replay;
   }
