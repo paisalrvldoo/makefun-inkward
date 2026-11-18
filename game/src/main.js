@@ -112,6 +112,7 @@ function frame(now) {
   touchDash.hidden = !input.touch || state.mode !== 'play';
   touchDash.textContent = state.monk.dashCooldown > 0 ? `DASH ${state.monk.dashCooldown.toFixed(1)}s` : 'DASH';
   post.present(state);
+  if (!staged && state.impactFrames > 0) state.impactFrames--;
   if (staged) document.documentElement.dataset.shotReady = 'true';
   requestAnimationFrame(frame);
 }

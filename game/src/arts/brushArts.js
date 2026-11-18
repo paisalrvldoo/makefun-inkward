@@ -3,6 +3,7 @@ import { spawnYokai } from '../entities/yokai.js';
 import { burst, addRing, floatText } from '../render/fx.js';
 import { artLevel, MAX_ART_LEVEL } from './levels.js';
 import { takeAction } from '../controls/buffer.js';
+import { castArt, ritualImpact } from '../fx/skillCasts.js';
 
 export const BRUSH_ARTS = [
   { id: 'vermilion', name: 'Vermilion edge', rune: 'V', type: 'WALL' },
@@ -57,6 +58,7 @@ export function chooseArt(state, index) {
   if (art.id === 'breath') state.maxInk += 30 * gained;
   if (art.id === 'mending') state.bell.hp = Math.min(state.bell.hp + 3 * gained, state.bell.maxHp);
   state.ink = state.maxInk;
+  castArt(state, art.id, state.monk, { force: true });
   burst(state, state.monk.x, state.monk.y, 26, '#b68a36');
   floatText(state, state.monk.x, state.monk.y - 40, `${art.name.toUpperCase()} · LV ${level}`, '#b68a36', 21);
   state.soundEvents.push({ name: 'draft' });
@@ -89,9 +91,9 @@ export function updateArts(state, input, dt) {
     const level = artLevel(state, 'lotus');
     state.qCooldown = Math.max(6, 14 - level * 3);
     for (const enemy of state.enemies) enemy.stun = Math.max(enemy.stun, 2.5 + level * 1.4);
-    addRing(state, state.monk.x, state.monk.y, 600, '#7191a6', 1);
+    castArt(state, 'lotus', state.monk, { radius: 530, force: true });
+    ritualImpact(state, 'lotus');
     floatText(state, state.monk.x, state.monk.y - 35, 'LOTUS HUSH', '#7191a6', 23);
-    state.soundEvents.push({ name: 'bell' });
   }
   if (takeAction(state, 'ward', state.eCooldown <= 1e-6)) {
     const level = artLevel(state, 'mending');
@@ -106,8 +108,8 @@ export function updateArts(state, input, dt) {
         enemy.stun = Math.max(enemy.stun, 2);
       }
     }
-    addRing(state, state.bell.x, state.bell.y, range, '#b68a36', 0.8);
+    castArt(state, 'mending', state.bell, { radius: range, force: true });
+    ritualImpact(state, 'mending');
     floatText(state, state.bell.x, state.bell.y - 55, 'BELL WARD', '#b68a36', 23);
-    state.soundEvents.push({ name: 'bell' });
   }
 }

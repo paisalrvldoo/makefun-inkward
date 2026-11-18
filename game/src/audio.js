@@ -1,3 +1,5 @@
+import { playArtSound } from './audio/artSounds.js';
+
 export function createAudio() {
   let context = null;
   let muted = false;
@@ -37,7 +39,9 @@ export function createAudio() {
     get muted() { return muted; },
     toggle() { muted = !muted; return muted; },
     play(name, value = 1) {
-      if (name === 'stroke') {
+      if (name.startsWith('art:')) {
+        playArtSound(name.slice(4), tone, rustle);
+      } else if (name === 'stroke') {
         if (!context || context.currentTime - lastStroke < 0.13) return;
         lastStroke = context.currentTime;
         tone(220 + value % 5 * 55, 0.18, 0.035, 'triangle');

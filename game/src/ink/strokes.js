@@ -5,6 +5,7 @@ import { floatText } from '../render/fx.js';
 import { artLevel } from '../arts/levels.js';
 import { inkCost, closingSnap } from './cost.js';
 import { INPUT_GRACE, controlFeedback } from '../controls/buffer.js';
+import { castArt } from '../fx/skillCasts.js';
 
 export function beginStroke(state, point) {
   if (state.waitRelease) return;
@@ -16,11 +17,14 @@ export function beginStroke(state, point) {
   state.strokeStart = null; state.strokeGrace = 0;
   const stroke = { id: state.nextId++, points: [{ ...point }], length: 0, integrity: 1, life: INK.lifetime, closed: false };
   state.strokes.push(stroke); state.activeStroke = stroke;
+  if (artLevel(state, 'feather')) castArt(state, 'feather', point, { radius: 38, interval: 1.5 });
+  if (artLevel(state, 'moonInk') && state.bell.wardTime > 0) castArt(state, 'moonInk', point, { interval: 2 });
 }
 export function endStroke(state) {
   const stroke = state.activeStroke;
   if (stroke && stroke.points.length < 2) state.strokes = state.strokes.filter(s => s !== stroke);
   if (stroke && !stroke.closed && state.arts.includes('twin') && stroke.points.length > 1) {
+    castArt(state, 'twin', { x: BELL.x * 2 - stroke.points.at(-1).x, y: stroke.points.at(-1).y });
     state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: BELL.x * 2 - p.x, y: p.y })), integrity: 0.5 + artLevel(state, 'twin') * 0.15 });
     if (artLevel(state, 'twin') >= 3) state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: p.x, y: BELL.y * 2 - p.y })), integrity: 0.8 });
   }
@@ -97,5 +101,8 @@ export function updateStrokes(state, input, dt) {
   }
   state.strokes = state.strokes.filter(stroke => stroke.life > 0 && stroke.integrity > 0).slice(-35);
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
-  if (!state.activeStroke) state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3));
+  if (!state.activeStroke) {
+    if (state.ink < state.maxInk - 10 && artLevel(state, 'breath')) castArt(state, 'breath', state.monk, { radius: 38, interval: 2.5 });
+    state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3));
+  }
 }

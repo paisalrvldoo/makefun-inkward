@@ -13,6 +13,7 @@ import { recordRun } from '../save.js';
 import { artLevel } from '../arts/levels.js';
 import { walkRoad } from './path.js';
 import { bufferActions, clearControls } from '../controls/buffer.js';
+import { castArt } from '../fx/skillCasts.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -69,6 +70,7 @@ export function updateWorld(state, input, dt) {
     finishOmen(state, true);
     endStroke(state);
     state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + artLevel(state, 'afterglow'));
+    if (artLevel(state, 'afterglow')) castArt(state, 'afterglow', state.bell, { radius: 90, force: true });
     if (state.scroll === 8) finishRun(state, true);
     else {
       state.score += 400 + state.bell.hp * 25;

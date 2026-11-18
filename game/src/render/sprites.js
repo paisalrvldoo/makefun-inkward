@@ -16,10 +16,10 @@ function eyeOpening(time, phase) {
   const blink = (time + phase * 0.73 + 1.1) % 4.9;
   return blink < 0.18 ? Math.abs(blink - 0.09) / 0.09 : 1;
 }
-export function drawMonk(ctx, monk, time = 0, scale = 1) {
+export function drawMonk(ctx, monk, time = 0, scale = 1, silhouette = false) {
   ctx.save(); ctx.translate(monk.x, monk.y); ctx.scale(scale, scale);
-  if (monk.hurtTime > 0 && Math.floor(time * 20) % 2) ctx.globalAlpha = 0.45;
-  shadow(ctx, 0, 0, 22);
+  if (!silhouette && monk.hurtTime > 0 && Math.floor(time * 20) % 2) ctx.globalAlpha *= 0.45;
+  if (!silhouette) shadow(ctx, 0, 0, 22);
   const walk = monk.walk || 0, sway = Math.sin(time * 1.8 + walk) * 2.3;
   if (monk.dashTime > 0) {
     const progress = Math.max(0, Math.min(1, 1 - monk.dashTime / MONK.dashTime));
@@ -94,13 +94,13 @@ function drawCrane(ctx, time, opening) {
   ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(-28, -12 - flap); ctx.lineTo(-12, 10); ctx.lineTo(1, 14); ctx.lineTo(19, -18 + flap); ctx.lineTo(10, 6); ctx.lineTo(2, 7); ctx.lineTo(6, -17); ctx.lineTo(17, -13); ctx.lineTo(9, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
   line(ctx, [[-25, -10 - flap], [0, 8], [17, -15 + flap]], '#babaa5', 1); eye(ctx, 8, -13, 1.4, COLORS.red, opening, false);
 }
-function drawOni(ctx, enemy, time) {
+function drawOni(ctx, enemy, time, silhouette = false) {
   const color = enemy.color;
   ctx.fillStyle = color; ctx.strokeStyle = COLORS.ink; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(-27, -17); ctx.lineTo(-24, -42); ctx.lineTo(-9, -27); ctx.quadraticCurveTo(0, -33, 9, -27); ctx.lineTo(25, -42); ctx.lineTo(28, -16); ctx.bezierCurveTo(41, 7, 30, 38, 0, 38); ctx.bezierCurveTo(-32, 37, -42, 3, -27, -17); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#f7df99'; ctx.beginPath(); ctx.moveTo(-21, -7); ctx.lineTo(-5, -3); ctx.lineTo(-11, 5); ctx.lineTo(-21, 3); ctx.closePath(); ctx.fill();
   ctx.beginPath(); ctx.moveTo(21, -7); ctx.lineTo(5, -3); ctx.lineTo(11, 5); ctx.lineTo(21, 3); ctx.closePath(); ctx.fill();
-  if (enemy.telegraph) {
+  if (enemy.telegraph && !silhouette) {
     drawGlow(ctx, -12, 0, 15, 0.8, '#ffd078'); drawGlow(ctx, 12, 0, 15, 0.8, '#ffd078');
   }
   circle(ctx, -12, 0, 2.3, COLORS.ink); circle(ctx, 12, 0, 2.3, COLORS.ink);
@@ -108,9 +108,9 @@ function drawOni(ctx, enemy, time) {
   ctx.fillStyle = '#fff7df'; ctx.beginPath(); ctx.moveTo(-15, 14); ctx.lineTo(-10, 26); ctx.lineTo(-6, 14); ctx.fill(); ctx.beginPath(); ctx.moveTo(15, 14); ctx.lineTo(10, 26); ctx.lineTo(6, 14); ctx.fill();
   line(ctx, [[-33, 10], [-48, 20], [-42, 36]], COLORS.ink, 8); line(ctx, [[33, 10], [45, 20], [47, 36]], COLORS.ink, 8);
 }
-export function drawYokai(ctx, enemy, time = 0, scale = 1) {
+export function drawYokai(ctx, enemy, time = 0, scale = 1, silhouette = false) {
   ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.scale(scale * (enemy.small ? 0.7 : 1), scale * (enemy.small ? 0.7 : 1));
-  shadow(ctx, 0, 0, enemy.kind === 'oni' ? 45 : 20);
+  if (!silhouette) shadow(ctx, 0, 0, enemy.kind === 'oni' ? 45 : 20);
   const phase = enemy.phase || 0, opening = eyeOpening(time, phase);
   const airborne = ['lantern', 'umbrella', 'crane'].includes(enemy.kind);
   const bob = enemy.kind === 'oni' ? 0 : Math.sin(time * (airborne ? 3 : 2.8) + phase) * (airborne ? 3.5 : 1.6);
@@ -119,7 +119,7 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1) {
   if (enemy.kind === 'oni') {
     const breath = Math.sin(time * 1.8 + phase);
     ctx.translate(0, 36); ctx.scale(1 + breath * 0.02, 1 + breath * 0.035); ctx.translate(0, -36);
-    if (enemy.telegraph) drawGlow(ctx, 0, 0, 87, 0.55 + Math.sin(time * 6) * 0.08, enemy.color);
+    if (enemy.telegraph && !silhouette) drawGlow(ctx, 0, 0, 87, 0.55 + Math.sin(time * 6) * 0.08, enemy.color);
   } else ctx.rotate(Math.sin(time * 1.9 + phase) * 0.025);
   if (enemy.kind === 'kappa') drawKappa(ctx, enemy.color, opening);
   else if (enemy.kind === 'lantern') drawLantern(ctx, enemy.color, opening);
@@ -127,14 +127,14 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1) {
   else if (enemy.kind === 'fox') drawFox(ctx, enemy.color, time, opening);
   else if (enemy.kind === 'eater') drawEater(ctx, opening);
   else if (enemy.kind === 'crane') drawCrane(ctx, time, opening);
-  else if (enemy.kind === 'oni') drawOni(ctx, enemy, time);
+  else if (enemy.kind === 'oni') drawOni(ctx, enemy, time, silhouette);
   ctx.restore();
-  if (enemy.kind === 'oni') {
+  if (!silhouette && enemy.kind === 'oni') {
     for (let i = 0; i < enemy.maxHp; i++) circle(ctx, (i - (enemy.maxHp - 1) / 2) * 15, -56, 4.5, i < enemy.hp ? COLORS.red : '#d8ccb2', COLORS.ink, 1);
     if (enemy.sealLock > 0) { ctx.save(); ctx.globalAlpha *= 0.6; circle(ctx, 0, 0, 51 + Math.sin(time * 8) * 2, null, COLORS.gold, 2); ctx.restore(); }
   }
-  if (enemy.hitTime > 0) circle(ctx, 0, 0, enemy.radius + 6, null, COLORS.red, 2);
-  if (enemy.stun > 0) {
+  if (!silhouette && enemy.hitTime > 0) circle(ctx, 0, 0, enemy.radius + 6, null, COLORS.red, 2);
+  if (!silhouette && enemy.stun > 0) {
     for (let i = 0; i < 3; i++) {
       const a = time * 2 + i * Math.PI * 2 / 3;
       circle(ctx, Math.cos(a) * 16, -30 + Math.sin(a) * 4, 2.5, COLORS.gold);

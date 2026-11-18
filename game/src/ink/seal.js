@@ -5,6 +5,7 @@ import { artLevel, comboDuration } from '../arts/levels.js';
 import { bossLoopDamage } from '../entities/bosses.js';
 import { raiseWrath, wrathMultiplier } from '../world/wrath.js';
 import { recordOmenSeal } from '../world/omens.js';
+import { castArt } from '../fx/skillCasts.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
@@ -52,16 +53,19 @@ export function sealLoop(state, points) {
     } else releaseSpirit(state, enemy);
   }
   recordOmenSeal(state, enclosed);
+  const chain = [...enclosed];
   for (let i = 0; i < artLevel(state, 'thunder'); i++) {
-    const source = enclosed[0];
     const neighbour = state.enemies.find(e => !e.dead && e.kind !== 'oni' && enclosed.some(target => distance(e, target) < 90 + artLevel(state, 'thunder') * 20));
     if (neighbour) {
       releaseSpirit(state, neighbour); addRing(state, neighbour.x, neighbour.y, 55, '#b68a36');
-      state.bolts.push({ x: source.x, y: source.y, endX: neighbour.x, endY: neighbour.y, life: 0.8 });
-      state.soundEvents.push({ name: 'thunder' });
+      chain.push(neighbour);
     }
   }
   const centre = enclosed.reduce((p, e) => ({ x: p.x + e.x / enclosed.length, y: p.y + e.y / enclosed.length }), { x: 0, y: 0 });
+  if (artLevel(state, 'thunder')) { castArt(state, 'thunder', chain[0], { targets: chain.slice(1), force: true }); state.ritualFlash = Math.max(state.ritualFlash, 0.1); state.impactColor = '#fff0a2'; }
+  if (artLevel(state, 'gold')) castArt(state, 'gold', centre, { radius: 90 });
+  if (artLevel(state, 'echo')) castArt(state, 'echo', centre, { radius: 100 });
+  if (artLevel(state, 'well')) castArt(state, 'well', centre, { radius: 50 });
   const refund = 9 + enclosed.length * (5 + artLevel(state, 'well') * 4);
   state.ink = Math.min(state.maxInk, state.ink + refund);
   floatText(state, centre.x, centre.y - 24, `SEALED ×${enclosed.length} +${(state.score - before).toLocaleString('en-US')}`, '#bb4436', 29);

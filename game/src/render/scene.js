@@ -11,6 +11,8 @@ import { drawPause } from '../screens/pause.js';
 import { spawnPoint } from '../world/waves.js';
 import { circle, text } from './primitives.js';
 import { drawBossBanner, drawBossTelegraphs, drawBossCallouts } from './bosses.js';
+import { drawSkillEffects } from './skillEffects.js';
+import { drawSilhouette } from './silhouette.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -31,6 +33,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   for (const ghost of state.ghosts) {
     ctx.globalAlpha = ghost.life * 1.5;
     drawMonk(ctx, { ...state.monk, x: ghost.x, y: ghost.y, hurtTime: 0 }, state.time);
+    if (ghost.willow) { ctx.globalAlpha = ghost.life * 0.8; circle(ctx, ghost.x, ghost.y, 20, '#7ae0a4'); }
   }
   ctx.globalAlpha = 1;
   for (const enemy of [...state.enemies].sort((a, b) => a.y - b.y)) if (!enemy.dead) {
@@ -39,12 +42,20 @@ export function renderScene(ctx, paper, state, input, audio) {
   }
   drawMonk(ctx, state.monk, state.time);
   drawEffects(ctx, state);
+  drawSkillEffects(ctx, state);
   if (state.mode === 'play') {
     drawCursor(ctx, input, state);
     drawInkCallouts(ctx, state);
     drawBossCallouts(ctx, state);
   }
   if (state.flash > 0) { ctx.fillStyle = `rgba(187,68,54,${state.flash * 0.4})`; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); }
+  if (state.ritualFlash > 0) { ctx.globalAlpha = state.ritualFlash * 0.9; ctx.fillStyle = state.impactColor; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.globalAlpha = 1; }
+  if (state.impactFrames > 0 && state.mode === 'play') {
+    ctx.save(); ctx.globalCompositeOperation = 'difference';
+    drawSilhouette(ctx, drawMonk, state.monk, state.time, '#ffffff');
+    for (const enemy of state.enemies) if (!enemy.dead) drawSilhouette(ctx, drawYokai, enemy, state.time, '#ffffff');
+    ctx.restore();
+  }
   ctx.restore();
   drawHud(ctx, state, audio);
   drawWaveBanner(ctx, state);

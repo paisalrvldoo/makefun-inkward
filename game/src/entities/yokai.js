@@ -5,6 +5,7 @@ import { difficulty } from '../world/difficulty.js';
 import { artLevel } from '../arts/levels.js';
 import { wrathMultiplier } from '../world/wrath.js';
 import { recordOmenBellHit } from '../world/omens.js';
+import { castArt } from '../fx/skillCasts.js';
 
 export const YOKAI = {
   kappa: { name: 'KAPPA', detail: 'Lunges toward the bell', color: '#63846d', speed: 30, radius: 17, value: 100 },
@@ -57,6 +58,8 @@ export function wallCollision(state, enemy, next, dt) {
       if (!stroke.soundCooldown) {
         stroke.flash = 0.25; stroke.soundCooldown = 0.6;
         state.soundEvents.push({ name: 'wallHit' });
+        if (artLevel(state, 'vermilion')) castArt(state, 'vermilion', nearest, { angle: Math.atan2(stroke.points[i].y - stroke.points[i - 1].y, stroke.points[i].x - stroke.points[i - 1].x) });
+        if (artLevel(state, 'stone')) castArt(state, 'stone', nearest, { radius: 32, interval: 1 });
       }
       enemy.blocked += dt;
       if (artLevel(state, 'vermilion')) {

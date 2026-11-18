@@ -1,6 +1,7 @@
 import { BELL, FIELD, MONK, clamp, distance } from '../config.js';
 import { artLevel } from '../arts/levels.js';
 import { takeAction } from '../controls/buffer.js';
+import { castArt } from '../fx/skillCasts.js';
 
 export function createMonk() {
   return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, walk: 0 };
@@ -22,12 +23,13 @@ export function updateMonk(state, input, dt) {
     }
     monk.dashTime = MONK.dashTime;
     monk.dashCooldown = MONK.dashCooldown / (1 + artLevel(state, 'willow') * 0.7);
+    if (artLevel(state, 'willow')) castArt(state, 'willow', monk, { angle: Math.atan2(monk.vy, monk.vx), force: true });
     state.soundEvents.push({ name: 'dash' });
   }
   if (monk.dashTime > 0) {
     monk.dashTime -= dt;
     dx = monk.vx; dy = monk.vy;
-    state.ghosts.push({ x: monk.x, y: monk.y, life: 0.3 });
+    state.ghosts.push({ x: monk.x, y: monk.y, life: 0.3, willow: Boolean(artLevel(state, 'willow')) });
     for (const enemy of state.enemies) {
       if (!enemy.dead && distance(monk, enemy) < enemy.radius + 25) {
         enemy.stun = Math.max(enemy.stun, 1.5);
