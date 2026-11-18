@@ -18,13 +18,13 @@
 [![rank](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-![INKWARD title: brush logo, earned best score and controls](screenshots/1-title.jpg)
+![INKWARD gameplay: ink walls, vivid group seals, combo and a full boss HUD with health/ink bars](screenshots/1-play.jpg)
 
 ## Screenshots
 
-![INKWARD gameplay: ink walls, vivid group seals, combo and a full boss HUD](screenshots/2-play.jpg)
+![INKWARD title: brush logo, earned best score and controls](screenshots/2-title.jpg)
 
-![INKWARD Pilgrim’s Path: six cleared scrolls, held relics, a third shrine passive and rarity drafts](screenshots/3-draft.jpg)
+![INKWARD Pilgrim's Path: six cleared scrolls, held relics, a third shrine passive and rarity drafts](screenshots/3-draft.jpg)
 
 ![INKWARD dawn ending record: S grade, stats, unlocks and best ghost](screenshots/4-victory.jpg)
 
