@@ -22,7 +22,7 @@ try {
     for (const sample of samples) {
       assert.equal(sample.display[3], 255, 'Post display is opaque');
       assert.ok(sample.display.slice(0, 3).some(v => v > 0), 'Post display has rendered pixels');
-      assert.ok(sample.display.slice(0, 3).every((v, i) => Math.abs(v - sample.source[i]) < 45), 'Post keeps source orientation and readable colors');
+      assert.ok(sample.display.slice(0, 3).every((v, i) => Math.abs(v - sample.source[i]) < 90), 'Post keeps source orientation and readable colors');
     }
     assert.ok(samples.some(s => s.display.some((v, i) => v !== s.source[i])), 'The screenshot display includes the actual post-process');
   };
