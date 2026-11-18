@@ -1,16 +1,16 @@
 // One place to tune the cinematic pass. Bloom runs at quarter resolution.
 export const POST = Object.freeze({
   bloomScale: 0.25,
-  bloom: 0.28,
-  blurRadius: 1.9,
-  vignette: 0.20,
-  grain: 0.008,
-  inkBleed: 0.085,
-  grade: 0.72,
+  bloom: 0.18,
+  blurRadius: 1.6,
+  vignette: 0.46,
+  grain: 0.010,
+  inkBleed: 0.10,
+  grade: 0.82,
   seasons: [
-    [1.045, 0.995, 0.970], // Spring: deeper rose paper.
-    [0.975, 1.025, 0.995], // Summer: jade shade.
-    [1.080, 1.010, 0.918], // Autumn: amber light.
-    [0.938, 0.990, 1.072], // Winter: blue moonlight.
+    [0.94, 0.86, 0.92], // Spring: dusk plum, rose accents stay warm.
+    [0.82, 0.92, 0.86], // Summer: jade shade under deep indigo.
+    [0.98, 0.82, 0.70], // Autumn: ember glow over charcoal dusk.
+    [0.74, 0.84, 1.00], // Winter: cold moonlight on inkstone.
   ],
 });
