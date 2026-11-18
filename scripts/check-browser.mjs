@@ -10,7 +10,7 @@ try {
   await call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
   await call('Page.bringToFront');
   const checkPost = async () => {
-    await until('inkward.post.active && inkward.post.frames > 0 && document.documentElement.dataset.renderer === "webgl2"');
+    await until('inkward.post.active && inkward.post.frames > 0 && document.documentElement?.dataset?.renderer === "webgl2"');
     const samples = await evaluate(`new Promise(resolve => requestAnimationFrame(() => {
       const display = document.querySelector('#cinematic'), gl = display.getContext('webgl2');
       const source = document.querySelector('#game').getContext('2d');
@@ -27,9 +27,9 @@ try {
     assert.ok(samples.some(s => s.display.some((v, i) => v !== s.source[i])), 'The screenshot display includes the actual post-process');
   };
   await call('Page.navigate', { url: `${base}/?shot=title&seed=1` });
-  await until('window.inkward?.state.mode === "title" && document.documentElement.dataset.shotReady === "true"');
+  await until('window.inkward?.state.mode === "title" && document.documentElement?.dataset?.shotReady === "true"');
   await checkPost();
-  await key('KeyG', 'g'); await until('!inkward.post.active && document.documentElement.dataset.renderer === "2d"');
+  await key('KeyG', 'g'); await until('!inkward.post.active && document.documentElement?.dataset?.renderer === "2d"');
   const plainTitle = await evaluate('document.querySelector("#game").toDataURL()');
   assert.equal(await evaluate('document.querySelector("#cinematic").style.display'), 'none', 'G reveals the original input canvas');
   await key('KeyG', 'g'); await checkPost();
@@ -48,7 +48,7 @@ try {
       };
     })()` });
     await call('Page.navigate', { url: `${base}/?shot=title&seed=1&fallback=${failure}` });
-    await until(`location.search.includes('fallback=${failure}') && window.inkward && document.documentElement.dataset.shotReady === 'true'`);
+    await until(`location.search.includes('fallback=${failure}') && window.inkward && document.documentElement?.dataset?.shotReady === 'true'`);
     assert.equal(await evaluate('inkward.post.active'), false, `${failure} falls back`);
     assert.equal(await evaluate('document.querySelector("#cinematic").style.display'), 'none');
     await evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
@@ -60,7 +60,7 @@ try {
   await until('location.search.includes("restore=1") && window.inkward?.post.active');
   await checkPost();
   await evaluate('window.contextLoss = document.querySelector("#cinematic").getContext("webgl2").getExtension("WEBGL_lose_context"); contextLoss.loseContext()');
-  await until('!inkward.post.available && document.documentElement.dataset.renderer === "2d"');
+  await until('!inkward.post.available && document.documentElement?.dataset?.renderer === "2d"');
   await pause(120); await evaluate('contextLoss.restoreContext()'); await checkPost();
   console.log('Cinematic browser OK: processed pixels, G toggle, exact 2D fallback on missing WebGL/shader/target/upload failure, context loss and restoration');
   await call('Page.navigate', { url: base });
@@ -251,7 +251,7 @@ try {
   assert.ok((await paintedLabels()).some(label => label.text === 'THE LAST SEAL'));
   console.log('Climax browser OK: live three-phase boss, cinematic name cards, last-seal slash and mass spirit release');
   await call('Page.navigate', { url: `${base}/?shot=ending&seed=1` });
-  await until('location.search.includes("shot=ending") && window.inkward?.state.ending?.age > 11 && document.documentElement.dataset.shotReady === "true"');
+  await until('location.search.includes("shot=ending") && window.inkward?.state.ending?.age > 11 && document.documentElement?.dataset?.shotReady === "true"');
   const endingLabels = await paintedLabels();
   for (const value of ['DAWN RETURNS', 'The bell kept no tally of the dark.', 'At dawn, it rang for every soul.', 'THE BELL ENDURES', 'ANY KEY OR TAP · OPEN YOUR FINAL RECORD']) {
     assert.ok(endingLabels.some(label => label.text === value), `Ending draws ${value}`);
@@ -267,7 +267,7 @@ try {
     HTMLCanvasElement.prototype.getContext = function(kind, ...args) { return kind === 'webgl2' ? null : original.call(this, kind, ...args); };
   })()` });
   await call('Page.navigate', { url: `${base}/?shot=ending&seed=1&fallback=ending` });
-  await until('location.search.includes("fallback=ending") && document.documentElement.dataset.shotReady === "true" && window.inkward?.state.ending?.age > 11');
+  await until('location.search.includes("fallback=ending") && document.documentElement?.dataset?.shotReady === "true" && window.inkward?.state.ending?.age > 11');
   assert.equal(await evaluate('inkward.post.active'), false);
   assert.equal(await evaluate('document.querySelector("#game").toDataURL()'), plainEnding, 'Missing WebGL preserves the exact animated-ending frame');
   await call('Page.removeScriptToEvaluateOnNewDocument', { identifier: endingFallback.identifier });
@@ -276,13 +276,13 @@ try {
   assert.equal(await evaluate('inkward.state.score'), endingScore, 'Any key skips the epilogue without resetting the run');
   await key('KeyZ', 'z'); await until('inkward.state.resultsTime >= 4.5');
   await call('Page.navigate', { url: `${base}/?shot=ending&seed=1&verify=tap` });
-  await until('location.search.includes("verify=tap") && document.documentElement.dataset.shotReady === "true" && window.inkward?.state.ending?.age < 12');
+  await until('location.search.includes("verify=tap") && document.documentElement?.dataset?.shotReady === "true" && window.inkward?.state.ending?.age < 12');
   await mouse('mousePressed', 640, 360); await mouse('mouseReleased', 640, 360);
   await until('inkward.state.ending.age === inkward.state.ending.duration');
   console.log('Ending browser OK: original epilogue, eight unrolled scrolls, peaceful dawn shrine, exact 2D fallback, any-key/tap skip and animated record');
   for (const action of ['same-key', 'same-click', 'again-key', 'again-click', 'menu-key', 'menu-click']) {
     await call('Page.navigate', { url: `${base}/?shot=win&seed=1&verify=${action}` });
-    await until(`location.search.includes('verify=${action}') && window.inkward?.state.mode === 'win' && document.documentElement.dataset.shotReady === 'true'`);
+    await until(`location.search.includes('verify=${action}') && window.inkward?.state.mode === 'win' && document.documentElement?.dataset?.shotReady === 'true'`);
     if (action === 'same-key') await key('KeyS', 's');
     if (action === 'same-click') { await mouse('mousePressed', 650, 735); await mouse('mouseReleased', 650, 735); }
     if (action === 'again-key') await key('KeyR', 'r');

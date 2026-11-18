@@ -12,7 +12,7 @@ try {
   await call('Page.bringToFront');
   for (const shot of shots) {
     await call('Page.navigate', { url: base + '/' + shot.query });
-    await until(`location.search === ${JSON.stringify(shot.query)} && document.documentElement.dataset.shotReady === 'true' && window.inkward?.post.frames > 0`);
+    await until(`location.search === ${JSON.stringify(shot.query)} && document.documentElement?.dataset?.shotReady === 'true' && window.inkward?.post.frames > 0`);
     await evaluate('document.fonts.ready.then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))');
     let bytes, quality = 90;
     do {
