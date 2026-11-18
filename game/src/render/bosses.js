@@ -2,12 +2,16 @@ import { COLORS, FIELD, clamp } from '../config.js';
 import { bossPhase, ATTACK_NAMES } from '../entities/bosses.js';
 import { text, panel, circle, line } from './primitives.js';
 import { omenProgress } from '../world/omens.js';
+import { drawGlow } from './light.js';
 
 export function drawBossTelegraphs(ctx, state) {
   for (const boss of state.enemies) {
     if (boss.kind !== 'oni' || boss.dead || !boss.telegraph) continue;
     const warning = boss.telegraph, progress = 1 - warning.time / warning.total;
     const color = warning.kind === 'charge' ? COLORS.red : boss.color;
+    drawGlow(ctx, warning.x, warning.y, boss.radius * 2.3, 0.25 + progress * 0.45, color);
+    ctx.save(); ctx.globalAlpha *= 0.32 + progress * 0.4 + Math.sin(state.time * 6) * 0.08;
+    circle(ctx, warning.x, warning.y, boss.radius + 12 + progress * 5, null, '#ffd078', 3); ctx.restore();
     if (warning.kind === 'charge') {
       line(ctx, [[warning.x, warning.y], [warning.end.x, warning.end.y]], '#bb44361c', 76);
     } else {
