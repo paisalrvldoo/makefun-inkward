@@ -6,6 +6,7 @@ import { drawEffects } from './fx.js';
 import { drawHud, drawWaveBanner } from './hud.js';
 import { drawTitle } from '../screens/title.js';
 import { drawDraft } from '../screens/draft.js';
+import { drawShop } from '../screens/shop.js';
 import { drawResults } from '../screens/results.js';
 import { drawPause } from '../screens/pause.js';
 import { spawnPoint } from '../world/waves.js';
@@ -87,6 +88,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   drawBossBanner(ctx, state);
   if (state.mode === 'lose' && state.defeat?.age < state.defeat?.duration) { drawDefeat(ctx, state, input); return; }
   if (state.mode === 'draft') drawDraft(ctx, state, input);
+  if (state.mode === 'shop') drawShop(ctx, state, input);
   if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);
   drawClimax(ctx, state);

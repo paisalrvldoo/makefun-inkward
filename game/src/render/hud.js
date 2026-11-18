@@ -55,6 +55,9 @@ export function drawHud(ctx, state, audio) {
   ctx.fillStyle = '#e24937'; ctx.fillRect(620, 99, 222 * progress, 7);
   text(ctx, `${state.cleared}/${state.total}`, 980, 107, 12, COLORS.white, 'bold', false, 'right');
 
+  text(ctx, 'INK-GOLD', 980, 28, 11, COLORS.gold, 'bold', false, 'right');
+  text(ctx, '\u25c9 ' + (state.inkGold || 0), 980, 50, 20, '#f0c35b', 'bold', true, 'right');
+
   panel(ctx, 1014, 128, 248, 240, '#171c24', COLORS.gold);
   text(ctx, 'THREAT QUEUE', 1028, 153, 17, '#f0c35b', 'bold', true);
   text(ctx, `${state.enemies.length} ON PAPER`, 1246, 176, 10, '#ef5b48', 'bold', false, 'right');

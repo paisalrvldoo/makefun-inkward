@@ -10,6 +10,7 @@ import { chooseRoad } from './world/path.js';
 import { advanceEnding } from './scenes/ending.js';
 import { stagePathShot } from './replays/pathShot.js';
 import { advanceDefeat } from './scenes/defeat.js';
+import { openShop } from './run/shop.js';
 
 export function replayInput() {
   return {
@@ -98,7 +99,7 @@ export function stageShot(name, seed = 1) {
   }
   const previous = ['title', 'win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
   const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
-  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'path', 'winter'].includes(name)) {
+  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'path', 'winter', 'shop'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
   if (name === 'draft') {
@@ -107,7 +108,7 @@ export function stageShot(name, seed = 1) {
     chooseArt(state, 0);
   }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, relics: ['play', 'draft', 'path', 'win', 'ending'].includes(name), branching: ['play', 'draft', 'path', 'win', 'ending'].includes(name) });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, relics: ['play', 'draft', 'path', 'win', 'ending', 'shop'].includes(name), branching: ['play', 'draft', 'path', 'win', 'ending', 'shop'].includes(name) });
   if (name === 'path') return stagePathShot(state, input, pilot);
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
@@ -116,6 +117,28 @@ export function stageShot(name, seed = 1) {
   if (name === 'winter') {
     state.best = stageShot('win', seed).state.score;
     return directWinterFight(state, input, pilot);
+  }
+  if (name === 'shop') {
+    const limit = 900;
+    let stopped = false;
+    for (let i = 0; i < limit / STEP; i++) {
+      if (state.mode === 'draft' && !stopped) {
+        chooseRoad(state, state.scroll % 2 ? 'swarm' : 'quiet');
+        if (!chooseArt(state, 0)) chooseArt(state, 1);
+        openShop(state);
+        stopped = true;
+        break;
+      }
+      pilot(state, input, true);
+      updateWorld(state, input, STEP);
+      if (state.mode === 'win' || state.mode === 'lose') break;
+    }
+    // Ensure the shop has a populated offer and some coins to showcase purchases.
+    if (state.mode !== 'shop' || !state.shopOffer?.length) openShop(state);
+    if (!state.shopOffer?.length) { /* rollShopOffer called by openShop */ }
+    state.inkGold = Math.max(state.inkGold || 0, 30);
+    state.soundEvents.length = 0;
+    return { state, input };
   }
   const limit = name === 'end' ? 280 : 900;
   for (let i = 0; i < limit / STEP; i++) {

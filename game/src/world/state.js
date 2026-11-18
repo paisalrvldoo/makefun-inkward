@@ -17,7 +17,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     progress, unlocks: [...progress.unlocks], previousBestRun: progress.bestRun, newUnlocks: [], newBest: false, runRecorded: false,
     scrollScores: Array(8).fill(0), scrollStartScore: 0,
     route: createPath(), roadChoice: null, activeRoad: 'shrine',
-    score: 0, scoreShown: 0, scoreBurst: null, inkMotes: [], pickupChain: 0, pickupChainTime: 0, best, combo: 1, comboTime: 0, peakCombo: 1, comboHeat: 0, sealed: 0, loops: 0, largestSeal: 0, inkPainted: 0, yokaiByType: {}, scrollTimes: Array(8).fill(0), strokeCount: 0, bellHitThisScroll: false, unharmedScroll: false, newAchievements: [],
+    score: 0, scoreShown: 0, scoreBurst: null, inkMotes: [], inkGold: 0, shopInkRegen: 0, shopComboBonus: 0, shopWards: 0, shopRerolls: 0, shopBought: [], shopOffer: null, pickupChain: 0, pickupChainTime: 0, best, combo: 1, comboTime: 0, peakCombo: 1, comboHeat: 0, sealed: 0, loops: 0, largestSeal: 0, inkPainted: 0, yokaiByType: {}, scrollTimes: Array(8).fill(0), strokeCount: 0, bellHitThisScroll: false, unharmedScroll: false, newAchievements: [],
     wrath: 0, peakWrath: 0, lastSealTime: -10, hunterTimer: 4, huntBanner: 0, hunts: 0, huntTime: 0,
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
     omen: null, omenHistory: [], omenScore: 0, bonusDraft: false,

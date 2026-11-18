@@ -17,6 +17,8 @@ import { beginScoreBurst } from '../fx/scoreBurst.js';
 import { releaseInkMotes } from '../fx/inkMotes.js';
 import { addUltFromSeal } from '../arts/ultimate.js';
 
+import { rollInkGold } from '../run/shop.js';
+
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
   enemy.dead = true;
@@ -28,6 +30,11 @@ export function releaseSpirit(state, enemy) {
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;
   burst(state, enemy.x, enemy.y, enemy.kind === 'oni' ? 65 : 18, enemy.color);
+  const gold = rollInkGold(state, enemy);
+  if (gold > 0) {
+    state.inkGold = (state.inkGold || 0) + gold;
+    floatText(state, enemy.x, enemy.y - 28, '+' + gold + ' \u25c9', '#f0c35b', 16);
+  }
   if (enemy.boss === 'frost' && state.scroll === 8) {
     beginFinalSeal(state, enemy);
     for (const spirit of state.enemies) if (!spirit.dead) releaseSpirit(state, spirit);

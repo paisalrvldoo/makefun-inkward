@@ -109,6 +109,6 @@ export function updateStrokes(state, input, dt) {
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
   if (!state.activeStroke) {
     if (state.ink < state.maxInk - 10 && artLevel(state, 'breath')) castArt(state, 'breath', state.monk, { radius: 38, interval: 2.5 });
-    state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3) * synergyBonus(state, 'flow'));
+    state.ink = Math.min(state.maxInk, state.ink + (INK.regen + (state.shopInkRegen || 0)) * dt * (1 + artLevel(state, 'breath') * 0.3) * synergyBonus(state, 'flow'));
   }
 }

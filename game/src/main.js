@@ -20,6 +20,8 @@ import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/result
 import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
 import { stageShot } from './shots.js';
+import { openShop, closeShop, rerollShop, buyShopItem } from './run/shop.js';
+import { shopRects } from './screens/shop.js';
 import { advanceEnding, skipEnding, skipResults } from './scenes/ending.js';
 import { advanceDefeat, skipDefeat } from './scenes/defeat.js';
 import { DEFEAT_RETRY_BUTTON } from './screens/defeat.js';
@@ -96,10 +98,17 @@ function handleMenus() {
     }
     for (let i = 0; i < state.draft.length; i++) {
       if (input.pressed.has(`Digit${i + 1}`) || clicked(draftRects(state)[i])) {
-        if (chooseArt(state, i)) { nextScroll(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
+        if (chooseArt(state, i)) { openShop(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
         break;
       }
     }
+  } else if (state.mode === 'shop') {
+    const rects = shopRects(state);
+    for (let i = 0; i < rects.length; i++) {
+      if (input.pressed.has(`Digit${i + 1}`) || clicked(rects[i])) { buyShopItem(state, i); input.clearFrame(); break; }
+    }
+    if (input.pressed.has('KeyR')) { rerollShop(state); input.clearFrame(); }
+    if (input.pressed.has('Enter') || input.pressed.has('Escape')) { closeShop(state); nextScroll(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
   } else if (state.mode === 'win' || state.mode === 'lose') {
     if (state.mode === 'win' && state.ending && state.ending.age < state.ending.duration) {
       if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
@@ -139,7 +148,7 @@ function frame(now) {
   } else input.clearFrame();
   const showingEnding = state.mode === 'win' && state.ending?.age < state.ending?.duration;
   if (previousMode !== state.mode || previousSeed !== state.seed || previousEnding !== showingEnding) {
-    status.textContent = state.mode === 'title' ? `INKWARD.${state.daily ? ' Daily scroll ' + dailyDateString() + '.' : ''} Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : state.mode === 'win' && state.ending?.age < state.ending?.duration ? `Victory. The bell rings at dawn. Any key or tap skips to your final record. Score ${state.score}.` : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.${state.daily ? ' C copies your daily result.' : ''}`;
+    status.textContent = state.mode === 'title' ? `INKWARD.${state.daily ? ' Daily scroll ' + dailyDateString() + '.' : ''} Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'shop' ? 'Shrine shop. 1–6 buy. R rerolls. Enter leaves and starts the next scroll.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : state.mode === 'win' && state.ending?.age < state.ending?.duration ? `Victory. The bell rings at dawn. Any key or tap skips to your final record. Score ${state.score}.` : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.${state.daily ? ' C copies your daily result.' : ''}`;
     if (!previewRun && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
     previousMode = state.mode; previousSeed = state.seed; previousEnding = showingEnding;
   }
