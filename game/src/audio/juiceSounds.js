@@ -1,4 +1,4 @@
-export function playJuiceSound(name, value, tone, rustle) {
+export function playJuiceSound(name, value, tone, rustle, pluck) {
   if (name === 'pickup') {
     const pitch = 660 * 2 ** (Math.min(18, value) / 16);
     tone(pitch, 0.13, 0.036, 'sine'); tone(pitch * 1.5, 0.09, 0.014, 'triangle', 0.035);

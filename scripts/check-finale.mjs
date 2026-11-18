@@ -84,7 +84,8 @@ function loop(state, boss, minions = 0) {
 {
   const state = createState(1); startRun(state);
   let clock = 0; const notes = [], drums = [];
-  const music = createMusic((...args) => notes.push(args), (...args) => drums.push(args), () => clock);
+  const noop = () => {};
+  const music = createMusic((...args) => notes.push(args), (...args) => drums.push(args), noop, noop, () => clock);
   for (let i = 0; i < 120; i++) { music.update(state); clock += STEP; }
   const normal = musicProfile(state); assert.ok(music.active && music.scheduled > 2 && notes.length > 2);
   state.scroll = 8; const boss = spawnBoss(state, 'frost', { x: 270, y: 350 }); state.climax = null; boss.hp = 3;

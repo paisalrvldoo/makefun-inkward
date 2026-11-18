@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
+import { STEP } from '../game/src/config.js';
 import { createState, startRun } from '../game/src/world/state.js';
 import { updateWorld } from '../game/src/world/update.js';
 import { spawnYokai, updateYokai, wallCollision } from '../game/src/entities/yokai.js';
 import { spawnBoss, updateBosses, ONI } from '../game/src/entities/bosses.js';
 import { SCROLLS } from '../game/src/world/scrolls.js';
-import { releaseSpirit } from '../game/src/ink/seal.js';
+import { releaseSpirit, sealLoop } from '../game/src/ink/seal.js';
 import { beginStroke, paintPoint, endStroke, updateStrokes } from '../game/src/ink/strokes.js';
 import { replayInput } from '../game/src/shots.js';
 import { updateEffects } from '../game/src/render/fx.js';
@@ -12,6 +13,9 @@ import { activeSynergies } from '../game/src/arts/schools.js';
 import { updateArts, chooseArt, BRUSH_ARTS } from '../game/src/arts/brushArts.js';
 import { bufferActions } from '../game/src/controls/buffer.js';
 import { ART_SOUNDS } from '../game/src/audio/artSounds.js';
+import { createMusic } from '../game/src/audio/music.js';
+import { playJuiceSound } from '../game/src/audio/juiceSounds.js';
+import { updateScoreBurst } from '../game/src/fx/scoreBurst.js';
 
 function world(arts = []) { const s = createState(1); startRun(s); s.spawnTime = 100; s.arts = arts; return s; }
 {
@@ -61,4 +65,38 @@ for (const [key, id] of [['KeyQ', 'lotus'], ['KeyE', 'mending']]) {
   const s = world(), input = replayInput(); input.pressed.add(key); bufferActions(s, input, 0); updateArts(s, input, 0);
   assert.equal(s.impactFrames, 2); assert.ok(s.ritualFlash > 0); assert.ok(s.skillEffects.some(f => f.id === id));
 }
-console.log('Systems OK: three numerical school bonuses, eight boss warnings/recoveries, death cleanup, recoil and i-frames, fourteen cast/sound voices and ritual impacts');
+// Adaptive procedural score: koto plucks, taiko hits, combo-rising seal chimes and mute toggle.
+{
+  const state = createState(1); startRun(state); state.mode = 'play';
+  let clock = 0; const notes = [], drums = [], plucks = [];
+  const rustle = (...args) => {};
+  const music = createMusic((...args) => notes.push(args), rustle, (...args) => plucks.push(args), (...args) => drums.push(args), () => clock);
+  for (let i = 0; i < 120; i++) { music.update(state); clock += STEP; }
+  assert.ok(music.active && music.scheduled > 2, 'Adaptive score schedules notes during play');
+  assert.ok(plucks.length > 2, 'Koto plucks fire across the pentatonic scale');
+  assert.ok(drums.length > 0, 'Taiko hits fire on phrase markers');
+  // Boss-phase taiko intensifies on the final scroll.
+  const beforeDrums = drums.length;
+  state.scroll = 8; const boss = spawnBoss(state, 'frost', { x: 270, y: 350 }); state.climax = null; boss.hp = 2;
+  for (let i = 0; i < 120; i++) { music.update(state); clock += STEP; }
+  assert.ok(drums.length > beforeDrums, 'Final boss phases add concerted taiko hits');
+  // Mute stops the scheduler.
+  state.mode = 'pause'; const paused = notes.length; clock += 30; music.update(state);
+  assert.equal(music.active, false); assert.equal(notes.length, paused, 'Mute/pause stops the procedural music scheduler');
+  // Combo-rising seal chimes: group seals fire seal and bigSeal events; the score burst animates rising seal ticks.
+  const s = world(); const polygon = [{x:200,y:250},{x:370,y:250},{x:370,y:450},{x:200,y:450}];
+  for (let i = 0; i < 4; i++) spawnYokai(s, 'kappa', { x: 265 + i * 8, y: 350 });
+  s.ink = 50; sealLoop(s, polygon);
+  assert.ok(s.soundEvents.some(e => e.name === 'seal'), 'Sealing a group fires a seal sound event');
+  assert.ok(s.soundEvents.some(e => e.name === 'bigSeal'), 'Big group seals fire a bigSeal taiko event');
+  // The score burst animation emits eight rising seal ticks and one slam.
+  for (let i = 0; i < 42; i++) updateScoreBurst(s, 1 / 60);
+  assert.ok(s.soundEvents.some(e => e.name === 'sealSlam'), 'The score burst fires a sealSlam chime');
+  // Seal tick pitches rise with combo heat.
+  const tickPitches = [];
+  const tickTone = (f) => tickPitches.push(f);
+  const tickRustle = () => {};
+  for (let v = 0; v <= 7; v++) playJuiceSound('sealTick', v, tickTone, tickRustle);
+  for (let i = 1; i < tickPitches.length; i++) assert.ok(tickPitches[i] >= tickPitches[i - 1], 'Seal tick chimes rise with combo heat');
+}
+console.log('Systems OK: three numerical school bonuses, eight boss warnings/recoveries, death cleanup, recoil and i-frames, fourteen cast/sound voices and ritual impacts, koto/taiko adaptive score');
