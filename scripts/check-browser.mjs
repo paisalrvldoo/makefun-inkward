@@ -115,7 +115,9 @@ try {
     await until(`location.search.includes('fallback=${failure}') && window.inkward && document.documentElement.dataset.shotReady === 'true'`);
     assert.equal(await evaluate('inkward.post.active'), false, `${failure} falls back`);
     assert.equal(await evaluate('document.querySelector("#cinematic").style.display'), 'none');
-    assert.equal(await evaluate('document.querySelector("#game").toDataURL()'), plainTitle, `${failure} preserves the exact plain 2D frame`);
+    await evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+    const fallbackTitle = await evaluate('document.querySelector("#game").toDataURL()');
+    assert.ok(fallbackTitle === plainTitle, `${failure} preserves the exact plain 2D frame`);
     await call('Page.removeScriptToEvaluateOnNewDocument', { identifier: hook.identifier });
   }
   await call('Page.navigate', { url: `${base}/?shot=title&seed=1&restore=1` });

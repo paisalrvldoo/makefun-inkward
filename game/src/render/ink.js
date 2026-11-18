@@ -1,6 +1,7 @@
 import { COLORS, FIELD, INK, distance, clamp } from '../config.js';
 import { polygonArea } from '../ink/geometry.js';
 import { circle, text, stamp, line, panel } from './primitives.js';
+import { drawGlow } from './light.js';
 
 function strokePath(ctx, points, width, color) {
   if (points.length < 2) return;
@@ -19,6 +20,7 @@ export function drawStrokes(ctx, state) {
     strokePath(ctx, seal.points, 3, seal.success ? COLORS.red : COLORS.gold);
     if (seal.success) {
       const p = seal.points.reduce((sum, point) => ({ x: sum.x + point.x / seal.points.length, y: sum.y + point.y / seal.points.length }), { x: 0, y: 0 });
+      drawGlow(ctx, p.x, p.y, 88 + (1 - Math.min(1, seal.life)) * 55, Math.min(1, seal.life) * 0.6);
       stamp(ctx, 'SEAL', p.x, p.y, 42, -0.16);
     }
   }

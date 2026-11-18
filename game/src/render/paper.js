@@ -2,6 +2,20 @@ import { WIDTH, HEIGHT, FIELD, COLORS } from '../config.js';
 import { createRng } from '../rng.js';
 import { circle, line, text } from './primitives.js';
 import { getSeason } from '../world/scrolls.js';
+import { drawParallax } from './landscape.js';
+
+let gardenFibres;
+function drawGardenFibres(ctx) {
+  if (!gardenFibres) {
+    gardenFibres = document.createElement('canvas'); gardenFibres.width = FIELD.w; gardenFibres.height = FIELD.h;
+    const paint = gardenFibres.getContext('2d'), fibres = createRng(704); paint.globalAlpha = 0.065;
+    for (let i = 0; i < 2300; i++) {
+      const x = fibres() * FIELD.w, y = fibres() * FIELD.h;
+      line(paint, [[x, y], [x + 2 + fibres() * 6, y + fibres() * 2]], i % 2 ? '#fffef3' : '#7a6a50', 0.5);
+    }
+  }
+  ctx.drawImage(gardenFibres, FIELD.x, FIELD.y);
+}
 
 export function createPaper() {
   const canvas = document.createElement('canvas'); canvas.width = WIDTH; canvas.height = HEIGHT;
@@ -64,15 +78,7 @@ export function drawGarden(ctx, state) {
     wash(ctx, 840, 290, 260, '#db8839', 0.56);
     wash(ctx, 480, 230, 310, '#edb85f', 0.43);
   }
-  // Distant sumi mountains and a torii dissolve into the seasonal watercolor.
-  ctx.globalAlpha = 0.09; ctx.fillStyle = '#4f6258';
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath(); ctx.moveTo(90 + i * 240, 330); ctx.lineTo(218 + i * 240, 215 + i * 12);
-    ctx.lineTo(385 + i * 240, 330); ctx.closePath(); ctx.fill();
-    line(ctx, [[135 + i * 240, 290], [218 + i * 240, 215 + i * 12], [300 + i * 240, 282]], '#56665b', 3);
-  }
-  line(ctx, [[750, 304], [750, 241]], '#4c5a50', 6); line(ctx, [[812, 304], [812, 241]], '#4c5a50', 6);
-  line(ctx, [[729, 238], [781, 244], [834, 237]], '#4c5a50', 7); line(ctx, [[738, 254], [824, 254]], '#4c5a50', 4);
+  drawParallax(ctx, state, branch);
   ctx.globalAlpha = 0.15;
   for (let i = 0; i < 6; i++) {
     ctx.strokeStyle = '#b5af96'; ctx.lineWidth = 1;
@@ -85,8 +91,6 @@ export function drawGarden(ctx, state) {
     line(ctx, [[x - r * 0.6, y - 2], [x, y - r * 0.25], [x + r * 0.7, y - 1]], '#e9e3ce', 2);
     line(ctx, [[x + 15, y + 3], [x + 20, y - 11]], '#a6b296', 1.4);
   }
-  branch(ctx, FIELD.x + 7, FIELD.y + 195, 1.2, 1, season.motif);
-  branch(ctx, FIELD.x + FIELD.w - 2, FIELD.y + FIELD.h - 25, 1.05, -1, season.motif);
   const rng = createRng(91);
   const snowfall = season.motif === 'snow' ? 78 : 32;
   for (let i = 0; i < snowfall; i++) {
@@ -99,13 +103,7 @@ export function drawGarden(ctx, state) {
     else { ctx.fillStyle = season.color; ctx.beginPath(); ctx.ellipse(0, 0, 3 + i % 3, 1.8, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
-  const fibres = createRng(704);
-  ctx.globalAlpha = 0.065;
-  for (let i = 0; i < 2300; i++) {
-    const x = FIELD.x + fibres() * FIELD.w, y = FIELD.y + fibres() * FIELD.h;
-    line(ctx, [[x, y], [x + 2 + fibres() * 6, y + fibres() * 2]], i % 2 ? '#fffef3' : '#7a6a50', 0.5);
-  }
-  ctx.globalAlpha = 1;
+  drawGardenFibres(ctx);
   ctx.restore();
   ctx.strokeStyle = '#817044'; ctx.lineWidth = 2; ctx.strokeRect(FIELD.x + 0.5, FIELD.y + 0.5, FIELD.w - 1, FIELD.h - 1);
   // Registration marks frame the garden like a printed scroll.

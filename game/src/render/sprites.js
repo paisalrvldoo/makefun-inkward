@@ -1,8 +1,9 @@
 import { COLORS } from '../config.js';
 import { circle, line, text } from './primitives.js';
+import { drawGlow, drawShadow } from './light.js';
 
 function shadow(ctx, x, y, radius) {
-  ctx.fillStyle = '#443e2e14'; ctx.beginPath(); ctx.ellipse(x, y + 12, radius, radius * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+  drawShadow(ctx, x, y, radius);
 }
 export function drawMonk(ctx, monk, time = 0, scale = 1) {
   ctx.save(); ctx.translate(monk.x, monk.y); ctx.scale(scale, scale);
@@ -109,6 +110,7 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1) {
 export function drawBell(ctx, bell, time = 0, scale = 1) {
   ctx.save(); ctx.translate(bell.x, bell.y); ctx.scale(scale, scale);
   shadow(ctx, 0, 20, 55);
+  drawGlow(ctx, 0, -6, 95 + Math.sin(time * 1.1) * 3, bell.wardTime > 0 ? 0.8 : 0.46);
   if (bell.wardTime > 0) {
     circle(ctx, 0, 0, 60 + Math.sin(time * 5) * 3, '#d7b46713', '#b68a3677', 1.5);
   }
