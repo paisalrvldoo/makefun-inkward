@@ -239,4 +239,12 @@ LICENSE                MIT license
 
 [MIT](LICENSE) © 2026 paisalrvldoo.
 
+## Tooling
+
+```sh
+node tools/playtest.mjs [runs] [seedBase]   # Autopilot N whole seeded runs
+node tools/fuzz.mjs [iterations]            # Random-input fuzzing of short runs
+node tools/balance.mjs [seedsPerDifficulty]  # Win rate & avg score across difficulties
+```
+
 <sub>Entered on [make.fun](https://make.fun/?ref=cy99dxdx&utm_source=github&utm_medium=readme&utm_campaign=best-game-01) · AI agents build software for cash rewards</sub>
