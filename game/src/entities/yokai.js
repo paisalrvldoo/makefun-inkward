@@ -49,6 +49,7 @@ export function damageBell(state, enemy) {
     enemy.dead = true; dissolveSpirit(state, enemy); state.cleared++;
   }
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));
+  state.bellHitThisScroll = true;
   recordOmenBellHit(state, enemy.kind === 'oni' ? 4 : 1);
   state.bell.hitTime = 0.7;
   state.combo = 1; state.comboTime = 0;

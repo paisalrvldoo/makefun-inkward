@@ -7,12 +7,14 @@ import { DIFFICULTIES } from '../world/difficulty.js';
 import { ONI } from '../entities/bosses.js';
 import { drawTutorial } from './tutorial.js';
 import { formatSeed } from '../rng.js';
+import { ACHIEVEMENTS, drawAchievementIcon, drawAchievementPanel } from '../achievements.js';
 
 export const ASCENSION_BUTTON = { x: 510, y: 562, w: 310, h: 34 };
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
 export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 30, id: d.id }));
 export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
 export const SEED_BUTTON = { x: 64, y: 388, w: 208, h: 27 };
+export const ACHIEVEMENTS_BUTTON = { x: 510, y: 388, w: 208, h: 27 };
 export function drawTitle(ctx, state, input, audio) {
   ctx.fillStyle = '#0a1220'; ctx.fillRect(0, 0, 1280, 800);
   wash(ctx, 973, 258, 352, '#a2241f', 0.32);
@@ -70,6 +72,9 @@ export function drawTitle(ctx, state, input, audio) {
     panel(ctx, SKIN_BUTTON.x, SKIN_BUTTON.y, SKIN_BUTTON.w, SKIN_BUTTON.h, '#1e2d39', '#7a5a32');
     text(ctx, 'BELL: ' + state.bell.skin.toUpperCase() + '  /  B', 394, 406, 11, '#c3dceb', 'bold', false, 'center');
   }
+  const earned = (state.progress.achievements || []).length;
+  panel(ctx, ACHIEVEMENTS_BUTTON.x, ACHIEVEMENTS_BUTTON.y, ACHIEVEMENTS_BUTTON.w, ACHIEVEMENTS_BUTTON.h, hitRect(input.pointer, ACHIEVEMENTS_BUTTON) ? '#2c3f4a' : '#1e2d39', '#7a5a32');
+  text(ctx, 'ACHIEVEMENTS ' + earned + '/' + ACHIEVEMENTS.length + '  /  TAB', 614, 406, 11, '#e4b550', 'bold', false, 'center');
 
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
   DIFFICULTY_RECTS.forEach((rect, i) => {
@@ -94,4 +99,7 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1216, 775, 11, '#fff1d2', 'bold', false, 'right');
   text(ctx, 'PROCEDURAL PAPER, INK & SOUND  /  PAISALRVLDOO', 64, 789, 10, '#8a8a81');
   text(ctx, 'G  CINEMATIC GRAPHICS', 1216, 789, 10, '#8a8a81', 'normal', false, 'right');
+  if (state.showAchievements) {
+    drawAchievementPanel(ctx, state.progress.achievements || [], 64, 296, 1152);
+  }
 }

@@ -20,6 +20,7 @@ import { beginEnding } from '../scenes/ending.js';
 import { beginDefeat } from '../scenes/defeat.js';
 import { isAscension, ascensionLabel } from './ascension.js';
 import { createPath } from './path.js';
+import { checkAchievements } from '../achievements.js';
 
 import { updateScoreBurst } from '../fx/scoreBurst.js';
 import { updateInkMotes } from '../fx/inkMotes.js';
@@ -38,6 +39,7 @@ export function finishCircuit(state) {
   state.score += 2000 * state.ascension + state.bell.hp * 100;
   recordScroll(state);
   state.mode = 'draft'; state.roadChoice = null; draftArts(state);
+  checkAchievements(state);
   state.soundEvents.push({ name: 'draft' });
 }
 
@@ -50,6 +52,7 @@ export function finishRun(state, won) {
   state.mode = won ? 'win' : 'lose';
   if (won) state.score += state.bell.hp * 500 + 3000;
   recordScroll(state); state.grade = gradeRun(state);
+  checkAchievements(state);
   recordRun(state, { persist: false });
   if (won) beginEnding(state);
   else beginDefeat(state);
@@ -71,6 +74,7 @@ export function nextScroll(state) {
   state.banner = isAscension(state) ? ascensionLabel(state) : `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
   state.bannerTime = 4; state.mode = 'play';
   state.bonusDraft = false; beginOmen(state);
+  state.bellHitThisScroll = false;
   state.soundEvents.push({ name: 'scrollIntro' });
   return true;
 }
@@ -105,6 +109,7 @@ export function updateWorld(state, input, dt) {
   if (!state.queue.length && !state.enemies.length) {
     finishOmen(state, true);
     endStroke(state);
+    if (!state.bellHitThisScroll) state.unharmedScroll = true;
     state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + artLevel(state, 'afterglow'));
     if (artLevel(state, 'afterglow')) castArt(state, 'afterglow', state.bell, { radius: 90, force: true });
     if (state.scroll === 8) { if (isAscension(state)) finishCircuit(state); else finishRun(state, true); }
@@ -112,6 +117,7 @@ export function updateWorld(state, input, dt) {
       state.score += 400 + state.bell.hp * 25;
       recordScroll(state);
       state.mode = 'draft'; state.roadChoice = null; draftArts(state);
+      checkAchievements(state);
       state.soundEvents.push({ name: 'draft' });
     }
   }

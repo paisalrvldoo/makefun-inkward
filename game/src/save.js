@@ -10,13 +10,14 @@ export const UNLOCKS = [
 ];
 
 const integer = value => Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : 0;
-export const emptyProgress = () => ({ version: 2, runs: 0, wins: 0, unlocks: [], selectedSkin: 'bronze', bestRun: null });
+export const emptyProgress = () => ({ version: 2, runs: 0, wins: 0, unlocks: [], achievements: [], selectedSkin: 'bronze', bestRun: null });
 
 function cleanProgress(value) {
   const progress = emptyProgress();
   if (!value || typeof value !== 'object') return progress;
   progress.runs = integer(value.runs); progress.wins = Math.min(progress.runs, integer(value.wins));
   progress.unlocks = UNLOCKS.filter(u => Array.isArray(value.unlocks) && value.unlocks.includes(u.id)).map(u => u.id);
+  progress.achievements = Array.isArray(value.achievements) ? [...new Set(value.achievements.filter(a => typeof a === 'string'))].slice(0, 50) : [];
   if (progress.wins > 0 && !progress.unlocks.includes('ascension')) progress.unlocks.push('ascension');
   if (value.selectedSkin === 'moon' && progress.unlocks.includes('moonBell')) progress.selectedSkin = 'moon';
   const run = value.bestRun;

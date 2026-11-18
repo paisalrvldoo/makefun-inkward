@@ -30,7 +30,7 @@ export function endStroke(state) {
     state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: BELL.x * 2 - p.x, y: p.y })), integrity: 0.5 + artLevel(state, 'twin') * 0.15 });
     if (artLevel(state, 'twin') >= 3) state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: p.x, y: BELL.y * 2 - p.y })), integrity: 0.8 });
   }
-  if (stroke && !stroke.closed && stroke.points.length > 1) { addRing(state, stroke.points.at(-1).x, stroke.points.at(-1).y, 16, '#b79b59', 0.25); state.soundEvents.push({ name: 'wallSet' }); }
+  if (stroke && !stroke.closed && stroke.points.length > 1) { addRing(state, stroke.points.at(-1).x, stroke.points.at(-1).y, 16, '#b79b59', 0.25); state.soundEvents.push({ name: 'wallSet' }); state.strokeCount++; }
   state.activeStroke = null;
 }
 export function paintPoint(state, point) {

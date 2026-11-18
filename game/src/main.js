@@ -12,7 +12,7 @@ import { clearControls } from './controls/buffer.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { createPost } from './render/post/index.js';
-import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON, ASCENSION_BUTTON } from './screens/title.js';
+import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON, ASCENSION_BUTTON, ACHIEVEMENTS_BUTTON } from './screens/title.js';
 import { draftRects } from './screens/draft.js';
 import { ROAD_RECTS, pathChoiceRects } from './screens/path.js';
 import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/results.js';
@@ -22,6 +22,7 @@ import { stageShot } from './shots.js';
 import { advanceEnding, skipEnding, skipResults } from './scenes/ending.js';
 import { advanceDefeat, skipDefeat } from './scenes/defeat.js';
 import { DEFEAT_RETRY_BUTTON } from './screens/defeat.js';
+import { checkAchievements } from './achievements.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -72,6 +73,8 @@ function handleMenus() {
     }
     if (input.pressed.has('KeyR') || clicked(SEED_BUTTON)) { resetRun(false, newRunSeed(state.seed)); audio.play('click'); }
     if (state.unlocks.includes('ascension') && (input.pressed.has('KeyA') || clicked(ASCENSION_BUTTON))) { state.expedition = state.expedition === 'ascension' ? 'pilgrimage' : 'ascension'; audio.play('click'); }
+    if (input.pressed.has('Tab') || clicked(ACHIEVEMENTS_BUTTON)) { state.showAchievements = !state.showAchievements; audio.play('click'); }
+    if (state.showAchievements && input.pressed.has('Escape')) { state.showAchievements = false; audio.play('click'); }
     if (input.pressed.has('Enter') || clicked(START_BUTTON)) { resetRun(); input.clearFrame(); }
   } else if (state.mode === 'play') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();

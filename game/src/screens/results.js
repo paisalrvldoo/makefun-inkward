@@ -13,6 +13,7 @@ import { resultMotion, resultReveal } from './resultMotion.js';
 import { drawEndingVista } from '../render/endingVista.js';
 import { drawSeasonScroll } from '../render/seasonScrolls.js';
 import { YOKAI } from '../entities/yokai.js';
+import { ACHIEVEMENTS, drawAchievementIcon } from '../achievements.js';
 
 export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
@@ -94,7 +95,7 @@ export function drawResults(ctx, state, input) {
   text(ctx, (avgTime / 60).toFixed(1) + ' MIN / SCROLL', 1214, 423, 10, '#c8bfa6', 'bold', false, 'right');
   ctx.restore();
   drawScoreChart(ctx, state);
-  panel(ctx, 900, 422, 316, 184, '#111e2b', '#665538');
+  panel(ctx, 900, 422, 316, 168, '#111e2b', '#665538');
   text(ctx, 'THE BRUSH YOU BECAME', 920, 446, 12, '#edc571', 'bold');
   const gap = Math.min(40, 274 / Math.max(1, state.arts.length));
   state.arts.forEach((id, i) => {
@@ -102,9 +103,20 @@ export function drawResults(ctx, state, input) {
     drawArtIcon(ctx, id, x + 11, 483, 27);
     text(ctx, 'LV ' + artLevel(state, id), x + 11, 515, 9, '#bfcac2', 'bold', false, 'center');
   });
-  line(ctx, [[920, 532], [1196, 532]], '#3c4b4e', 1);
-  text(ctx, 'WRATH PEAK ' + state.peakWrath + '/' + wrathCap(state) + '  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 554, 10, '#ed8c68', 'bold');
-  text(ctx, 'LARGEST SEAL  /  ' + state.largestSeal + ' SPIRITS', 920, 580, 11, '#d1d4bf', 'bold');
+  line(ctx, [[920, 518], [1196, 518]], '#3c4b4e', 1);
+  text(ctx, 'WRATH PEAK ' + state.peakWrath + '/' + wrathCap(state) + '  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 540, 10, '#ed8c68', 'bold');
+  text(ctx, 'LARGEST SEAL  /  ' + state.largestSeal + ' SPIRITS', 920, 566, 11, '#d1d4bf', 'bold');
+  const fresh = (state.newAchievements || []).filter(id => ACHIEVEMENTS.some(a => a.id === id));
+  if (fresh.length) {
+    panel(ctx, 64, 594, 1152, 24, '#1a2a38', '#e4b550');
+    text(ctx, 'NEW', 80, 610, 9, '#f2c761', 'bold');
+    fresh.forEach((id, i) => {
+      const ach = ACHIEVEMENTS.find(a => a.id === id);
+      drawAchievementIcon(ctx, id, 138 + i * 190, 606, 10);
+      text(ctx, ach ? ach.name : '', 152 + i * 190, 611, 9, '#fff0d2', 'bold');
+      line(ctx, [[130 + i * 190, 598], [130 + i * 190, 612]], '#7a6a44', 1);
+    });
+  }
   drawUnlocks(ctx, state);
   resultButton(ctx, won ? 'NEW RUN  (R)' : 'RETRY  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);
   resultButton(ctx, 'SAME SEED  (S)', 'RETRACE THIS RUN', SAME_SEED_BUTTON, input);
