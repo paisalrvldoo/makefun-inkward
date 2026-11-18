@@ -6,12 +6,15 @@ import { bossLoopDamage } from '../entities/bosses.js';
 import { raiseWrath, wrathMultiplier } from '../world/wrath.js';
 import { recordOmenSeal } from '../world/omens.js';
 import { castArt } from '../fx/skillCasts.js';
+import { dissolveSpirit } from '../fx/characterStates.js';
+import { synergyBonus } from '../arts/schools.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
   enemy.dead = true;
+  dissolveSpirit(state, enemy);
   state.sealed++; state.cleared++;
-  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3);
+  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom');
   const score = Math.round(base * wrathMultiplier(state));
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;
@@ -44,6 +47,7 @@ export function sealLoop(state, points) {
       const damage = bossLoopDamage(enemy, enclosed.length);
       if (!damage) { floatText(state, enemy.x, enemy.y - 55, 'WARD · STUN TO OPEN', '#7191a6', 19); continue; }
       enemy.hp = Math.max(0, enemy.hp - damage); enemy.sealLock = 1.3; enemy.stun = 1.4; enemy.hitTime = 0.8;
+      enemy.hitFlash = 0.14;
       enemy.actionTime = 0; enemy.charge = null;
       if (enemy.hp > 0) {
         state.score += Math.round(350 * state.combo);

@@ -6,6 +6,7 @@ import { getScroll, getSeason } from '../world/scrolls.js';
 import { pendingRoad } from '../world/path.js';
 import { ONI } from '../entities/bosses.js';
 import { drawPath } from './path.js';
+import { artSchool, schoolCount, activeSynergies } from '../arts/schools.js';
 
 export const DRAFT_RECTS = [0, 1, 2].map(i => ({ x: 116 + i * 356, y: 366, w: 336, h: 322 }));
 export const draftRects = state => state.draft.length === 4
@@ -57,7 +58,8 @@ export function drawDraft(ctx, state, input) {
     const x = 279 + i * gap;
     drawArtIcon(ctx, id, x + 14, 336, 25);
     text(ctx, findArt(id).name, x + 34, 334, state.arts.length > 6 ? 10 : 11, '#e5dfd0', 'bold');
-    text(ctx, 'LV ' + artLevel(state, id), x + 34, 348, 8, '#debd71', 'bold');
+    const school = artSchool(id);
+    text(ctx, 'LV ' + artLevel(state, id) + ' / ' + school.name, x + 34, 348, 8, school.color, 'bold');
   });
 
   state.draft.forEach((art, i) => {
@@ -72,7 +74,8 @@ export function drawDraft(ctx, state, input) {
     text(ctx, level ? 'UPGRADE' : 'NEW ART', rect.x + rect.w - 18, rect.y + 26, 9, '#bfc6c2', 'bold', false, 'right');
     drawBrightSeal(ctx, art, rect.x + rect.w / 2, rect.y + 66);
     text(ctx, art.name, rect.x + rect.w / 2, rect.y + 114, 22, '#fff0d8', 'bold', true, 'center');
-    text(ctx, 'LV ' + nextLevel + (gained > 1 ? ' / SWARM BONUS' : ''), rect.x + 21, rect.y + 141, 10, '#dfc47c', 'bold');
+    const school = artSchool(art.id), pairs = schoolCount(state, school) + (level ? 0 : 1) >= 2;
+    text(ctx, 'LV ' + nextLevel + ' / ' + school.name + (pairs ? ' SYNERGY' : ''), rect.x + 21, rect.y + 141, 10, school.color, 'bold');
     drawLevelPips(ctx, state, art.id, rect.x + rect.w - 52, rect.y + 137, nextLevel);
     const detailY = wrapText(ctx, effect.description, rect.x + 21, rect.y + 167, rect.w - 42, 20, 16, '#fff0d3');
     wrapText(ctx, effect.detail, rect.x + 21, Math.max(rect.y + 211, detailY + 7), rect.w - 42, 16, 12, '#c0c8c6');
@@ -83,6 +86,7 @@ export function drawDraft(ctx, state, input) {
   });
 
   panel(ctx, 42, 704, 1196, 62, '#111c29', '#78643c');
-  text(ctx, 'BELL ' + state.bell.hp + '/' + state.bell.maxHp + '   ·   SCORE ' + state.score.toLocaleString('en-US') + '   ·   ' + state.sealed + ' SPIRITS FREED', 640, 729, 13, '#e8bd60', 'bold', false, 'center');
+  const combos = activeSynergies(state);
+  text(ctx, combos.length ? 'SYNERGY / ' + combos.map(s => s.name + ' ' + s.bonus).join('  ·  ') : 'BELL ' + state.bell.hp + '/' + state.bell.maxHp + '   ·   SCORE ' + state.score.toLocaleString('en-US') + '   ·   ' + state.sealed + ' SPIRITS FREED', 640, 729, 13, '#e8bd60', 'bold', false, 'center');
   text(ctx, road ? road.effect.toUpperCase() + '  ·  1–' + state.draft.length + ' / CLICK TO TAKE AN ART' : '← SWARM ROAD   ·   → QUIET ROAD   ·   OR CLICK THE NEXT MAP NODE', 640, 751, 11, '#d4d0c6', 'bold', false, 'center');
 }

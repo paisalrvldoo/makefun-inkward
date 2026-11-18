@@ -1,0 +1,18 @@
+export const ONI = {
+  reed: { name: 'SUZUNE · THE REED WARDEN', short: 'SUZUNE', color: '#b86c86', hp: 2, speed: 10, value: 800, crest: 'bloom', tempo: 6.5, stormCount: 2,
+    phases: ['SILENT REEDS', 'PETAL CALL', 'LAST BLOOM'], attacks: [['storm'], ['storm'], ['roar']], minions: ['crane', 'kappa'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
+  lantern: { name: 'AKARIYO · THE LANTERN ONI', short: 'AKARIYO', color: '#d5944f', hp: 3, speed: 12, value: 1100, crest: 'lantern', tempo: 6, stormCount: 2,
+    phases: ['LOW FLAME', 'WICK CALL', 'GOLDEN RUSH'], attacks: [['storm'], ['roar', 'charge'], ['charge', 'storm']], minions: ['lantern', 'umbrella'], rule: 'LOOP = 1 HIT · CHARGE WARNING / STUN = 2' },
+  moss: { name: 'KUSABO · THE MOSS ONI', short: 'KUSABO', color: '#63846d', hp: 6, speed: 14, value: 1800,
+    phases: ['ROOT WARD', 'SPORE STORM', 'HUNGRY EARTH'], attacks: [['storm', 'roar'], ['storm', 'charge'], ['roar', 'storm', 'charge']], minions: ['kappa', 'eater', 'crane'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
+  paper: { name: 'ORIHANE · THE PAPER ONI', short: 'ORIHANE', color: '#8d90ba', hp: 4, speed: 15, value: 1600, crest: 'wings', tempo: 6, stormCount: 3,
+    phases: ['FOLDED SKY', 'WING STORM', 'TORN HORIZON'], attacks: [['storm'], ['storm', 'charge'], ['roar', 'storm']], minions: ['crane', 'umbrella'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
+  cinder: { name: 'HIBANE · THE ASH ONI', short: 'HIBANE', color: '#cb7954', hp: 5, speed: 16, value: 2100, crest: 'flame', tempo: 5.8, stormCount: 3,
+    phases: ['EMBER MASK', 'ASHEN RUSH', 'FIRE FAN'], attacks: [['charge'], ['storm', 'charge'], ['roar', 'charge']], minions: ['fox', 'lantern'], rule: 'LOOP = 1 HIT · CHARGE WARNING / STUN = 2' },
+  ember: { name: 'MOMIJARA · THE MAPLE ONI', short: 'MOMIJARA', color: '#c45f32', hp: 8, speed: 16, value: 2600,
+    phases: ['CINDER CALL', 'SCARLET CHARGE', 'MAPLE TEMPEST'], attacks: [['storm', 'charge'], ['charge', 'roar', 'storm'], ['storm', 'roar', 'charge']], minions: ['fox', 'umbrella', 'lantern', 'kappa'], rule: 'LOOP = 1 HIT · CHARGE WARNING / STUN = 2' },
+  inkstone: { name: 'SUMIGARA · THE INKSTONE ONI', short: 'SUMIGARA', color: '#778e9f', hp: 6, speed: 13, value: 2800, crest: 'stone', tempo: 5.5, stormCount: 3,
+    phases: ['DARK SLATE', 'CRACKED WARD', 'FALLING STONE'], attacks: [['roar'], ['charge', 'storm'], ['roar', 'charge']], minions: ['eater', 'crane'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
+  frost: { name: 'YUKIORO · THE FROST ONI', short: 'YUKIORO', color: '#7191a6', hp: 10, speed: 17, value: 3600,
+    phases: ['SNOW HUSH', 'WHITE CHARGE', 'WINTER’S MOUTH'], attacks: [['storm', 'roar'], ['charge', 'storm'], ['roar', 'charge', 'storm']], minions: ['eater', 'crane', 'lantern', 'fox'], rule: 'STUN / RECOVERY / LOOP WITH 2 MINIONS TO BREAK WARD' },
+};

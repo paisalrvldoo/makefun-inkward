@@ -6,6 +6,8 @@ import { artLevel } from '../arts/levels.js';
 import { wrathMultiplier } from '../world/wrath.js';
 import { recordOmenBellHit } from '../world/omens.js';
 import { castArt } from '../fx/skillCasts.js';
+import { dissolveSpirit, hurtMonk } from '../fx/characterStates.js';
+import { synergyBonus } from '../arts/schools.js';
 
 export const YOKAI = {
   kappa: { name: 'KAPPA', detail: 'Lunges toward the bell', color: '#63846d', speed: 30, radius: 17, value: 100 },
@@ -19,7 +21,7 @@ export function spawnYokai(state, kind, point, small = false) {
   const stats = YOKAI[kind];
   const enemy = {
     ...point, ...stats, kind, id: state.nextId++, speed: stats.speed * (1 + (state.scroll - 1) * 0.065) * difficulty(state).speed,
-    phase: state.rng() * Math.PI * 2, age: 0, stun: 0, hitTime: 0, blocked: 0, dead: false, small,
+    phase: state.rng() * Math.PI * 2, age: 0, stun: 0, hitTime: 0, hitFlash: 0, blocked: 0, dead: false, small, animation: 'idle', windup: 0, attackReady: false,
   };
   if (small) { enemy.radius *= 0.7; enemy.speed *= 1.2; enemy.value = 90; }
   state.enemies.push(enemy);
@@ -36,6 +38,7 @@ export function damageBell(state, enemy) {
     state.soundEvents.push({ name: 'bell' }); return;
   }
   enemy.dead = true;
+  dissolveSpirit(state, enemy);
   state.cleared++;
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));
   recordOmenBellHit(state, enemy.kind === 'oni' ? 4 : 1);
@@ -53,7 +56,7 @@ export function wallCollision(state, enemy, next, dt) {
     for (let i = 1; i < stroke.points.length; i++) {
       const nearest = nearestOnSegment(next, stroke.points[i - 1], stroke.points[i]);
       if (nearest.distance >= enemy.radius + INK.width / 2) continue;
-      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / (1 + artLevel(state, 'stone') * 0.25);
+      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / ((1 + artLevel(state, 'stone') * 0.25) * synergyBonus(state, 'carve'));
       stroke.erosion = { x: nearest.x, y: nearest.y, life: 0.75 };
       if (!stroke.soundCooldown) {
         stroke.flash = 0.25; stroke.soundCooldown = 0.6;
@@ -64,12 +67,14 @@ export function wallCollision(state, enemy, next, dt) {
       enemy.blocked += dt;
       if (artLevel(state, 'vermilion')) {
         enemy.hitTime = 0.15;
+        enemy.hitFlash = 0.06;
         enemy.stun = Math.max(enemy.stun, 0.06);
         stroke.integrity += dt * 0.035;
         enemy.edgeDamage = (enemy.edgeDamage || 0) + dt * artLevel(state, 'vermilion');
         if (enemy.edgeDamage >= 1.6 && enemy.kind !== 'oni') {
           enemy.dead = true; state.sealed++; state.cleared++;
-          const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3);
+          dissolveSpirit(state, enemy);
+          const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom');
           const score = Math.round(base * wrathMultiplier(state));
           state.score += score; state.wrathScore += score - Math.round(base);
           if (enemy.hunter) state.huntersSealed++;
@@ -99,11 +104,22 @@ export function updateYokai(state, dt) {
     if (enemy.dead) continue;
     enemy.age += dt;
     enemy.hitTime = Math.max(0, enemy.hitTime - dt);
+    enemy.hitFlash = Math.max(0, (enemy.hitFlash || 0) - dt);
     enemy.stun = Math.max(0, enemy.stun - dt);
+    enemy.animation = enemy.hitTime > 0 ? 'hit' : enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0) ? 'attack' : 'idle';
     if (enemy.stun > 0) continue;
     const target = enemy.hunter ? state.monk : state.bell;
     const dx = target.x - enemy.x, dy = target.y - enemy.y;
     const length = Math.hypot(dx, dy) || 1;
+    if (enemy.kind !== 'oni' && length < (enemy.hunter ? enemy.radius + 25 : state.bell.radius + enemy.radius + 18) && !enemy.attackReady) {
+      enemy.animation = 'attack';
+      if (!enemy.windup) enemy.windup = 0.24;
+      enemy.windup = Math.max(0, enemy.windup - dt);
+      if (enemy.windup <= 0) enemy.attackReady = true;
+      else continue;
+    }
+    if (enemy.kind !== 'oni' && enemy.attackReady) enemy.animation = 'attack';
+    if (length > 115) { enemy.attackReady = false; enemy.windup = 0; }
     if (!enemy.hunter && length < state.bell.radius + enemy.radius - 3) { damageBell(state, enemy); continue; }
     if (enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0)) continue;
     let speed = enemy.speed;
@@ -119,7 +135,7 @@ export function updateYokai(state, dt) {
     enemy.x = clamp(enemy.x, FIELD.x + enemy.radius, FIELD.x + FIELD.w - enemy.radius);
     enemy.y = clamp(enemy.y, FIELD.y + enemy.radius, FIELD.y + FIELD.h - enemy.radius);
     if (state.monk.hurtTime <= 0 && state.monk.dashTime <= 0 && distance(enemy, state.monk) < enemy.radius + 13) {
-      state.monk.hurtTime = 0.9;
+      hurtMonk(state, enemy);
       state.ink = Math.max(0, state.ink - 9);
       enemy.stun = 0.7;
       floatText(state, state.monk.x, state.monk.y - 22, '−9 INK', '#bb4436', 16);

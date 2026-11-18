@@ -4,7 +4,7 @@ import { takeAction } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
 
 export function createMonk() {
-  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, walk: 0 };
+  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0 };
 }
 export function updateMonk(state, input, dt) {
   const monk = state.monk;
@@ -14,6 +14,7 @@ export function updateMonk(state, input, dt) {
   if (length) { dx /= length; dy /= length; monk.vx = dx; monk.vy = dy; monk.walk += dt * 12; }
   monk.dashCooldown = Math.max(0, monk.dashCooldown - dt);
   monk.hurtTime = Math.max(0, monk.hurtTime - dt);
+  monk.hitFlash = Math.max(0, monk.hitFlash - dt);
   const dash = takeAction(state, 'dash', monk.dashCooldown <= 1e-6);
   if (dash) {
     if (!length) {
@@ -22,6 +23,7 @@ export function updateMonk(state, input, dt) {
       monk.vy = (dash.point.y - monk.y) / aim;
     }
     monk.dashTime = MONK.dashTime;
+    monk.recoil = 0;
     monk.dashCooldown = MONK.dashCooldown / (1 + artLevel(state, 'willow') * 0.7);
     if (artLevel(state, 'willow')) castArt(state, 'willow', monk, { angle: Math.atan2(monk.vy, monk.vx), force: true });
     state.soundEvents.push({ name: 'dash' });
@@ -33,11 +35,14 @@ export function updateMonk(state, input, dt) {
     for (const enemy of state.enemies) {
       if (!enemy.dead && distance(monk, enemy) < enemy.radius + 25) {
         enemy.stun = Math.max(enemy.stun, 1.5);
+        enemy.hitFlash = 0.09;
         enemy.x += dx * 7; enemy.y += dy * 7;
       }
     }
   }
   const speed = monk.dashTime > 0 ? MONK.dashSpeed : MONK.speed;
-  monk.x = clamp(monk.x + dx * speed * dt, FIELD.x + 23, FIELD.x + FIELD.w - 23);
-  monk.y = clamp(monk.y + dy * speed * dt, FIELD.y + 23, FIELD.y + FIELD.h - 23);
+  const recoil = monk.recoil / 0.16;
+  monk.x = clamp(monk.x + (dx * speed + monk.recoilX * recoil) * dt, FIELD.x + 23, FIELD.x + FIELD.w - 23);
+  monk.y = clamp(monk.y + (dy * speed + monk.recoilY * recoil) * dt, FIELD.y + 23, FIELD.y + FIELD.h - 23);
+  monk.recoil = Math.max(0, monk.recoil - dt);
 }

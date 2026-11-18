@@ -10,6 +10,7 @@ import { text, line, panel, circle, wrapText, stamp } from './primitives.js';
 import { wrathLevel, wrathMultiplier } from '../world/wrath.js';
 import { omenReward, omenProgress } from '../world/omens.js';
 import { ONI } from '../entities/bosses.js';
+import { activeSynergies } from '../arts/schools.js';
 
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
@@ -71,19 +72,27 @@ export function drawHud(ctx, state, audio) {
 
   panel(ctx, 1014, 380, 248, 188, '#171c24', COLORS.gold);
   text(ctx, 'BRUSH ARTS', 1028, 405, 18, '#f0c35b', 'bold', true);
-  text(ctx, `${state.arts.length} / 7 HELD`, 1246, 405, 10, '#d4cfbf', 'bold', false, 'right');
+  const synergies = activeSynergies(state);
+  text(ctx, `${state.arts.length} HELD`, 1246, 405, 10, '#d4cfbf', 'bold', false, 'right');
   if (!state.arts.length) {
     text(ctx, 'Your brush is a blank page.', 1028, 437, 14, '#d4cfbf', 'normal', true);
     wrapText(ctx, 'Clear a scroll. Choose 1 of 3 arts. Shape your own way to win.', 1028, 462, 210, 20, 13, '#d4cfbf');
   } else {
     state.arts.forEach((id, i) => {
-      const art = findArt(id), x = 1028, y = 432 + i * (state.arts.length <= 5 ? 23 : 17);
-      drawArtIcon(ctx, id, x + 9, y - 4, 19);
-      text(ctx, art.name, x + 24, y, state.arts.length <= 5 ? 13 : 11, '#f4eddb', 'bold');
+      const gap = synergies.length ? state.arts.length <= 5 ? 19 : 14 : state.arts.length <= 5 ? 23 : 17;
+      const art = findArt(id), x = 1028, y = 432 + i * gap;
+      drawArtIcon(ctx, id, x + 9, y - 4, Math.min(19, gap - 1));
+      text(ctx, art.name, x + 24, y, gap >= 19 ? 13 : 11, '#f4eddb', 'bold');
       drawLevelPips(ctx, state, id, 1210, y - 4);
     });
   }
-  text(ctx, (state.unlocks.includes('moonInk') ? '14' : '12') + ' ARTS · EVERY RUN A NEW BRUSH', 1028, 551, 9, '#f0c35b', 'bold');
+  if (synergies.length) {
+    const colors = synergies[0].color;
+    panel(ctx, 1026, 529, 224, 30, '#25363c', colors);
+    text(ctx, 'SYNERGY', 1033, 541, 9, colors, 'bold');
+    text(ctx, synergies.map(s => s.name).join(' + '), 1243, 541, 9, '#fff2dc', 'bold', false, 'right');
+    text(ctx, synergies.map(s => s.bonus.replace(' WALL LIFE', ' WALL').replace(' INK REFILL', ' REFILL').replace(' SEAL SCORE', ' SCORE')).join(' · '), 1033, 553, 9, '#fff2dc', 'bold');
+  } else text(ctx, (state.unlocks.includes('moonInk') ? '14' : '12') + ' ARTS · PAIR SCHOOLS FOR SYNERGY', 1028, 551, 9, '#f0c35b', 'bold');
 
   panel(ctx, 1014, 580, 248, 114, '#171c24', COLORS.gold);
   const bossOmen = state.mode === 'play' && state.omen.id === 'boss' && state.enemies.some(e => e.kind === 'oni' && !e.dead);

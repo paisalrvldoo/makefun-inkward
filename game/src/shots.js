@@ -19,9 +19,9 @@ export function createReplayPilot(options = {}) {
   return (state, input, aggressive = true) => {
     input.clearFrame();
     if (state.mode === 'draft') {
-      chooseRoad(state, options.branching && state.scroll % 2 ? 'swarm' : 'quiet');
+      chooseRoad(state, options.branching && state.scroll % 2 && !(options.cover && state.scroll === 5) ? 'swarm' : 'quiet');
       const preferred = ['well', 'breath', 'feather', 'thunder', 'lotus', 'mending', 'gold', 'willow', 'echo', 'stone', 'twin', 'vermilion'];
-      const value = art => preferred.indexOf(art.id) + (state.arts.includes(art.id) ? 20 : 0);
+      const value = art => (options.cover && art.id === 'echo' ? -2 : options.cover && art.id === 'mending' ? -1 : preferred.indexOf(art.id)) + (state.arts.includes(art.id) ? 20 : 0);
       const index = (options.cover && state.scroll === 5 && state.draft.find(a => a.id === 'echo')) || [...state.draft].sort((a, b) => value(a) - value(b))[0];
       chooseArt(state, state.draft.indexOf(index)); nextScroll(state); drawing = null; return;
     }
@@ -100,7 +100,7 @@ export function stageShot(name, seed = 1) {
     chooseArt(state, 0);
   }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, branching: name === 'draft' || name === 'win' });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, branching: ['play', 'draft', 'win'].includes(name) });
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);

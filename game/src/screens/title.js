@@ -54,7 +54,7 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, 'Seal spirits. Feed WRATH. Shape your own brush.', 67, 301, 14, '#c9c5ba');
   const badges = [
     { x: 64, w: 122, label: '8 SCROLLS', fill: '#b8342b' },
-    { x: 197, w: 112, label: '3 ONI', fill: '#b77926' },
+    { x: 197, w: 112, label: '8 BOSSES', fill: '#b77926' },
     { x: 320, w: 178, label: (state.unlocks.includes('moonInk') ? '14' : '12') + ' BRUSH ARTS', fill: '#26766d' },
   ];
   for (const badge of badges) { panel(ctx, badge.x, 328, badge.w, 37, badge.fill, '#f0c15d'); text(ctx, badge.label, badge.x + badge.w / 2, 352, 13, '#fff7e5', 'bold', false, 'center'); }
@@ -77,10 +77,10 @@ export function drawTitle(ctx, state, input, audio) {
   if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 600, 11, '#e5b854');
 
   drawTutorial(ctx);
-  text(ctx, 'WASD MOVE', 68, 775, 12, '#f0c15d', 'bold');
-  text(ctx, 'SPACE DASH', 226, 775, 12, '#f0c15d', 'bold');
-  text(ctx, 'LMB PAINT + CLOSE', 390, 775, 12, '#f0c15d', 'bold');
-  text(ctx, 'RMB SPLASH', 612, 775, 12, '#f0c15d', 'bold');
+  text(ctx, input.touch ? 'ONE FINGER PAINT' : 'WASD MOVE', 68, 775, 12, '#f0c15d', 'bold');
+  text(ctx, input.touch ? 'DASH BUTTON' : 'SPACE DASH', 226, 775, 12, '#f0c15d', 'bold');
+  text(ctx, input.touch ? 'CLOSE YOUR LOOP' : 'LMB PAINT + CLOSE', 390, 775, 12, '#f0c15d', 'bold');
+  text(ctx, input.touch ? '2 FINGERS SPLASH' : 'RMB SPLASH', 612, 775, 12, '#f0c15d', 'bold');
   text(ctx, 'Q LOTUS  ·  E BELL  ·  P PAUSE', 782, 775, 12, '#f0c15d', 'bold');
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1216, 775, 11, '#fff1d2', 'bold', false, 'right');
   text(ctx, 'PROCEDURAL PAPER, INK & SOUND  /  PAISALRVLDOO', 64, 789, 10, '#9a9a91');

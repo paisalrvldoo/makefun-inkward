@@ -6,6 +6,7 @@ import { artLevel } from '../arts/levels.js';
 import { inkCost, closingSnap } from './cost.js';
 import { INPUT_GRACE, controlFeedback } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
+import { synergyBonus } from '../arts/schools.js';
 
 export function beginStroke(state, point) {
   if (state.waitRelease) return;
@@ -94,7 +95,7 @@ export function updateStrokes(state, input, dt) {
     else { paintPoint(state, event.point); endStroke(state); state.waitRelease = false; state.strokeStart = null; state.strokeGrace = 0; }
   }
   for (const stroke of state.strokes) {
-    if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);
+    if (stroke !== state.activeStroke) stroke.life -= dt / ((1 + artLevel(state, 'stone') * 0.5) * synergyBonus(state, 'carve'));
     stroke.flash = Math.max(0, (stroke.flash || 0) - dt);
     stroke.soundCooldown = Math.max(0, (stroke.soundCooldown || 0) - dt);
     if (stroke.erosion) stroke.erosion.life = Math.max(0, stroke.erosion.life - dt);
@@ -103,6 +104,6 @@ export function updateStrokes(state, input, dt) {
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
   if (!state.activeStroke) {
     if (state.ink < state.maxInk - 10 && artLevel(state, 'breath')) castArt(state, 'breath', state.monk, { radius: 38, interval: 2.5 });
-    state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3));
+    state.ink = Math.min(state.maxInk, state.ink + INK.regen * dt * (1 + artLevel(state, 'breath') * 0.3) * synergyBonus(state, 'flow'));
   }
 }

@@ -72,6 +72,7 @@ export function splashInk(state, point) {
   for (const enemy of [...state.enemies]) {
     if (enemy.dead || distance(enemy, point) > 85 + enemy.radius) continue;
     enemy.stun = Math.max(enemy.stun, 2.2);
+    enemy.hitFlash = 0.1; enemy.hitTime = 0.15;
     if (enemy.kind === 'fox' && !enemy.small) {
       enemy.small = true; enemy.radius *= 0.7; enemy.value = 90;
       const child = spawnYokai(state, 'fox', { x: enemy.x + 22, y: enemy.y - 16 }, true);

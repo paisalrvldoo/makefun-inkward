@@ -2,21 +2,16 @@ import { FIELD, distance, clamp } from '../config.js';
 import { addRing, floatText, burst } from '../render/fx.js';
 import { spawnYokai, wallCollision } from './yokai.js';
 
-export const ONI = {
-  moss: { name: 'KUSABO · THE MOSS ONI', short: 'KUSABO', color: '#63846d', hp: 6, speed: 14, value: 1800,
-    phases: ['ROOT WARD', 'SPORE STORM', 'HUNGRY EARTH'], attacks: [['storm', 'roar'], ['storm', 'charge'], ['roar', 'storm', 'charge']], minions: ['kappa', 'eater', 'crane'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
-  ember: { name: 'MOMIJARA · THE MAPLE ONI', short: 'MOMIJARA', color: '#c45f32', hp: 8, speed: 16, value: 2600,
-    phases: ['CINDER CALL', 'SCARLET CHARGE', 'MAPLE TEMPEST'], attacks: [['storm', 'charge'], ['charge', 'roar', 'storm'], ['storm', 'roar', 'charge']], minions: ['fox', 'umbrella', 'lantern', 'kappa'], rule: 'LOOP = 1 HIT · CHARGE WARNING / STUN = 2' },
-  frost: { name: 'YUKIORO · THE FROST ONI', short: 'YUKIORO', color: '#7191a6', hp: 10, speed: 17, value: 3600,
-    phases: ['SNOW HUSH', 'WHITE CHARGE', 'WINTER’S MOUTH'], attacks: [['storm', 'roar'], ['charge', 'storm'], ['roar', 'charge', 'storm']], minions: ['eater', 'crane', 'lantern', 'fox'], rule: 'STUN / RECOVERY / LOOP WITH 2 MINIONS TO BREAK WARD' },
-};
+import { ONI } from './bossProfiles.js';
+export { ONI } from './bossProfiles.js';
+
 export const ATTACK_NAMES = { storm: 'INK STORM', charge: 'BELL CHARGE', roar: 'WALL-EATING ROAR' };
 export const bossPhase = enemy => Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3));
 export function spawnBoss(state, kind, point) {
   const stats = ONI[kind];
   state.enemies.push({
     ...point, y: Math.max(point.y, FIELD.y + 142), ...stats, kind: 'oni', boss: kind, id: state.nextId++, maxHp: stats.hp,
-    radius: 43, phase: 0, age: 0, stun: 0, hitTime: 0, blocked: 0, dead: false, pulse: 2.6,
+    radius: kind === 'reed' || kind === 'lantern' ? 35 : 43, phase: 0, age: 0, stun: 0, hitTime: 0, hitFlash: 0, animation: 'idle', blocked: 0, dead: false, pulse: 2.6,
     sealLock: 0, exposed: 0, telegraph: null, actionTime: 0, cycle: 0, charge: null,
   });
   floatText(state, point.x, FIELD.y + 208, stats.short + ' AWAKENS', stats.color, 22);
@@ -26,7 +21,7 @@ export function bossLoopDamage(enemy, enclosedCount) {
   if (enemy.sealLock > 0) return 0;
   const vulnerable = enemy.stun > 0 || enemy.exposed > 0;
   if (enemy.boss === 'frost' && !vulnerable && enclosedCount < 3) return 0;
-  const base = vulnerable || (enemy.boss === 'ember' && enemy.telegraph?.kind === 'charge') ? 2 : 1;
+  const base = vulnerable || (['ember', 'lantern', 'cinder'].includes(enemy.boss) && enemy.telegraph?.kind === 'charge') ? 2 : 1;
   return base + Math.min(3, Math.floor((enclosedCount - 1) / 2));
 }
 function warnAttack(state, enemy) {
@@ -38,7 +33,7 @@ function warnAttack(state, enemy) {
 function executeAttack(state, enemy, telegraph) {
   const phase = bossPhase(enemy);
   if (telegraph.kind === 'storm') {
-    const count = 4 + phase * 2;
+    const count = (enemy.stormCount || 4) + phase * 2;
     for (let i = 0; i < count; i++) {
       const a = i / count * Math.PI * 2 + enemy.cycle * 0.7;
       const point = { x: clamp(enemy.x + Math.cos(a) * 104, FIELD.x + 30, FIELD.x + FIELD.w - 30), y: clamp(enemy.y + Math.sin(a) * 100, FIELD.y + 105, FIELD.y + FIELD.h - 30) };
@@ -55,7 +50,7 @@ function executeAttack(state, enemy, telegraph) {
     enemy.actionTime = 0.5;
   }
   enemy.exposed = 2.8;
-  enemy.pulse = Math.max(2.5, 5.2 - phase * 0.6);
+  enemy.pulse = Math.max(2.5, (enemy.tempo || 5.2) - phase * 0.6);
   floatText(state, enemy.x, enemy.y - 60, ATTACK_NAMES[telegraph.kind], enemy.color, 18);
   state.soundEvents.push({ name: telegraph.kind });
 }

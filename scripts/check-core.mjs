@@ -181,7 +181,7 @@ console.log('Progression OK: eight score bars, legacy/corrupt saves, persistent 
   chooseRoad(quiet, 'quiet'); chooseRoad(quiet, 'swarm'); chooseRoad(quiet, 'quiet');
   assert.equal(quiet.bell.hp, 8, 'Changing road choices cannot farm bell repairs');
   for (const state of [swarm, quiet]) { assert.ok(chooseArt(state, 0)); assert.ok(nextScroll(state)); }
-  assert.equal(swarm.queue.length, 30); assert.equal(quiet.queue.length, 23, 'Swarm changes the next scroll queue by 30%');
+  assert.equal(swarm.queue.length, 31); assert.equal(quiet.queue.length, 24, 'Swarm adds 30% ordinary spirits plus one boss');
   assert.equal(swarm.artLevels.breath, 2); assert.equal(swarm.maxInk, 160, 'Swarm grants a real extra art level and its capacity');
   assert.equal(quiet.artLevels.breath, 1); assert.equal(quiet.bell.hp, 10);
   assert.equal(swarm.route[1], 'swarm'); assert.equal(quiet.route[1], 'quiet');

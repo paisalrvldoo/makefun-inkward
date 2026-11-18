@@ -13,6 +13,7 @@ import { circle, text } from './primitives.js';
 import { drawBossBanner, drawBossTelegraphs, drawBossCallouts } from './bosses.js';
 import { drawSkillEffects } from './skillEffects.js';
 import { drawSilhouette } from './silhouette.js';
+import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffects.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -37,10 +38,14 @@ export function renderScene(ctx, paper, state, input, audio) {
   }
   ctx.globalAlpha = 1;
   for (const enemy of [...state.enemies].sort((a, b) => a.y - b.y)) if (!enemy.dead) {
-    if (enemy.hunter) { circle(ctx, enemy.x, enemy.y, enemy.radius + 8, '#bb443618', '#bb4436', 1.5); text(ctx, 'HUNT', enemy.x, enemy.y - enemy.radius - 14, 9, '#bb4436', 'bold', false, 'center'); }
+    if (enemy.hunter) drawHunterAura(ctx, enemy, state.time);
+    drawAttackIntent(ctx, enemy);
     drawYokai(ctx, enemy, state.time);
+    if (enemy.hitFlash > 0) drawSilhouette(ctx, drawYokai, enemy, state.time, '#fffaf0', Math.min(0.95, enemy.hitFlash * 10));
   }
+  drawDissolves(ctx, state);
   drawMonk(ctx, state.monk, state.time);
+  if (state.monk.hitFlash > 0) drawSilhouette(ctx, drawMonk, state.monk, state.time, '#fffaf0', Math.min(0.95, state.monk.hitFlash * 10));
   drawEffects(ctx, state);
   drawSkillEffects(ctx, state);
   if (state.mode === 'play') {

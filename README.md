@@ -2,6 +2,13 @@
 
 Paint ink walls, encircle wandering yokai, and guard the last bell through eight scrolls and four seasons.
 
+- **Complete pilgrimage:** eight distinct bosses, win/lose results and grade, combo × WRATH scoring, saved best scores, pause and restart.
+- **Build your brush:** 12 base brush arts, two victory unlocks, three real school synergies, three-level upgrades, optional omens and branching Swarm/Quiet roads.
+- **Tight controls:** WASD/arrows move, Space dash, mouse drag paint, right-click splash, Q hush, E ward; 120 ms input buffering, stroke-start grace and ink-cost/snap reticle.
+- **Touch:** one-finger paint, two-finger tap splash, and a dash button shown only on touch devices. Menus and draft/path choices also accept taps.
+- **Every run remembered:** seeded runs, same-seed replay, previous-best score ghost, permanent unlocks and bell skins saved locally.
+- **Ink comes alive:** distinct art casts and synthesized sounds, two-frame ritual inversions, yokai wind-ups/hurt flashes/petal deaths, monk recoil and i-frames, WRATH hunter auras.
+
 [![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![rank](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
@@ -33,6 +40,9 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | Right mouse | Splash ink at the pointer to stun nearby spirits; large foxes split |
 | Q | Lotus hush: freeze spirits across the field |
 | E | Bell ward: protect the bell and push nearby spirits away |
+| One-finger drag (touch) | Paint walls and close loops |
+| Two-finger tap (touch) | Splash at the midpoint of the two fingers |
+| On-screen dash button (touch only) | Dash toward the brush pointer |
 | 1–3 / click | Select difficulty on the title screen or a brush art during a draft; 4 selects an extra draft option when available |
 | P / Esc | Pause or resume during play |
 | M | Toggle sound |
@@ -43,7 +53,7 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | Esc / title button | Return to the title from the results screen |
 | B / bell skin button | Switch between Bronze and the unlocked Moon Bell on the title |
 
-Dash, splash, and rituals have cooldowns. Q and E are available from the start; their brush arts strengthen them.
+Dash, splash, and rituals have cooldowns. Press up to **120 ms** before an action is ready to buffer one cast; the reticle shows buffered/cooldown feedback. Q and E are available from the start; their brush arts strengthen them. A stroke can start up to 120 ms before entering the garden or recovering its minimum ink, and brief field-edge slips retain the stroke. The cursor shows current ink, the next segment's cost, and a green snap when it can close your loop. Empty ink prompts a release to refill.
 
 ### WRATH
 
@@ -80,17 +90,30 @@ The title and results display your run seed. Use **Same seed (S)** to revisit it
 
 ### Bosses
 
-Oni take multiple seals to defeat and become more aggressive as their health falls. Watch warnings for minion storms, bell charges, and wall-eating roars. Stun them with dash, splash, or Q, or seal them during recovery for stronger hits. Enclosing nearby minions with a boss adds damage; after a hit, wait for its brief seal lock to expire.
+Every scroll has its own boss. Early wardens teach readable attacks; the last three encounters demand stronger builds. Oni take multiple seals to defeat and become more aggressive as their health falls, changing silhouette and colour. Watch their body wind-ups and ground warnings for minion storms, bell charges, and wall-eating roars. Stun them with dash, splash, or Q, or seal them during recovery for stronger hits. Enclosing nearby minions with a boss adds damage; after a hit, wait for its brief seal lock to expire.
 
 | Scroll | Boss | Opening |
 | --- | --- | --- |
+| 1 | Suzune, the Reed Warden | Two health; petals signal its small minion storm |
+| 2 | Akariyo, the Lantern Oni | Three health; charge warnings expose its wick |
 | 3 | Kusabo, the Moss Oni | Normal loops deal one hit; stun or recovery raises this to two |
+| 4 | Orihane, the Paper Oni | Four health; paper wings wind up before crane storms |
+| 5 | Hibane, the Ash Oni | Five health; charge warnings expose its flame mask |
 | 6 | Momijara, the Maple Oni | Also takes stronger hits during its charge warning; walls can break a charge and expose it |
+| 7 | Sumigara, the Inkstone Oni | Six health; wall-eating roars leave a recovery window |
 | 8 | Yukioro, the Frost Oni | Break its ward by stunning it, catching recovery, or enclosing it with at least two minions |
+
+Hold **two different arts from a school** to activate its bonus. More levels of one art do not count as a pair. The BRUSH ARTS panel shows a **SYNERGY** chip, and draft cards identify their school and prospective synergy.
+
+| School | Arts | Real bonus |
+| --- | --- | --- |
+| CARVE | Vermilion edge, Twin brush, Stone ink, Willow dash | 25% longer wall life and greater erosion resistance |
+| FLOW | Long breath, Bottomless well, Feather hand, Echo of the bell, Moonlit ink | 20% faster ink refill |
+| BLOOM | Thunder seal, Gold leaf, Winter lotus, Mending prayer, Afterglow prayer | 15% more spirit-seal score |
 
 ## How to run
 
-Use a recent Node.js version with built-in TypeScript support (Node 22.18+ or Node 24) and a desktop browser with mouse and keyboard. No dependencies or build step are required; the game draws its art on Canvas and synthesizes its audio.
+Use a recent Node.js version with built-in TypeScript support (Node 22.18+ or Node 24) and a browser with mouse/keyboard or touch. No dependencies or build step are required; the game draws its art on Canvas and synthesizes its audio.
 
 The optional WebGL2 display adds soft bloom, seasonal colour grading, vignette, paper grain and ink-edge bleed. Press **G** to reveal the plain Canvas display. Missing WebGL2, shader or texture failures, and context loss automatically reveal that same display; a restored context rebuilds the cinematic pass. Tune strengths in `game/src/render/post/config.js`. Bloom runs at quarter resolution, with cached landscape layers, paper fibres, shadows and halos to keep rendering light. The garden has three parallax ink-wash layers, autumn light shafts and winter moonlight; the monk and spirits sway, blink, breathe and stretch during dashes.
 
@@ -119,13 +142,16 @@ game/
     main.js            Game loop and menus
     config.js          Dimensions, balance constants, and palette
     input.js           Keyboard and pointer input
+    controls/          120 ms action buffers, stroke grace and touch gestures
     audio.js           Synthesized sound
+    audio/             Distinct oscillator/noise voices for every brush art
     save.js            Local best runs, unlocks, and bell-skin persistence
     rng.js             Seeded randomness
     world/             Scrolls, branching roads, waves, difficulty, WRATH, omens, and state updates
-    entities/          Monk, yokai, and Oni behavior
+    entities/          Monk, yokai, eight boss profiles and attack behavior
     ink/               Strokes, geometry, and seals
-    arts/              Fourteen brush arts, drafts, and upgrade levels
+    arts/              Twelve base arts, two unlocks, school synergies and drafts
+    fx/                Cast events, ritual impacts, death dissolves and recoil
     render/            Cached parallax scenery, animated sprites, light, effects, and HUD
       post/            Optional WebGL2 bloom, seasonal grade and paper composite
     screens/           Title, draft, pause, and results
