@@ -2,8 +2,10 @@ import { INK, distance } from '../config.js';
 import { artLevel } from '../arts/levels.js';
 import { nearestOnSegment } from './geometry.js';
 
+import { hasRelic } from '../arts/relics.js';
+
 export function inkCost(state) {
-  return INK.cost * (1 - artLevel(state, 'feather') * 0.18) * (state.bell.wardTime > 0 ? 1 - artLevel(state, 'moonInk') * 0.15 : 1);
+  return INK.cost * (hasRelic(state, 'reedQuill') ? 0.88 : 1) * (1 - artLevel(state, 'feather') * 0.18) * (state.bell.wardTime > 0 ? 1 - artLevel(state, 'moonInk') * 0.15 : 1);
 }
 export function closingSnap(stroke, point) {
   if (!stroke || stroke.length <= INK.minLength || stroke.points.length <= 12) return null;

@@ -1,3 +1,4 @@
+import { drawDrummer, drawMoth } from './tacticalSpirits.js';
 import { COLORS } from '../config.js';
 import { circle, line } from './primitives.js';
 import { drawGlow, drawShadow as shadow } from './light.js';
@@ -94,7 +95,7 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1, silhouette = false) {
   ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.scale(scale * (enemy.small ? 0.7 : 1), scale * (enemy.small ? 0.7 : 1));
   if (!silhouette) shadow(ctx, 0, 0, enemy.kind === 'oni' ? 45 : 20);
   const phase = enemy.phase || 0, opening = eyeOpening(time, phase);
-  const airborne = ['lantern', 'umbrella', 'crane'].includes(enemy.kind);
+  const airborne = ['lantern', 'umbrella', 'crane', 'moth'].includes(enemy.kind);
   const bob = enemy.kind === 'oni' ? 0 : Math.sin(time * (airborne ? 3 : 2.8) + phase) * (airborne ? 3.5 : 1.6);
   ctx.translate(0, bob);
   ctx.save();
@@ -121,6 +122,8 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1, silhouette = false) {
   else if (enemy.kind === 'fox') drawFox(ctx, enemy.color, time, opening);
   else if (enemy.kind === 'eater') drawEater(ctx, opening);
   else if (enemy.kind === 'crane') drawCrane(ctx, time, opening);
+  else if (enemy.kind === 'drummer') drawDrummer(ctx, enemy.color, time);
+  else if (enemy.kind === 'moth') drawMoth(ctx, enemy.color, time);
   else if (enemy.kind === 'oni') {
     const colors = [enemy.color, enemy.boss === 'frost' ? '#7fb8db' : '#c18152', enemy.boss === 'frost' ? '#bdd8ee' : '#d9644d'];
     drawOni(ctx, { ...enemy, color: colors[enemy.boss === 'frost' ? finalPhase(enemy) : Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3))] }, time, silhouette);

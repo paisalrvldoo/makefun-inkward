@@ -18,9 +18,24 @@ import { advanceClimax } from '../entities/finalBoss.js';
 import { advanceFinalSeal } from '../scenes/finalSeal.js';
 import { beginEnding } from '../scenes/ending.js';
 import { beginDefeat } from '../scenes/defeat.js';
+import { isAscension, ascensionLabel } from './ascension.js';
+import { createPath } from './path.js';
 
 export function recordScroll(state) {
-  state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
+  const key = `${isAscension(state) ? state.ascension : 0}:${state.scroll}`;
+  const value = Math.max(0, state.score - state.scrollStartScore);
+  if (state.recordedScrollKey === key) state.scrollScores[state.scroll - 1] += value - state.recordedScrollValue;
+  else state.scrollScores[state.scroll - 1] += value;
+  state.recordedScrollKey = key; state.recordedScrollValue = value;
+}
+
+export function finishCircuit(state) {
+  finishOmen(state, true); endStroke(state); clearControls(state);
+  state.circuits++;
+  state.score += 2000 * state.ascension + state.bell.hp * 100;
+  recordScroll(state);
+  state.mode = 'draft'; state.roadChoice = null; draftArts(state);
+  state.soundEvents.push({ name: 'draft' });
 }
 
 export function finishRun(state, won) {
@@ -39,21 +54,25 @@ export function finishRun(state, won) {
 export function nextScroll(state) {
   if (!walkRoad(state)) return false;
   clearControls(state);
-  state.scroll++;
+  if (state.scroll === 8 && isAscension(state)) {
+    state.ascension++; state.scroll = 1; state.route = createPath();
+    state.activeRoad = 'shrine'; state.finalSeal = null; state.climax = null;
+    state.enemies = []; state.frostLanes = [];
+  } else state.scroll++;
   state.scrollStartScore = state.score;
   state.scrollTime = 0; state.cleared = 0;
   state.strokes = []; state.activeStroke = null; state.waitRelease = false;
   state.queue = makeThreatQueue(state); state.total = state.queue.length; state.spawnTime = 2;
   state.ink = state.maxInk; state.comboTime = 7;
   state.qCooldown = 0; state.eCooldown = 0; state.splashCooldown = 0;
-  state.banner = `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
+  state.banner = isAscension(state) ? ascensionLabel(state) : `SCROLL ${state.scroll} · ${getScroll(state).name.toUpperCase()}`;
   state.bannerTime = 4; state.mode = 'play';
   state.bonusDraft = false; beginOmen(state);
   state.soundEvents.push({ name: 'scrollIntro' });
   return true;
 }
 export function updateWorld(state, input, dt) {
-  if (state.mode === 'seal') { if (advanceFinalSeal(state, dt)) finishRun(state, true); return; }
+  if (state.mode === 'seal') { if (advanceFinalSeal(state, dt)) { if (isAscension(state)) finishCircuit(state); else finishRun(state, true); } return; }
   if (state.mode !== 'play') return;
   bufferActions(state, input, dt);
   dt *= advanceClimax(state, dt);
@@ -82,7 +101,7 @@ export function updateWorld(state, input, dt) {
     endStroke(state);
     state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + artLevel(state, 'afterglow'));
     if (artLevel(state, 'afterglow')) castArt(state, 'afterglow', state.bell, { radius: 90, force: true });
-    if (state.scroll === 8) finishRun(state, true);
+    if (state.scroll === 8) { if (isAscension(state)) finishCircuit(state); else finishRun(state, true); }
     else {
       state.score += 400 + state.bell.hp * 25;
       recordScroll(state);

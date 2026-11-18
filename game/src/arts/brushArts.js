@@ -25,6 +25,7 @@ export const findArt = id => BRUSH_ARTS.find(art => art.id === id);
 export const draftArtLevel = (state, id) => Math.min(MAX_ART_LEVEL, artLevel(state, id) + 1 + (state.roadChoice === 'swarm' ? 1 : 0));
 export function describeArt(id, level = 1) {
   const descriptions = {
+    rest: ['Repair 2 bell cracks · refill ink', 'Your brush has mastered every art. Rest, then face the next ascension.'],
     vermilion: [`Wall contact cuts spirits after ${(1.6 / level).toFixed(2)}s`, 'Contact stuns spirits and reduces erosion. Oni are stunned but resist the cut.'],
     breath: [`+30 ink capacity · +${level * 30}% refill`, 'Each upgrade adds 30 capacity. Release the brush to regenerate ink.'],
     twin: [level === 3 ? 'Mirror open strokes across both axes' : `Mirror open strokes · ${Math.round((0.5 + level * 0.15) * 100)}% strength`, 'Open strokes create free mirrored walls. Closed seals are never mirrored.'],
@@ -46,11 +47,12 @@ export function describeArt(id, level = 1) {
 export function draftArts(state) {
   const pool = BRUSH_ARTS.filter(art => (!art.unlock || state.unlocks.includes(art.unlock)) && artLevel(state, art.id) < MAX_ART_LEVEL);
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(state.rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  state.draft = pool.slice(0, state.bonusDraft ? 4 : 3);
+  state.draft = pool.length ? pool.slice(0, state.bonusDraft ? 4 : 3) : [{ id: 'rest', name: 'Pilgrim’s respite', rune: 'R', type: 'BELL' }];
 }
 export function chooseArt(state, index) {
   const art = state.draft[index];
   if (!art || (state.mode === 'draft' && !state.roadChoice)) return false;
+  if (art.id === 'rest') { state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + 2); state.ink = state.maxInk; state.soundEvents.push({ name: 'bell' }); return true; }
   const current = artLevel(state, art.id), level = draftArtLevel(state, art.id), gained = level - current;
   if (gained <= 0) return false;
   if (!state.arts.includes(art.id)) state.arts.push(art.id);

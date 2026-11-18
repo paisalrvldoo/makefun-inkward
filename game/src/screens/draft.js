@@ -4,6 +4,8 @@ import { drawLevelPips, drawArtIcon } from '../render/arts.js';
 import { describeArt, draftArtLevel, findArt } from '../arts/brushArts.js';
 import { getScroll, getSeason } from '../world/scrolls.js';
 import { pendingRoad } from '../world/path.js';
+import { RELICS, shrineRelic } from '../arts/relics.js';
+import { isAscension, ascensionLabel } from '../world/ascension.js';
 import { ONI } from '../entities/bosses.js';
 import { drawPath } from './path.js';
 import { artSchool, schoolCount, activeSynergies } from '../arts/schools.js';
@@ -32,6 +34,7 @@ function drawBrightSeal(ctx, art, x, y) {
 }
 
 function nextScrollLabel(state) {
+  if (state.scroll === 8 && isAscension(state)) return 'NEXT: ' + ascensionLabel({ ...state, ascension: state.ascension + 1 });
   const next = state.scroll + 1, scroll = getScroll({ scroll: next });
   const season = getSeason({ scroll: next }).name;
   const boss = scroll.boss ? ONI[scroll.boss].name.replace(' · ', ' ') : '';
@@ -74,7 +77,7 @@ export function drawDraft(ctx, state, input) {
     text(ctx, level ? 'UPGRADE' : 'NEW ART', rect.x + rect.w - 18, rect.y + 26, 9, '#bfc6c2', 'bold', false, 'right');
     drawBrightSeal(ctx, art, rect.x + rect.w / 2, rect.y + 66);
     text(ctx, art.name, rect.x + rect.w / 2, rect.y + 114, 22, '#fff0d8', 'bold', true, 'center');
-    const school = artSchool(art.id), pairs = schoolCount(state, school) + (level ? 0 : 1) >= 2;
+    const school = artSchool(art.id) || { name: 'REST', color: '#8dd8f3' }, pairs = (art.id === 'rest' ? 0 : schoolCount(state, school)) + (level ? 0 : 1) >= 2;
     text(ctx, 'LV ' + nextLevel + ' / ' + school.name + (pairs ? ' SYNERGY' : ''), rect.x + 21, rect.y + 141, 10, school.color, 'bold');
     drawLevelPips(ctx, state, art.id, rect.x + rect.w - 52, rect.y + 137, nextLevel);
     const detailY = wrapText(ctx, effect.description, rect.x + 21, rect.y + 167, rect.w - 42, 20, 16, '#fff0d3');
@@ -88,5 +91,6 @@ export function drawDraft(ctx, state, input) {
   panel(ctx, 42, 704, 1196, 62, '#111c29', '#78643c');
   const combos = activeSynergies(state);
   text(ctx, combos.length ? 'SYNERGY / ' + combos.map(s => s.name + ' ' + s.bonus).join('  ·  ') : 'BELL ' + state.bell.hp + '/' + state.bell.maxHp + '   ·   SCORE ' + state.score.toLocaleString('en-US') + '   ·   ' + state.sealed + ' SPIRITS FREED', 640, 729, 13, '#e8bd60', 'bold', false, 'center');
-  text(ctx, road ? road.effect.toUpperCase() + '  ·  1–' + state.draft.length + ' / CLICK TO TAKE AN ART' : '← SWARM ROAD   ·   → QUIET ROAD   ·   OR CLICK THE NEXT MAP NODE', 640, 751, 11, '#d4d0c6', 'bold', false, 'center');
+  const relicText = state.relics.map(id => RELICS.find(r => r.id === id).name).join(' · ');
+  text(ctx, road?.id === 'shrine' ? shrineRelic(state).effect.toUpperCase() : relicText ? 'RELICS / ' + relicText.toUpperCase() : road ? road.effect.toUpperCase() + '  ·  1–' + state.draft.length + ' / CLICK TO TAKE AN ART' : '← SWARM ROAD   ·   → QUIET ROAD   ·   OR CLICK THE NEXT MAP NODE', 640, 751, 11, '#d4d0c6', 'bold', false, 'center');
 }

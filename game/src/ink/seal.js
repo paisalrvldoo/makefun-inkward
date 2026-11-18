@@ -11,12 +11,14 @@ import { synergyBonus } from '../arts/schools.js';
 import { finalPhase, finalSealHealth, beginFinalPhase } from '../entities/finalBoss.js';
 import { beginFinalSeal } from '../scenes/finalSeal.js';
 
+import { relicScoreBonus } from '../arts/relics.js';
+
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
   enemy.dead = true;
   dissolveSpirit(state, enemy);
   state.sealed++; state.cleared++;
-  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom');
+  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom') * relicScoreBonus(state);
   const score = Math.round(base * wrathMultiplier(state));
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;

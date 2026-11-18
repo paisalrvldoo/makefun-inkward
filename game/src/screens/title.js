@@ -8,6 +8,7 @@ import { ONI } from '../entities/bosses.js';
 import { drawTutorial } from './tutorial.js';
 import { formatSeed } from '../rng.js';
 
+export const ASCENSION_BUTTON = { x: 510, y: 555, w: 310, h: 40 };
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
 export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
 export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
@@ -76,6 +77,10 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 578, 12, '#d0c9b8');
   if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 600, 11, '#e5b854');
 
+  const endless = state.unlocks.includes('ascension');
+  panel(ctx, ASCENSION_BUTTON.x, ASCENSION_BUTTON.y, ASCENSION_BUTTON.w, ASCENSION_BUTTON.h, state.expedition === 'ascension' ? '#704e92' : '#24313d', endless ? '#d8b5fa' : '#776951');
+  text(ctx, endless ? (state.expedition === 'ascension' ? 'ASCENSION SELECTED / A' : 'ENDLESS ASCENSION / A') : 'ASCENSION · WIN TO UNLOCK', 665, 577, 12, endless ? '#f3d5ff' : '#a9a89b', 'bold', false, 'center');
+  text(ctx, endless ? 'Keep your build · higher WRATH every circuit' : '3 SHRINE RELICS · 8 SPIRIT TACTICS', 665, 594, 10, '#d9c99d', 'bold', false, 'center');
   drawTutorial(ctx);
   text(ctx, input.touch ? 'ONE FINGER PAINT' : 'WASD MOVE', 68, 775, 12, '#f0c15d', 'bold');
   text(ctx, input.touch ? 'DASH BUTTON' : 'SPACE DASH', 226, 775, 12, '#f0c15d', 'bold');

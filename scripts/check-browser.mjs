@@ -249,7 +249,7 @@ try {
       assert.equal(await evaluate('inkward.state.roadChoice'), 'quiet', 'Right selects Quiet road');
       await mouse('mousePressed', 618, 161); await mouse('mouseReleased', 618, 161); await until('inkward.state.roadChoice === "swarm"');
       assert.equal(await evaluate('inkward.state.roadChoice'), 'swarm', 'The next map node selects Swarm road');
-      await mouse('mousePressed', 1060, 217); await mouse('mouseReleased', 1060, 217); await until('inkward.state.roadChoice === "quiet"');
+      await mouse('mousePressed', 1060, 187); await mouse('mouseReleased', 1060, 187); await until('inkward.state.roadChoice === "quiet"');
       assert.equal(await evaluate('inkward.state.roadChoice'), 'quiet', 'The road card selects Quiet road');
       assert.equal(await evaluate('inkward.state.bell.hp'), health, 'Previewing roads does not apply healing');
       await key('Digit1', '1'); await until('inkward.state.mode === "play" && inkward.state.scroll === 6');
@@ -376,7 +376,7 @@ try {
   })()`);
   await until('inkward.state.mode === "win" && JSON.parse(localStorage.getItem("inkward.progress.v2"))?.wins === 1');
   const saved = await evaluate('JSON.parse(localStorage.getItem("inkward.progress.v2"))');
-  assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'moonBell'], 'A real browser victory persists all four unlocks');
+  assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'ascension', 'moonBell'], 'A real browser victory persists all five unlocks');
   assert.equal(saved.bestRun.seed, 1); assert.equal(saved.bestRun.scrollScores.length, 8);
   assert.ok(await evaluate('inkward.state.ending.age < inkward.state.ending.duration'), 'A natural victory enters its ending before results');
   await key('KeyZ', 'z'); await until('inkward.state.ending.age === inkward.state.ending.duration');
@@ -388,6 +388,12 @@ try {
   await key('Enter', 'Enter'); await until('inkward.state.mode === "play"');
   assert.equal(await evaluate('inkward.state.bell.maxHp'), 10, 'Unlocked Master starts with its actual difficulty');
   assert.equal(await evaluate('inkward.state.previousBestRun.score'), saved.bestRun.score, 'New runs inherit the persisted score ghost');
+  await call('Page.navigate', { url: `${base}/?seed=1&ascension=check` });
+  await until('window.inkward?.state.mode === "title" && location.search.includes("ascension=check")');
+  await key('KeyA', 'a'); await until('inkward.state.expedition === "ascension"');
+  await key('Enter', 'Enter'); await until('inkward.state.mode === "play"');
+  assert.equal(await evaluate('inkward.state.expedition'), 'ascension');
+  assert.ok((await paintedLabels()).some(label => label.text === 'ASCEND / CIRCUIT 1'));
   console.log('Persistence browser OK: real victory unlocks, best seed/chart, Moon Bell and Master survive reload');
   await call('Page.navigate', { url: `${base}/?seed=1&touch=1` });
   await until('window.inkward?.state.mode === "title" && location.search.includes("touch=1")');

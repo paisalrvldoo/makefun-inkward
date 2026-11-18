@@ -7,10 +7,11 @@ import { beginOmen } from './omens.js';
 import { emptyProgress } from '../save.js';
 import { createPath } from './path.js';
 
-export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress()) {
+export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress(), expedition = 'pilgrimage') {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
   const runSeed = (Number(seed) >>> 0) || 1;
   const state = {
+    expedition: expedition === 'ascension' && progress.unlocks.includes('ascension') ? 'ascension' : 'pilgrimage', ascension: 1, circuits: 0, relics: [],
     seed: runSeed, difficulty: profile.id, rng: createRng(runSeed), mode: 'title', time: 0, runTime: 0, scrollTime: 0, scroll: 1,
     progress, unlocks: [...progress.unlocks], previousBestRun: progress.bestRun, newUnlocks: [], newBest: false, runRecorded: false,
     scrollScores: Array(8).fill(0), scrollStartScore: 0,

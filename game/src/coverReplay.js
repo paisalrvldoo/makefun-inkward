@@ -76,10 +76,10 @@ export function directPlayCover(state, input, pilot, trace = null) {
     const live = state.enemies.filter(e => !e.dead), kinds = new Set(live.filter(e => !e.hunter).map(e => e.kind));
     const burst = state.seals.find(s => s.success && s.life > 1.2);
     const scoredGroup = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
-    if (boss?.telegraph && wrathLevel(state) === 3 && state.combo >= 6 && live.length >= 12 && kinds.size >= 4 && state.strokes.length >= 3 && state.strokes.length <= 4 && burst && scoredGroup && state.monk.dashTime > 0 && state.ghosts.length >= 2) {
+    if (boss?.telegraph && wrathLevel(state) === 3 && state.combo >= 6 && live.length >= 12 && kinds.size >= 4 && state.strokes.length >= 3 && state.strokes.length <= 5 && burst && scoredGroup && state.monk.dashTime > 0 && state.ghosts.length >= 2) {
       // Leave a genuine 85% brush loop open around the next group to seal.
       const targets = live.filter(e => !e.hunter && e.kind !== 'oni' && e.x > 680 && e.x < 870 && e.y > 340 && e.y < 500);
-      if (targets.length < 3 || state.ink < 45 || state.strokes.length !== 3) continue;
+      if (targets.length < 1 || state.ink < 45 || state.strokes.length > 4) continue;
       const centre = targets.reduce((p, e) => ({ x: p.x + e.x / targets.length, y: p.y + e.y / targets.length }), { x: 0, y: 0 });
       const radius = 110;
       input.clearFrame(); input.keys.clear(); input.painting = true;

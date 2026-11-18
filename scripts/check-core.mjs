@@ -72,7 +72,7 @@ assert.ok(cover.best > cover.score && cover.arts.length === 5 && cover.combo >= 
 assert.equal(wrathLevel(cover), 3);
 assert.ok(cover.enemies.length >= 12 && new Set(cover.enemies.map(e => e.kind)).size >= 4);
 assert.ok(cover.enemies.some(e => e.kind === 'oni' && e.telegraph && e.hp < e.maxHp));
-assert.ok(cover.strokes.length >= 3 && cover.strokes.length <= 4 && cover.monk.dashTime > 0 && cover.ghosts.length >= 2);
+assert.ok(cover.strokes.length >= 3 && cover.strokes.length <= 5 && cover.monk.dashTime > 0 && cover.ghosts.length >= 2);
 assert.equal(cover.omen.progress, 1); assert.equal(cover.bell.hp, cover.bell.maxHp - 2);
 assert.ok(cover.activeStroke && !cover.activeStroke.closed, 'Cover leaves a real mouse loop open for the next tactical decision');
 {

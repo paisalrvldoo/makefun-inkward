@@ -1,6 +1,7 @@
 import { FIELD, distance, clamp } from '../config.js';
 import { addRing, floatText, burst } from '../render/fx.js';
 import { spawnYokai, wallCollision } from './yokai.js';
+import { ascensionTier, ascensionModifiers } from '../world/ascension.js';
 
 import { ONI } from './bossProfiles.js';
 import { finalPhase, beginFinalPhase, warnFrostDivide, executeFrostDivide } from './finalBoss.js';
@@ -16,6 +17,7 @@ export function spawnBoss(state, kind, point) {
     sealLock: 0, exposed: 0, telegraph: null, actionTime: 0, cycle: 0, charge: null,
     cinematicTime: 0,
   };
+  enemy.hp += ascensionTier(state); enemy.maxHp = enemy.hp;
   state.enemies.push(enemy);
   floatText(state, point.x, FIELD.y + 208, stats.short + ' AWAKENS', stats.color, 22);
   state.soundEvents.push({ name: 'bossIntro' });
@@ -41,7 +43,7 @@ function executeAttack(state, enemy, telegraph) {
   if (telegraph.kind === 'divide') {
     executeFrostDivide(state, enemy, telegraph);
   } else if (telegraph.kind === 'storm') {
-    const count = (enemy.stormCount || 4) + phase * 2;
+    const count = (enemy.stormCount || 4) + phase * 2 + ascensionTier(state);
     for (let i = 0; i < count; i++) {
       const a = i / count * Math.PI * 2 + enemy.cycle * 0.7;
       const point = { x: clamp(enemy.x + Math.cos(a) * 104, FIELD.x + 30, FIELD.x + FIELD.w - 30), y: clamp(enemy.y + Math.sin(a) * 100, FIELD.y + 105, FIELD.y + FIELD.h - 30) };
@@ -71,7 +73,8 @@ export function updateBosses(state, dt) {
     if (enemy.stun > 0) { enemy.actionTime = 0; enemy.charge = null; continue; }
     if (enemy.actionTime > 0) {
       enemy.actionTime -= dt;
-      const next = { x: enemy.x + enemy.charge.dx * 230 * dt, y: enemy.y + enemy.charge.dy * 230 * dt };
+      const speed = 230 * ascensionModifiers(state).speed;
+      const next = { x: enemy.x + enemy.charge.dx * speed * dt, y: enemy.y + enemy.charge.dy * speed * dt };
       if (wallCollision(state, enemy, next, dt)) {
         enemy.actionTime = 0; enemy.charge = null; enemy.stun = 1.8; enemy.exposed = 2.8;
         floatText(state, enemy.x, enemy.y - 60, 'CHARGE BROKEN · EXPOSED', enemy.color, 18);

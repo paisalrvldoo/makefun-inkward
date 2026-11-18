@@ -1,12 +1,13 @@
 import { text, panel, circle, line, hitRect } from '../render/primitives.js';
 import { drawYokai } from '../render/sprites.js';
 import { SCROLLS, SEASONS } from '../world/scrolls.js';
-import { ROADS } from '../world/path.js';
+import { shrineRelic } from '../arts/relics.js';
+import { ROADS, availableRoads } from '../world/path.js';
 
 const nodeX = column => 98 + column * 104;
-const nodeY = road => road === 'shrine' ? 190 : road === 'swarm' ? 161 : 222;
-export const ROAD_RECTS = ROADS.map((road, i) => ({ x: 904, y: 118 + i * 70, w: 330, h: 59, id: road.id }));
-export const pathChoiceRects = state => ROADS.map(road => ({ x: nodeX(state.scroll) - 23, y: nodeY(road.id) - 23, w: 46, h: 46, id: road.id }));
+const nodeY = road => road === 'shrine' ? 191 : road === 'swarm' ? 151 : 231;
+export const ROAD_RECTS = ROADS.map((road, i) => ({ x: 904, y: 118 + i * 50, w: 330, h: 43, id: road.id }));
+export const pathChoiceRects = state => availableRoads(state).map(road => ({ x: nodeX(state.scroll) - 18, y: nodeY(road.id) - 18, w: 36, h: 36, id: road.id }));
 
 function branch(ctx, from, to, color, width) {
   const mid = (from.x + to.x) / 2;
@@ -39,7 +40,7 @@ export function drawPath(ctx, state, input) {
     text(ctx, season.name, 150 + i * 208, 105, 11, season.color, 'bold', false, 'center');
     line(ctx, [[58 + i * 208, 112], [242 + i * 208, 112]], season.color + '66', 1);
   });
-  const locations = column => (column ? ['swarm', 'quiet'] : ['shrine']).map(id => ({ x: nodeX(column), y: nodeY(id), id }));
+  const locations = column => (column ? [2, 4, 6].includes(column) ? ['swarm', 'quiet', 'shrine'] : ['swarm', 'quiet'] : ['shrine']).map(id => ({ x: nodeX(column), y: nodeY(id), id }));
   ctx.save(); ctx.setLineDash([3, 5]);
   for (let column = 1; column < 8; column++) {
     for (const from of locations(column - 1)) for (const to of locations(column)) branch(ctx, from, to, '#81795866', 1.2);
@@ -48,7 +49,7 @@ export function drawPath(ctx, state, input) {
   for (let column = 1; column < state.scroll; column++) {
     branch(ctx, { x: nodeX(column - 1), y: nodeY(state.route[column - 1]) }, { x: nodeX(column), y: nodeY(state.route[column]) }, '#172b34', 5);
   }
-  if (state.roadChoice) {
+  if (state.roadChoice && state.scroll < 8) {
     ctx.save(); ctx.setLineDash([5, 5]);
     branch(ctx, { x: nodeX(state.scroll - 1), y: nodeY(state.route[state.scroll - 1]) }, { x: nodeX(state.scroll), y: nodeY(state.roadChoice) }, '#a54432', 3);
     ctx.restore();
@@ -67,20 +68,22 @@ export function drawPath(ctx, state, input) {
       }
       if (selected || (next && hitRect(input.pointer, rect))) circle(ctx, node.x, node.y, 24, '#c7523622', '#aa3b2b', 2);
       circle(ctx, node.x, node.y, scroll.boss ? 20 : 17, walked || next ? season.color : season.color + '77', walked ? '#172b34' : '#8c7950', walked ? 3 : 1.3);
-      if (scroll.boss) drawYokai(ctx, { kind: 'oni', x: node.x, y: node.y, color: season.color, hp: 0, maxHp: 0, phase: 0 }, 0, 0.38);
+      if (node.id === 'shrine' && column) { roadMark(ctx, 'quiet', node.x, node.y - 1); circle(ctx, node.x, node.y - 4, 5, '#d8b5fa', '#fff0c7', 1); }
+      else if (scroll.boss) drawYokai(ctx, { kind: 'oni', x: node.x, y: node.y, color: season.color, hp: 0, maxHp: 0, phase: 0 }, 0, 0.38);
       else roadMark(ctx, node.id, node.x, node.y - 1);
       if (walked && !current) circle(ctx, node.x + 13, node.y + 12, 3.5, '#fff0bb', '#172b34', 1);
     });
   });
   text(ctx, 'INK = YOUR WALKED PATH', 61, 258, 8, '#374842', 'bold');
-  text(ctx, 'CHOOSE SCROLL ' + (state.scroll + 1), 861, 258, 8, '#8f3428', 'bold', false, 'right');
-  text(ctx, 'TWO ROADS / ONE PILGRIMAGE', 906, 104, 11, '#e4bf6d', 'bold');
+  text(ctx, state.scroll === 8 ? 'NEXT CIRCUIT / SCROLL 1' : 'CHOOSE SCROLL ' + (state.scroll + 1), 861, 258, 8, '#8f3428', 'bold', false, 'right');
+  text(ctx, 'FIGHT / REST / RELIC SHRINE', 906, 104, 11, '#e4bf6d', 'bold');
   ROAD_RECTS.forEach((rect, i) => {
-    const road = ROADS[i], selected = state.roadChoice === road.id, hover = hitRect(input.pointer, rect);
+    const road = ROADS[i]; if (!availableRoads(state).includes(road)) return;
+    const selected = state.roadChoice === road.id, hover = hitRect(input.pointer, rect);
     panel(ctx, rect.x, rect.y, rect.w, rect.h, selected ? '#2c4147' : hover ? '#233440' : '#172735', selected ? '#f1c774' : '#806c45');
     ctx.fillStyle = road.color; ctx.fillRect(rect.x, rect.y, 4, rect.h);
-    text(ctx, (i ? '→ ' : '← ') + road.name.toUpperCase(), rect.x + 16, rect.y + 24, 17, '#fff0d4', 'bold', true);
-    text(ctx, road.effect, rect.x + 16, rect.y + 46, 12, road.color, 'bold');
+    text(ctx, (road.id === 'shrine' ? '↓ ' : i ? '→ ' : '← ') + road.name.toUpperCase(), rect.x + 16, rect.y + 18, 14, '#fff0d4', 'bold', true);
+    text(ctx, (road.id === 'shrine' ? shrineRelic(state)?.name + ' · PASSIVE RELIC' : road.effect), rect.x + 16, rect.y + 35, 11, road.color, 'bold');
     if (selected) text(ctx, 'CHOSEN', rect.x + rect.w - 14, rect.y + 23, 9, '#f4d17c', 'bold', false, 'right');
   });
 }

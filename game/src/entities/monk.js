@@ -3,6 +3,9 @@ import { artLevel } from '../arts/levels.js';
 import { takeAction } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
 
+import { hasRelic } from '../arts/relics.js';
+import { addRing } from '../render/fx.js';
+
 export function createMonk() {
   return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0 };
 }
@@ -22,6 +25,7 @@ export function updateMonk(state, input, dt) {
       monk.vx = (dash.point.x - monk.x) / aim;
       monk.vy = (dash.point.y - monk.y) / aim;
     }
+    if (hasRelic(state, 'dewBead')) { state.bell.wardTime = Math.max(state.bell.wardTime, 1.2); addRing(state, state.bell.x, state.bell.y, 62, '#8dd8f3'); state.soundEvents.push({ name: 'bell' }); }
     monk.dashTime = MONK.dashTime;
     monk.recoil = 0;
     monk.dashCooldown = MONK.dashCooldown / (1 + artLevel(state, 'willow') * 0.7);

@@ -1,5 +1,6 @@
 import { gradeRun } from '../world/state.js';
 import { SCROLLS, SEASONS } from '../world/scrolls.js';
+import { wrathCap } from '../world/ascension.js';
 import { UNLOCKS } from '../save.js';
 import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
@@ -89,20 +90,20 @@ function drawUnlocks(ctx, state) {
   text(ctx, state.unlocks.length ? 'UNLOCKED' : 'NEXT RUN', 84, 651, 16, '#f3ce77', 'bold', true);
   text(ctx, 'A LASTING LEGACY', 84, 671, 9, '#abbab7', 'bold');
   UNLOCKS.forEach((unlock, i) => {
-    const x = 239 + i * 240, owned = state.unlocks.includes(unlock.id), fresh = state.newUnlocks.includes(unlock.id);
+    const x = 231 + i * 194, owned = state.unlocks.includes(unlock.id), fresh = state.newUnlocks.includes(unlock.id);
     line(ctx, [[x - 12, 635], [x - 12, 677]], '#6e6243', 1);
     ctx.save(); ctx.globalAlpha = (owned ? 1 : 0.4) * resultReveal(state.resultsTime ?? 5, 2.3 + i * 0.15);
     if (unlock.kind === 'BRUSH ART') drawArtIcon(ctx, unlock.id, x + 18, 653, 29, { fill: '#e5d3a4', outline: '#f5d787' });
-    else if (unlock.id === 'master') {
+    else if (unlock.kind === 'CHALLENGE') {
       circle(ctx, x + 18, 653, 16, '#28424b', '#e3bd68', 1.5);
-      text(ctx, 'M', x + 18, 660, 23, '#f2d182', 'bold', true, 'center');
+      text(ctx, unlock.id === 'ascension' ? '∞' : 'M', x + 18, 660, 23, '#f2d182', 'bold', true, 'center');
     } else {
       circle(ctx, x + 18, 653, 16, '#c3dceb', '#f0d99f', 1.5);
       circle(ctx, x + 17, 652, 9, '#fff5d6'); circle(ctx, x + 22, 648, 8, '#c3dceb');
     }
-    text(ctx, unlock.name, x + 44, 653, 13, '#fff0d2', 'bold');
+    text(ctx, unlock.name, x + 44, 653, 11, '#fff0d2', 'bold');
     text(ctx, owned ? unlock.kind : 'SEAL ALL 8 SCROLLS', x + 44, 673, 9, '#b9c4bc', 'bold');
-    if (fresh) text(ctx, 'NEW', x + 213, 638, 8, '#f2c761', 'bold', false, 'right');
+    if (fresh) text(ctx, 'NEW', x + 175, 638, 8, '#f2c761', 'bold', false, 'right');
     ctx.restore();
   });
 }
@@ -136,7 +137,7 @@ export function drawResults(ctx, state, input) {
   ctx.save(); ctx.shadowColor = '#edbd5144'; ctx.shadowBlur = 18;
   text(ctx, won ? 'THE BELL ENDURES' : 'THE BELL FELL', 61, 145, won ? 55 : 65, won ? gold : '#f0d3bb', 'bold', true);
   ctx.restore();
-  text(ctx, won ? 'AT DAWN, IT RANG FOR EVERY SOUL.' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
+  text(ctx, won ? 'AT DAWN, IT RANG FOR EVERY SOUL.  ·  A / ENTER ENDLESS ASCENSION' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
   if (won) {
     panel(ctx, 694, 94, 282, 212, '#22362e', '#ac955c');
     text(ctx, 'DAWN AT THE SHRINE', 835, 108, 9, '#f0d596', 'bold', false, 'center');
@@ -158,7 +159,7 @@ export function drawResults(ctx, state, input) {
   drawGrade(ctx, state, motion);
 
   const stats = [
-    ['SCROLLS SEALED', (won ? 8 : state.scroll - 1) + ' / 8', '#bd5364'],
+    [state.expedition === 'ascension' ? 'ASCENSION / CIRCUITS' : 'SCROLLS SEALED', state.expedition === 'ascension' ? state.ascension + ' / ' + state.circuits : (won ? 8 : state.scroll - 1) + ' / 8', '#bd5364'],
     ['SPIRITS FREED', number(state.sealed), '#75b395'],
     ['BEST COMBO', '×' + state.peakCombo.toFixed(1), '#e8ba53'],
     ['BELL HEALTH', state.bell.hp + ' / ' + state.bell.maxHp, '#e77d59'],
@@ -184,7 +185,7 @@ export function drawResults(ctx, state, input) {
     text(ctx, 'LV ' + artLevel(state, id), x + 11, 515, 9, '#bfcac2', 'bold', false, 'center');
   });
   line(ctx, [[920, 532], [1196, 532]], '#3c4b4e', 1);
-  text(ctx, 'WRATH PEAK ' + state.peakWrath + '/5  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 554, 10, '#ed8c68', 'bold');
+  text(ctx, 'WRATH PEAK ' + state.peakWrath + '/' + wrathCap(state) + '  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 554, 10, '#ed8c68', 'bold');
   text(ctx, 'LARGEST SEAL  /  ' + state.largestSeal + ' SPIRITS', 920, 580, 11, '#d1d4bf', 'bold');
   drawUnlocks(ctx, state);
   resultButton(ctx, won ? 'NEW RUN  (R)' : 'RETRY  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);

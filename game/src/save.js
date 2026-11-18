@@ -5,6 +5,7 @@ export const UNLOCKS = [
   { id: 'master', name: 'Master difficulty', kind: 'CHALLENGE' },
   { id: 'moonInk', name: 'Moonlit ink', kind: 'BRUSH ART' },
   { id: 'afterglow', name: 'Afterglow prayer', kind: 'BRUSH ART' },
+  { id: 'ascension', name: 'Endless ascension', kind: 'CHALLENGE' },
   { id: 'moonBell', name: 'Moon Bell skin', kind: 'BELL SKIN' },
 ];
 
@@ -16,13 +17,14 @@ function cleanProgress(value) {
   if (!value || typeof value !== 'object') return progress;
   progress.runs = integer(value.runs); progress.wins = Math.min(progress.runs, integer(value.wins));
   progress.unlocks = UNLOCKS.filter(u => Array.isArray(value.unlocks) && value.unlocks.includes(u.id)).map(u => u.id);
+  if (progress.wins > 0 && !progress.unlocks.includes('ascension')) progress.unlocks.push('ascension');
   if (value.selectedSkin === 'moon' && progress.unlocks.includes('moonBell')) progress.selectedSkin = 'moon';
   const run = value.bestRun;
   if (run && integer(run.score) > 0 && Array.isArray(run.scrollScores) && run.scrollScores.length === 8) {
     progress.bestRun = {
       seed: (integer(run.seed) >>> 0) || 1, score: integer(run.score),
       difficulty: ['novice', 'monk', 'master'].includes(run.difficulty) ? run.difficulty : 'monk',
-      grade: /^[SABC]$/.test(run.grade) ? run.grade : 'C',
+      grade: /^[SABC]$/.test(run.grade) ? run.grade : 'C', expedition: run.expedition === 'ascension' ? 'ascension' : 'pilgrimage', ascension: integer(run.ascension),
       scrollScores: run.scrollScores.map(integer),
     };
   }
@@ -62,7 +64,7 @@ export function recordRun(state, { persist = true } = {}) {
     progress.unlocks.push(...state.newUnlocks);
     if (state.newBest) {
       progress.bestRun = {
-        seed: state.seed, difficulty: state.difficulty, score: state.score, grade: state.grade,
+        seed: state.seed, difficulty: state.difficulty, expedition: state.expedition, ascension: state.ascension, score: state.score, grade: state.grade,
         scrollScores: [...state.scrollScores],
       };
     }

@@ -19,6 +19,8 @@ import { drawEnding } from '../screens/ending.js';
 import { drawDefeat } from '../screens/defeat.js';
 import { holdFinalFrame } from './finalFrame.js';
 
+import { drawTacticalTelegraphs } from './tacticalSpirits.js';
+
 export function renderScene(ctx, paper, state, input, audio) {
   const frozen = holdFinalFrame(ctx, state);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -40,6 +42,7 @@ export function renderScene(ctx, paper, state, input, audio) {
     text(ctx, 'INCOMING', p.x, p.y + 37, 9, '#bb4436', 'bold', false, 'center');
   }
   drawBossTelegraphs(ctx, state);
+  drawTacticalTelegraphs(ctx, state);
   drawStrokes(ctx, state);
   drawBell(ctx, state.bell, state.time);
   for (const ghost of state.ghosts) {

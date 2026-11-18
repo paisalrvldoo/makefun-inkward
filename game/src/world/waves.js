@@ -3,12 +3,13 @@ import { getScroll } from './scrolls.js';
 import { spawnYokai } from '../entities/yokai.js';
 import { spawnBoss } from '../entities/bosses.js';
 import { difficulty } from './difficulty.js';
+import { ascensionModifiers } from './ascension.js';
 import { wrathLevel } from './wrath.js';
 
 export function makeThreatQueue(state) {
   const scroll = getScroll(state);
   const queue = [];
-  const count = Math.round(scroll.count * difficulty(state).count * (state.activeRoad === 'swarm' ? 1.3 : 1));
+  const count = Math.round(scroll.count * difficulty(state).count * ascensionModifiers(state).count * (state.activeRoad === 'swarm' ? 1.3 : 1));
   for (let i = 0; i < count; i++) {
     // Each group contains the whole scroll's palette; shuffled offsets keep the order surprising.
     const kind = scroll.types[(i + Math.floor(state.rng() * 2)) % scroll.types.length];
@@ -33,5 +34,5 @@ export function updateWaves(state, dt) {
   if (threat.kind === 'oni') spawnBoss(state, threat.boss, point);
   else spawnYokai(state, threat.kind, point);
   state.spawned++;
-  state.spawnTime = getScroll(state).interval * difficulty(state).interval / (1 + wrathLevel(state) * 0.12);
+  state.spawnTime = getScroll(state).interval * difficulty(state).interval * ascensionModifiers(state).interval / (1 + wrathLevel(state) * 0.12);
 }

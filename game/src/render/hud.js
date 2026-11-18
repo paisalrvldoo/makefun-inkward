@@ -12,6 +12,9 @@ import { omenReward, omenProgress } from '../world/omens.js';
 import { ONI } from '../entities/bosses.js';
 import { activeSynergies } from '../arts/schools.js';
 
+import { drawRelics } from './relics.js';
+import { isAscension, wrathCap, ascensionLabel } from '../world/ascension.js';
+
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
   // Lacquer bands hold the paper garden in a high-contrast frame.
@@ -27,13 +30,14 @@ export function drawHud(ctx, state, audio) {
     ctx.fillStyle = i < state.scroll - 1 ? '#e24937' : i === state.scroll - 1 ? '#f0c35b' : '#494b4b';
     ctx.fillRect(x, 72, 24, 5);
   }
-  if (state.scroll > 1) text(ctx, state.activeRoad === 'swarm' ? 'SWARM ROAD +30%' : 'QUIET ROAD +2 BELL', 576, 81, 9, '#e1bf70', 'bold');
+  drawRelics(ctx, state, 900, 80);
+  if (state.scroll > 1) text(ctx, state.activeRoad === 'swarm' ? 'SWARM ROAD +30%' : state.activeRoad === 'shrine' ? 'SHRINE / PASSIVE RELIC' : 'QUIET ROAD +2 BELL', 576, 81, 9, '#e1bf70', 'bold');
   text(ctx, 'SCORE', 690, 28, 11, COLORS.gold, 'bold');
   text(ctx, String(state.score).padStart(6, '0'), 688, 64, 34, COLORS.white, 'bold', true);
   text(ctx, 'PERSONAL BEST', 906, 28, 11, COLORS.gold, 'bold');
   text(ctx, String(state.best).padStart(6, '0'), 904, 62, 30, '#f0c35b', 'bold', true);
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1250, 77, 10, '#e5dfd0', 'bold', false, 'right');
-  text(ctx, 'WRATH', 1020, 28, 11, '#ef5b48', 'bold');
+  text(ctx, isAscension(state) ? 'WRATH / ' + wrathCap(state) : 'WRATH', 1020, 28, 11, '#ef5b48', 'bold');
   text(ctx, `×${wrathMultiplier(state).toFixed(1)}`, 1020, 47, 11, '#f0c35b', 'bold');
   for (let i = 0; i < 5; i++) {
     ctx.globalAlpha = i < wrathLevel(state) ? 1 : 0.16;
@@ -42,7 +46,7 @@ export function drawHud(ctx, state, audio) {
   ctx.globalAlpha = 1;
 
   panel(ctx, 18, 89, 978, 26, '#222936', COLORS.gold);
-  text(ctx, 'WIN  Seal all 8 scrolls', 33, 107, 12, '#8bd0ac', 'bold');
+  text(ctx, isAscension(state) ? 'ASCEND / CIRCUIT ' + state.ascension : 'WIN  Seal all 8 scrolls', 33, 107, 12, '#8bd0ac', 'bold');
   text(ctx, 'LOSE  Bell cracks reach 0', 255, 107, 12, '#f06a58', 'bold');
   const progress = state.cleared / Math.max(1, state.total);
   text(ctx, `WAVE ${Math.min(3, Math.floor((state.total - state.queue.length) / Math.ceil(state.total / 3)) + 1)} / 3`, 525, 107, 11, COLORS.white, 'bold');
@@ -128,7 +132,7 @@ export function drawHud(ctx, state, audio) {
 export function drawWaveBanner(ctx, state) {
   if (state.huntBanner > 0) {
     panel(ctx, 270, 235, 450, 48, '#bb4436ee', '#bb4436');
-    text(ctx, 'WRATH 5 — THE HUNT', 495, 268, 28, COLORS.white, 'bold', true, 'center');
+    text(ctx, 'WRATH ' + wrathLevel(state) + ' — THE HUNT', 495, 268, 28, COLORS.white, 'bold', true, 'center');
   }
   if (state.bannerTime <= 0) return;
   ctx.globalAlpha = Math.min(1, state.bannerTime);
@@ -136,6 +140,6 @@ export function drawWaveBanner(ctx, state) {
   panel(ctx, 207, 255, 574, 123, '#171c24f5', COLORS.gold);
   text(ctx, `SCROLL ${state.scroll} — ${season.name}`, 494, 286, 17, '#f0c35b', 'bold', false, 'center');
   text(ctx, scroll.boss ? ONI[scroll.boss].short : scroll.name.toUpperCase(), 494, 324, 28, COLORS.white, 'bold', true, 'center');
-  text(ctx, 'GUARD THE BELL · DRAW THE WARD · SEAL THE WANDERERS', 494, 353, 11, '#ddd4c1', 'bold', false, 'center');
+  text(ctx, isAscension(state) ? ascensionLabel(state) : 'GUARD THE BELL · DRAW THE WARD · SEAL THE WANDERERS', 494, 353, 11, '#ddd4c1', 'bold', false, 'center');
   ctx.globalAlpha = 1;
 }

@@ -9,18 +9,24 @@ import { castArt } from '../fx/skillCasts.js';
 import { dissolveSpirit, hurtMonk } from '../fx/characterStates.js';
 import { synergyBonus } from '../arts/schools.js';
 
+import { tacticalVelocity, cancelTacticalAttack } from './tacticalYokai.js';
+import { ascensionModifiers } from '../world/ascension.js';
+import { relicScoreBonus } from '../arts/relics.js';
+
 export const YOKAI = {
   kappa: { name: 'KAPPA', detail: 'Lunges toward the bell', color: '#63846d', speed: 30, radius: 17, value: 100 },
   lantern: { name: 'LANTERN', detail: 'Floats through ink walls', color: '#c47a48', speed: 26, radius: 17, value: 160 },
   umbrella: { name: 'UMBRELLA', detail: 'Hops in sudden bursts', color: '#997294', speed: 28, radius: 19, value: 130 },
   fox: { name: 'FOX-FIRE', detail: 'Splits when splashed', color: '#c85c42', speed: 36, radius: 16, value: 180 },
   eater: { name: 'INK-EATER', detail: 'Devours painted walls', color: '#526068', speed: 23, radius: 22, value: 200 },
+  drummer: { name: 'REED DRUMMER', detail: 'Stun its pulse to stop nearby spirits speeding up', color: '#dc9d42', speed: 22, radius: 21, value: 240 },
+  moth: { name: 'NEEDLE MOTH', detail: 'Orbits, marks a lane, then dives at the bell', color: '#7bbbd5', speed: 32, radius: 16, value: 220 },
   crane: { name: 'PAPER CRANE', detail: 'Weaves toward the shrine', color: '#8c9792', speed: 40, radius: 13, value: 80 },
 };
 export function spawnYokai(state, kind, point, small = false) {
   const stats = YOKAI[kind];
   const enemy = {
-    ...point, ...stats, kind, id: state.nextId++, speed: stats.speed * (1 + (state.scroll - 1) * 0.065) * difficulty(state).speed,
+    ...point, ...stats, kind, id: state.nextId++, speed: stats.speed * (1 + (state.scroll - 1) * 0.065) * difficulty(state).speed * ascensionModifiers(state).speed,
     phase: state.rng() * Math.PI * 2, age: 0, stun: 0, hitTime: 0, hitFlash: 0, blocked: 0, dead: false, small, animation: 'idle', windup: 0, attackReady: false,
   };
   if (small) { enemy.radius *= 0.7; enemy.speed *= 1.2; enemy.value = 90; }
@@ -60,7 +66,7 @@ export function wallCollision(state, enemy, next, dt) {
     for (let i = 1; i < stroke.points.length; i++) {
       const nearest = nearestOnSegment(next, stroke.points[i - 1], stroke.points[i]);
       if (nearest.distance >= enemy.radius + INK.width / 2) continue;
-      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) / ((1 + artLevel(state, 'stone') * 0.25) * synergyBonus(state, 'carve'));
+      stroke.integrity -= dt * (enemy.kind === 'eater' ? 0.6 : enemy.kind === 'oni' ? 0.32 : 0.09) * ascensionModifiers(state).erosion / ((1 + artLevel(state, 'stone') * 0.25) * synergyBonus(state, 'carve'));
       stroke.erosion = { x: nearest.x, y: nearest.y, life: 0.75 };
       if (!stroke.soundCooldown) {
         stroke.flash = 0.25; stroke.soundCooldown = 0.6;
@@ -78,7 +84,7 @@ export function wallCollision(state, enemy, next, dt) {
         if (enemy.edgeDamage >= 1.6 && enemy.kind !== 'oni') {
           enemy.dead = true; state.sealed++; state.cleared++;
           dissolveSpirit(state, enemy);
-          const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom');
+          const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom') * relicScoreBonus(state);
           const score = Math.round(base * wrathMultiplier(state));
           state.score += score; state.wrathScore += score - Math.round(base);
           if (enemy.hunter) state.huntersSealed++;
@@ -111,6 +117,8 @@ export function updateYokai(state, dt) {
     enemy.hitFlash = Math.max(0, (enemy.hitFlash || 0) - dt);
     enemy.stun = Math.max(0, enemy.stun - dt);
     enemy.animation = enemy.hitTime > 0 ? 'hit' : enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0) ? 'attack' : 'idle';
+    enemy.haste = Math.max(0, (enemy.haste || 0) - dt);
+    if (enemy.stun > 0) cancelTacticalAttack(enemy);
     if (enemy.stun > 0 || enemy.cinematicTime > 0) continue;
     const target = enemy.hunter ? state.monk : state.bell;
     const dx = target.x - enemy.x, dy = target.y - enemy.y;
@@ -126,7 +134,7 @@ export function updateYokai(state, dt) {
     if (length > 115) { enemy.attackReady = false; enemy.windup = 0; }
     if (!enemy.hunter && length < state.bell.radius + enemy.radius - 3) { damageBell(state, enemy); continue; }
     if (enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0)) continue;
-    let speed = enemy.speed;
+    let speed = enemy.speed * (enemy.haste > 0 ? 1.5 : 1);
     if (enemy.kind === 'kappa' && Math.sin(enemy.age * 1.7 + enemy.phase) > 0.87) speed *= 2.3;
     if (enemy.kind === 'umbrella') speed *= Math.sin(enemy.age * 3 + enemy.phase) > 0.2 ? 2.2 : 0.2;
     let vx = dx / length * speed, vy = dy / length * speed;
@@ -134,6 +142,8 @@ export function updateYokai(state, dt) {
       const weave = Math.sin(enemy.age * 2.6 + enemy.phase) * speed * 0.6;
       vx += -dy / length * weave; vy += dx / length * weave;
     }
+    const tactical = tacticalVelocity(state, enemy, dt, dx, dy, length, speed);
+    if (tactical) { vx = tactical.vx; vy = tactical.vy; }
     const next = { x: enemy.x + vx * dt, y: enemy.y + vy * dt };
     if (!wallCollision(state, enemy, next, dt)) { enemy.x = next.x; enemy.y = next.y; }
     if (enemy.dead) continue;

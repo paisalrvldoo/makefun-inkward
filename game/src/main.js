@@ -12,7 +12,7 @@ import { clearControls } from './controls/buffer.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { createPost } from './render/post/index.js';
-import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON } from './screens/title.js';
+import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON, ASCENSION_BUTTON } from './screens/title.js';
 import { draftRects } from './screens/draft.js';
 import { ROAD_RECTS, pathChoiceRects } from './screens/path.js';
 import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/results.js';
@@ -46,8 +46,8 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas); fitCanvas();
 
-function resetRun(start = true, runSeed = state.seed) {
-  state = createState(runSeed, readBest(), state.difficulty, readProgress());
+function resetRun(start = true, runSeed = state.seed, expedition = state.expedition) {
+  state = createState(runSeed, readBest(), state.difficulty, readProgress(), expedition);
   staged = false; previewRun = false; drawInput = input; accumulator = 0;
   input.release(); input.clearFrame();
   if (start) startRun(state);
@@ -71,6 +71,7 @@ function handleMenus() {
       if (selectBellSkin(state.progress, skin)) { state.bell.skin = skin; audio.play('click'); }
     }
     if (input.pressed.has('KeyR') || clicked(SEED_BUTTON)) { resetRun(false, newRunSeed(state.seed)); audio.play('click'); }
+    if (state.unlocks.includes('ascension') && (input.pressed.has('KeyA') || clicked(ASCENSION_BUTTON))) { state.expedition = state.expedition === 'ascension' ? 'pilgrimage' : 'ascension'; audio.play('click'); }
     if (input.pressed.has('Enter') || clicked(START_BUTTON)) { resetRun(); input.clearFrame(); }
   } else if (state.mode === 'play') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();
@@ -78,7 +79,7 @@ function handleMenus() {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; input.clearFrame(); }
   } else if (state.mode === 'draft') {
     for (const road of ROAD_RECTS) {
-      if (clicked(road) || pathChoiceRects(state).some(rect => rect.id === road.id && clicked(rect)) || input.pressed.has(road.id === 'swarm' ? 'ArrowLeft' : 'ArrowRight')) chooseRoad(state, road.id);
+      if (clicked(road) || pathChoiceRects(state).some(rect => rect.id === road.id && clicked(rect)) || input.pressed.has(road.id === 'swarm' ? 'ArrowLeft' : road.id === 'shrine' ? 'ArrowDown' : 'ArrowRight')) chooseRoad(state, road.id);
     }
     for (let i = 0; i < state.draft.length; i++) {
       if (input.pressed.has(`Digit${i + 1}`) || clicked(draftRects(state)[i])) {
@@ -91,7 +92,8 @@ function handleMenus() {
       if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
       return;
     }
-    if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON) || state.mode === 'lose' && state.defeat?.age < state.defeat?.duration && clicked(DEFEAT_RETRY_BUTTON)) resetRun(true, newRunSeed(state.seed));
+    if (state.unlocks.includes('ascension') && input.pressed.has('KeyA')) resetRun(true, newRunSeed(state.seed), 'ascension');
+    else if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON) || state.mode === 'lose' && state.defeat?.age < state.defeat?.duration && clicked(DEFEAT_RETRY_BUTTON)) resetRun(true, newRunSeed(state.seed));
     else if (input.pressed.has('KeyS') || clicked(SAME_SEED_BUTTON)) resetRun();
     else if (input.pressed.has('Escape') || clicked(TITLE_BUTTON)) resetRun(false);
     else if (input.pressed.size || input.clicks.length || input.splashes.length) { skipDefeat(state); skipResults(state); }
