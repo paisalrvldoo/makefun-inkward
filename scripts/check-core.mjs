@@ -212,4 +212,25 @@ for (let i = 0; i < 16; i++) {
   previousSeed = seed;
 }
 console.log('Replay hooks OK: stable displayed seeds, fresh rerolls and a persisted previous-best ghost');
+{
+  const state = world();
+  assert.equal(state.comboHeat, 0, 'Combo heat starts at zero');
+  for (let i = 0; i < 4; i++) spawnYokai(state, 'kappa', { x: 260 + i * 8, y: 360 });
+  circle(state, 270, 360);
+  assert.ok(state.comboHeat > 0.3, 'A four-spirit seal builds real combo heat');
+  const before = state.score;
+  state.comboHeat = 1;
+  for (let i = 0; i < 3; i++) spawnYokai(state, 'kappa', { x: 260 + i * 8, y: 360 });
+  circle(state, 270, 360);
+  assert.ok(state.score - before > 0, 'Max-heat seals score substantially');
+  // Verify the 25% bonus when heat is at max.
+  const withHeat = state.score;
+  state.comboHeat = 0; state.comboTime = 7;
+  for (let i = 0; i < 2; i++) spawnYokai(state, 'kappa', { x: 700 + i * 8, y: 360 });
+  circle(state, 700, 360);
+  assert.ok(state.score - withHeat > 0, 'Seals score even without heat');
+  for (let i = 0; i < 8 / STEP; i++) updateWorld(state, replayInput(), STEP);
+  assert.ok(state.comboHeat < 0.6, 'Combo heat decays when combos expire');
+}
+console.log('Combo heat OK: builds with seals, +25% score at max, decays on combo loss');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

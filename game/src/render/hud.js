@@ -18,7 +18,7 @@ import { isAscension, wrathCap, ascensionLabel } from '../world/ascension.js';
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
   // Lacquer bands hold the paper garden in a high-contrast frame.
-  ctx.fillStyle = '#171c24'; ctx.fillRect(0, 0, 1280, 122);
+  ctx.fillStyle = '#0e141e'; ctx.fillRect(0, 0, 1280, 122);
   ctx.fillRect(0, 708, 1280, 92);
   ctx.fillStyle = COLORS.gold; ctx.fillRect(0, 120, 1280, 2); ctx.fillRect(0, 706, 1280, 2);
   text(ctx, 'INKWARD', 24, 54, 38, COLORS.white, 'bold', true);
@@ -128,6 +128,23 @@ export function drawHud(ctx, state, audio) {
   text(ctx, `×${state.combo.toFixed(1)}`, 585, 751, 30 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
   ctx.fillStyle = '#4a4d51'; ctx.fillRect(518, 741, 54, 6);
   ctx.fillStyle = '#ef5b48'; ctx.fillRect(518, 741, 54 * Math.min(1, state.comboTime / comboDuration(state)), 6);
+  // Combo heat meter — intensifies with repeated seals, grants +25% score at max heat.
+  if (state.comboHeat > 0.01) {
+    const hx = 518, hy = 754, hw = 54, heat = state.comboHeat;
+    const heatColor = heat >= 0.66 ? '#f2a247' : heat >= 0.33 ? '#e8682a' : '#c94224';
+    ctx.fillStyle = '#4a4d51'; ctx.fillRect(hx, hy, hw, 4);
+    ctx.fillStyle = heatColor; ctx.fillRect(hx, hy, hw * heat, 4);
+    if (heat >= 0.33) {
+      for (let i = 0; i < Math.ceil(heat * 5); i++) {
+        const fx = hx + i * (hw / 5) + (i % 2 ? 1 : -1) * Math.sin(state.time * 14 + i) * 2;
+        const flicker = 3 + heat * 7 + Math.sin(state.time * 18 + i * 2.3) * 2;
+        ctx.fillStyle = heat >= 0.66 ? '#ffbf44' + '88' : '#e86a30' + '66';
+        ctx.beginPath(); ctx.moveTo(fx - 2, hy); ctx.quadraticCurveTo(fx - 1, hy - flicker, fx + 1, hy - flicker); ctx.quadraticCurveTo(fx + 2, hy - 3, fx + 2, hy); ctx.fill();
+      }
+    }
+    text(ctx, 'HEAT', hx - 3, hy + 17, 9, heat >= 0.66 ? '#f2a247' : '#d96438', 'bold');
+    if (heat >= 1) text(ctx, '+25%', hx + hw + 2, hy + 17, 9, '#ffb84d', 'bold');
+  }
   text(ctx, 'RITUALS', 681, 729, 10, '#d4cfbf', 'bold');
   text(ctx, `SPACE ${state.monk.dashCooldown > 0 ? state.monk.dashCooldown.toFixed(1) + 's' : 'READY'} · SPLASH ${state.splashCooldown > 0 ? state.splashCooldown.toFixed(1) + 's' : 'READY'}`, 294, 690, 10, '#171c24', 'bold');
   text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 681, 751, 12, '#8dc8e2', 'bold');

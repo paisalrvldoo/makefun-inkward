@@ -1,13 +1,17 @@
 **INKWARD — paint living ink walls, seal entire spirit swarms, and guard the last bell through eight boss scrolls and an endless ascension.**
 
-- **A complete game:** win by clearing eight scrolls and their bosses; lose when the bell breaks. Pause, restart, animated ending/results, S–C grades, combo × WRATH scoring and saved personal bests.
-- **Build your brush:** 12 base brush arts + two victory unlocks, three upgrade levels, three numerical school synergies, common/rare/epic draft glows and optional omen rewards.
-- **Eight spirit tactics:** lunging kappa, wall-phasing lanterns, hopping umbrellas, splitting foxes, wall-eaters, weaving cranes, interruptible Reed Drummers and telegraphed Needle Moth dives.
-- **Pilgrim's Path:** choose Swarm fights, Quiet rest or three Relic Shrines; Reed Quill saves ink, Dew Bead wards on dash, Ember Charm rewards high combos.
-- **Endless ascension:** victory unlocks repeating eight-boss circuits. Keep arts and relics; each ascension raises the WRATH ceiling and increases spirit count, speed, wall erosion and boss pressure.
-- **Every stroke feels alive:** tapered ink and blooming seals, 40–70 ms heavy-hit stops, white hurt flashes, theatrical score count-up/slam, rising vacuum chimes, dash afterimages, landing dust/squash and original synthesized music and sound.
-- **Your run remembered:** displayed seeds, same-seed replay, previous-best score ghost, permanent unlocks and bell skins saved locally; keyboard and touch menus.
-- **Controls:** WASD/arrows move; Space dash; mouse drag paint/close loops; right-click splash; Q hush; E ward; P/Esc pause; M sound; G graphics; 1–4 choose arts; ←/→/↓ choose fight/rest/shrine; R restart/new seed; S same seed; A ascension after victory. Touch: one finger paints, two-finger tap splashes, on-screen button dashes, taps choose menus.
+- **Win/lose:** clear eight scrolls and their bosses to win; the bell cracking to zero loses. Runs save your personal-best score.
+- **Controls:** WASD/arrows move; Space dash; mouse drag paints walls and closes sealing loops; RMB splashes; Q hush; E bell ward; P/Esc pause; M/G toggle sound/cinematic; 1-4 choose arts; ←/→/↓ choose roads; R fresh seed; S same seed; A ascension.
+- **Brush arts:** 12 base arts + 2 victory unlocks, three upgrade levels, three school synergies (CARVE/FLOW/BLOOM), common/rare/epic rarity glows, and omen draft rewards.
+- **Shrine relics:** Reed Quill saves ink, Dew Bead shields on dash, Ember Charm boosts high-combo score.
+- **Combo heat:** repeated seals fill a visible flame meter; at max heat every seal scores +25%.
+- **Bosses:** eight scroll guardians with telegraphed charges, storms, wall-eating roars and phased health; Yukioro's three-stage winter finale.
+- **Pilgrim's Path:** branching eight-scroll map with Swarm, Quiet and Relic Shrine roads; walked path shown in ink.
+- **Spirit tactics:** eight yokai with lunge, phase, hop, split, eat, weave, interruptible haste pulse and telegraphed dive patterns.
+- **Ascension:** victory-unlocked endless circuits that raise the WRATH ceiling and scale spirit count, speed, wall erosion and boss pressure.
+- **Seeds and ghost:** displayed run seeds, same-seed replay and a previous-best ghost line on the score chart.
+- **Game feel:** tapered ink strokes, blooming seals, 40-70 ms hit-stops, white hurt flashes, theatrical score slam, vacuum chimes, dash afterimages, landing dust and original synth music.
+- **Touch:** one finger paints, two-finger tap splashes, on-screen dash button.
 
 [![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![rank](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)

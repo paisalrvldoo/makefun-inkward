@@ -88,7 +88,7 @@ export function updateWorld(state, input, dt) {
   state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);
   state.bell.wardTime = Math.max(0, state.bell.wardTime - dt);
   state.comboTime = Math.max(0, state.comboTime - dt);
-  if (state.comboTime <= 0) state.combo = 1;
+  if (state.comboTime <= 0) { state.combo = 1; state.comboHeat = Math.max(0, state.comboHeat - dt * 0.4); }
   updateEffects(state, dt);
   updateScoreBurst(state, dt);
   updateInkMotes(state, dt);

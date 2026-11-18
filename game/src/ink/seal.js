@@ -21,7 +21,7 @@ export function releaseSpirit(state, enemy) {
   enemy.dead = true;
   dissolveSpirit(state, enemy);
   state.sealed++; state.cleared++;
-  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom') * relicScoreBonus(state);
+  const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom') * relicScoreBonus(state) * (state.comboHeat >= 1 ? 1.25 : 1);
   const score = Math.round(base * wrathMultiplier(state));
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;
@@ -48,10 +48,15 @@ export function sealLoop(state, points) {
   if (enclosed.length >= 3) state.combo = Math.min(8, state.combo + 0.5);
   state.comboTime = comboDuration(state);
   state.peakCombo = Math.max(state.peakCombo, state.combo);
+  state.comboHeat = Math.min(1, state.comboHeat + 0.15 + enclosed.length * 0.05);
   state.largestSeal = Math.max(state.largestSeal, enclosed.length);
-  if (Math.floor(state.combo) > Math.floor(previousCombo)) {
-    floatText(state, state.monk.x, state.monk.y + 66, `COMBO ×${state.combo.toFixed(1)}`, '#bb4436', 22);
+if (Math.floor(state.combo) > Math.floor(previousCombo)) {
+    floatText(state, state.monk.x, state.monk.y + 66, `COMBO \u00d7${state.combo.toFixed(1)}`, '#bb4436', 22);
     state.soundEvents.push({ name: 'combo', value: state.combo });
+  }
+  if (state.comboHeat >= 1 && (state.comboHeat - enclosed.length * 0.05 - 0.15) < 1) {
+    floatText(state, state.monk.x, state.monk.y - 72, 'HEAT MAX \u00b7 +25% SCORE', '#f2a247', 20);
+    state.soundEvents.push({ name: 'seal' });
   }
   const before = state.score;
   raiseWrath(state, enclosed.length);
