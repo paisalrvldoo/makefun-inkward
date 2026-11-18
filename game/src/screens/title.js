@@ -8,9 +8,9 @@ import { ONI } from '../entities/bosses.js';
 import { drawTutorial } from './tutorial.js';
 import { formatSeed } from '../rng.js';
 
-export const ASCENSION_BUTTON = { x: 510, y: 555, w: 310, h: 40 };
+export const ASCENSION_BUTTON = { x: 510, y: 562, w: 310, h: 34 };
 export const START_BUTTON = { x: 64, y: 438, w: 398, h: 72 };
-export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 31, id: d.id }));
+export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y: 524, w: 126, h: 30, id: d.id }));
 export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
 export const SEED_BUTTON = { x: 64, y: 388, w: 208, h: 27 };
 export function drawTitle(ctx, state, input, audio) {
@@ -76,15 +76,15 @@ export function drawTitle(ctx, state, input, audio) {
     const selected = state.difficulty === rect.id;
     const locked = rect.id === 'master' && !state.unlocks.includes('master');
     panel(ctx, rect.x, rect.y, rect.w, rect.h, selected ? '#bd382d' : '#1e2d39', selected ? '#eeba55' : '#7a5a32');
-    text(ctx, DIFFICULTIES[i].name + (locked ? ' \u00b7 LOCKED' : ''), rect.x + rect.w / 2, rect.y + 21, locked ? 10 : 12, locked ? '#90999c' : '#fff3d9', 'bold', false, 'center');
+    text(ctx, DIFFICULTIES[i].name + (locked ? ' \u00b7 LOCKED' : ''), rect.x + rect.w / 2, rect.y + 20, locked ? 10 : 12, locked ? '#90999c' : '#fff3d9', 'bold', false, 'center');
   });
 
   const endless = state.unlocks.includes('ascension');
   panel(ctx, ASCENSION_BUTTON.x, ASCENSION_BUTTON.y, ASCENSION_BUTTON.w, ASCENSION_BUTTON.h, state.expedition === 'ascension' ? '#704e92' : '#1e2d39', endless ? '#d8b5fa' : '#6c5a40');
-  text(ctx, endless ? (state.expedition === 'ascension' ? 'ASCENSION SELECTED / A' : 'ENDLESS ASCENSION / A') : 'ASCENSION \u00b7 WIN TO UNLOCK', 665, 577, 12, endless ? '#f3d5ff' : '#a9a89b', 'bold', false, 'center');
-  text(ctx, endless ? 'Keep your build \u00b7 higher WRATH every circuit' : '3 SHRINE RELICS \u00b7 8 SPIRIT TACTICS', 665, 594, 10, '#d9c99d', 'bold', false, 'center');
-  text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 604, 12, '#d0c9b8');
-  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 618, 10, '#e0a84b');
+  text(ctx, endless ? (state.expedition === 'ascension' ? 'ASCENSION SELECTED / A' : 'ENDLESS ASCENSION / A') : 'ASCENSION \u00b7 WIN TO UNLOCK', 665, ASCENSION_BUTTON.y + 14, 12, endless ? '#f3d5ff' : '#a9a89b', 'bold', false, 'center');
+  text(ctx, endless ? 'Keep your build \u00b7 higher WRATH every circuit' : '3 SHRINE RELICS \u00b7 8 SPIRIT TACTICS', 665, ASCENSION_BUTTON.y + 27, 10, '#d9c99d', 'bold', false, 'center');
+  text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 566, 12, '#d0c9b8');
+  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 582, 10, '#e0a84b');
   drawTutorial(ctx);
   text(ctx, input.touch ? 'ONE FINGER PAINT' : 'WASD MOVE', 68, 775, 12, '#e4b550', 'bold');
   text(ctx, input.touch ? 'DASH BUTTON' : 'SPACE DASH', 226, 775, 12, '#e4b550', 'bold');

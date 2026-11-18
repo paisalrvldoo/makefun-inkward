@@ -16,11 +16,11 @@ const spirits = (ctx, kind, x, y, scale) => drawYokai(ctx, { kind, x, y, color: 
 export function drawTutorial(ctx) {
   const captions = ['PAINT TO BLOCK', 'CLOSE THE LOOP', 'SEAL AND REFILL'];
   for (let step = 0; step < 3; step++) {
-    ctx.save(); ctx.translate(64 + step * 393, 598);
-    panel(ctx, 0, 0, 366, 156, '#192632', '#d5a847');
-    text(ctx, `0${step + 1}`, 15, 39, 38, '#f0c15d', 'bold');
-    text(ctx, captions[step], 77, 33, 21, '#fff5dd', 'bold');
-    panel(ctx, 14, 50, 338, 94, '#f6f0df', '#d5a847');
+    ctx.save(); ctx.translate(64 + step * 393, 614);
+    panel(ctx, 0, 0, 366, 140, '#192632', '#d5a847');
+    text(ctx, `0${step + 1}`, 15, 35, 34, '#f0c15d', 'bold');
+    text(ctx, captions[step], 73, 30, 19, '#fff5dd', 'bold');
+    panel(ctx, 14, 46, 338, 84, '#f6f0df', '#d5a847');
     const scene = { strokes: [], seals: [], arts: [], activeStroke: null };
     if (step === 0) {
       scene.strokes.push(ink([{ x: 176, y: 65 }, { x: 169, y: 83 }, { x: 170, y: 116 }, { x: 182, y: 130 }]));
