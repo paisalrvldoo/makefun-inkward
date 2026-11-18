@@ -11,6 +11,7 @@
 - **Ascension:** victory-unlocked endless circuits that raise the WRATH ceiling and scale spirit count, speed, wall erosion and boss pressure.
 - **Seeds and ghost:** displayed run seeds, same-seed replay and a previous-best ghost line on the score chart.
 - **Game feel:** tapered ink strokes, blooming seals, 40-70 ms hit-stops, white hurt flashes, theatrical score slam, vacuum chimes, dash afterimages, landing dust and original synth music.
+- **Adaptive score:** procedural WebAudio score and SFX — Karplus-Strong koto plucks on a season-following pentatonic scale, deep taiko hits on boss phases and big group seals, combo-rising seal chimes, a soft ambient wind/temple bed, and an M mute toggle.
 - **Touch:** one finger paints, two-finger tap splashes, on-screen dash button.
 
 [![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
