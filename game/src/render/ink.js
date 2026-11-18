@@ -13,7 +13,7 @@ function strokePath(ctx, points, width, color) {
 }
 export function drawStrokes(ctx, state) {
   for (const seal of state.seals) {
-    ctx.globalAlpha = Math.min(1, seal.life) * 0.12;
+    ctx.globalAlpha = Math.min(1, seal.life) * 0.15;
     ctx.fillStyle = seal.success ? COLORS.red : COLORS.gold;
     ctx.beginPath(); ctx.moveTo(seal.points[0].x, seal.points[0].y);
     for (const p of seal.points) ctx.lineTo(p.x, p.y); ctx.closePath(); ctx.fill();
@@ -21,27 +21,27 @@ export function drawStrokes(ctx, state) {
     strokePath(ctx, seal.points, 3, seal.success ? COLORS.red : COLORS.gold);
     if (seal.success) {
       const p = seal.points.reduce((sum, point) => ({ x: sum.x + point.x / seal.points.length, y: sum.y + point.y / seal.points.length }), { x: 0, y: 0 });
-      drawGlow(ctx, p.x, p.y, 88 + (1 - Math.min(1, seal.life)) * 55, Math.min(1, seal.life) * 0.6);
-      stamp(ctx, 'SEAL', p.x, p.y, 42, -0.16);
+      drawGlow(ctx, p.x, p.y, 104 + (1 - Math.min(1, seal.life)) * 65, Math.min(1, seal.life) * 0.72);
+      stamp(ctx, 'SEAL', p.x, p.y, 46, -0.16);
     }
   }
   ctx.globalAlpha = 1;
   for (const stroke of state.strokes) {
-    ctx.globalAlpha = Math.min(1, stroke.life / 2) * (0.42 + stroke.integrity * 0.58);
-    strokePath(ctx, stroke.points, 14, '#33383030');
-    strokePath(ctx, stroke.points, 10, state.arts.includes('vermilion') ? '#983d34' : COLORS.ink);
-    strokePath(ctx, stroke.points, 1, '#f8f1d82b');
+    ctx.globalAlpha = Math.min(1, stroke.life / 2) * (0.48 + stroke.integrity * 0.52);
+    strokePath(ctx, stroke.points, 14, '#282e2580');
+    strokePath(ctx, stroke.points, 10, state.arts.includes('vermilion') ? '#882a20' : '#0c111a');
+    strokePath(ctx, stroke.points, 1, '#efe6cc2b');
     if (stroke.flash > 0) {
       ctx.globalAlpha = Math.min(1, stroke.flash * 4);
-      strokePath(ctx, stroke.points, 13, '#bb443655');
-      strokePath(ctx, stroke.points, 4, '#fffaf0');
+      strokePath(ctx, stroke.points, 13, '#b0333a55');
+      strokePath(ctx, stroke.points, 4, '#fff4e6');
     }
     // Dry-brush fibers and edge speckles follow the actual painted line.
     for (let i = 2; i < stroke.points.length; i += 5) {
       const p = stroke.points[i]; const prev = stroke.points[i - 1];
       const angle = Math.atan2(p.y - prev.y, p.x - prev.x) + Math.PI / 2;
       const offset = 5 + Math.sin(i * 2.3) * 2;
-      circle(ctx, p.x + Math.cos(angle) * offset, p.y + Math.sin(angle) * offset, 0.8 + i % 3 * 0.3, COLORS.ink);
+      circle(ctx, p.x + Math.cos(angle) * offset, p.y + Math.sin(angle) * offset, 0.8 + i % 3 * 0.3, '#0c111a');
     }
   }
   ctx.globalAlpha = 1;

@@ -40,7 +40,7 @@ export function directPlayCover(state, input, pilot, trace = null) {
     if (missingWall && state.time - wallAt > 0.3 && state.ink > 40 && state.strokes.length < 4) {
       paintWall(input, missingWall); wallAt = state.time;
     }
-    if (!cooling && state.time - lastLoop > 0.75 && state.ink > 40) {
+    if (!cooling && state.time - lastLoop > 0.95 && state.ink > 50) {
       const target = boss && !bossSealed && boss.sealLock <= 0 ? boss : spirits.sort((a, b) => distance(a, state.bell) - distance(b, state.bell))[0];
       if (target) {
         const nearby = spirits.filter(e => distance(e, target) < 100);
@@ -76,7 +76,7 @@ export function directPlayCover(state, input, pilot, trace = null) {
     const live = state.enemies.filter(e => !e.dead), kinds = new Set(live.filter(e => !e.hunter).map(e => e.kind));
     const burst = state.seals.find(s => s.success && s.life > 1.2);
     const scoredGroup = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
-    if (boss?.telegraph && wrathLevel(state) === 3 && state.combo >= 6 && live.length >= 12 && kinds.size >= 4 && state.strokes.length >= 3 && state.strokes.length <= 5 && burst && scoredGroup && state.monk.dashTime > 0 && state.ghosts.length >= 2) {
+    if (boss?.telegraph && wrathLevel(state) === 3 && state.combo >= 6 && live.length >= 10 && kinds.size >= 3 && state.strokes.length >= 3 && state.strokes.length <= 6 && burst && scoredGroup && state.monk.dashTime > 0 && state.ghosts.length >= 1) {
       // Leave a genuine 85% brush loop open around the next group to seal.
       const targets = live.filter(e => !e.hunter && e.kind !== 'oni' && e.x > 680 && e.x < 870 && e.y > 340 && e.y < 500);
       if (targets.length < 1 || state.ink < 45 || state.strokes.length > 4) continue;

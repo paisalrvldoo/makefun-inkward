@@ -6,13 +6,13 @@ export function drawEffects(ctx, state) {
       const t = i / 7, offset = i === 7 ? 0 : Math.sin(i * 9.1) * 13;
       ctx.lineTo(bolt.x + (bolt.endX - bolt.x) * t + offset, bolt.y + (bolt.endY - bolt.y) * t - offset);
     }
-    ctx.strokeStyle = '#b68a36'; ctx.lineWidth = 5; ctx.stroke();
-    ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = '#c49a3d'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = '#faf4e4'; ctx.lineWidth = 2; ctx.stroke();
   }
   for (const ring of state.rings) {
     const progress = 1 - ring.life / ring.maxLife;
-    ctx.globalAlpha = (1 - progress) * 0.7;
-    ctx.strokeStyle = ring.color; ctx.lineWidth = 2;
+    ctx.globalAlpha = (1 - progress) * 0.82;
+    ctx.strokeStyle = ring.color; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(ring.x, ring.y, ring.radius * (0.3 + progress * 0.7), 0, Math.PI * 2); ctx.stroke();
   }
   for (const p of state.particles) {

@@ -5,10 +5,10 @@ import { circle, line } from './primitives.js';
 
 const PAD = 40, landscapes = new Map();
 const TINTS = {
-  blossom: ['#728f92', '#526d6b', '#6d7660'],
-  leaf: ['#658881', '#416956', '#52684d'],
-  maple: ['#9b8876', '#6b6652', '#796045'],
-  snow: ['#7798ae', '#526e85', '#667d91'],
+  blossom: ['#5c7a7e', '#3d5552', '#556a4c'],
+  leaf: ['#4d7068', '#2e503f', '#3d5139'],
+  maple: ['#857055', '#554e39', '#634a32'],
+  snow: ['#527288', '#3a536a', '#4d6275'],
 };
 function layer(draw) {
   const canvas = document.createElement('canvas');

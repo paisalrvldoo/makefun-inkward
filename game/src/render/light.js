@@ -4,8 +4,8 @@ export function drawGlow(ctx, x, y, radius, opacity = 0.35, color = '#efb64b') {
   if (!glows.has(color)) {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
     const paint = canvas.getContext('2d'), gradient = paint.createRadialGradient(64, 64, 0, 64, 64, 64);
-    gradient.addColorStop(0, color + 'b0'); gradient.addColorStop(0.22, color + '80');
-    gradient.addColorStop(0.55, color + '30'); gradient.addColorStop(1, color + '00');
+    gradient.addColorStop(0, color + 'c0'); gradient.addColorStop(0.22, color + '90');
+    gradient.addColorStop(0.55, color + '40'); gradient.addColorStop(1, color + '00');
     paint.fillStyle = gradient; paint.fillRect(0, 0, 128, 128); glows.set(color, canvas);
   }
   ctx.save(); ctx.globalAlpha *= opacity;

@@ -69,27 +69,27 @@ function branch(ctx, x, y, scale = 1, flip = 1, motif = 'blossom') {
 export function drawGarden(ctx, state) {
   const season = getSeason(state);
   ctx.save(); ctx.beginPath(); ctx.rect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.clip();
-  ctx.fillStyle = season.motif === 'snow' ? '#edf6f8' : '#faf5e6'; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h);
-  wash(ctx, FIELD.x + 70, FIELD.y + 80, 220, season.wash, 0.72);
-  wash(ctx, FIELD.x + FIELD.w - 10, FIELD.y + FIELD.h - 40, 250, season.wash, 0.66);
-  wash(ctx, 495, 410, 210, '#ebdbac', 0.25);
+  ctx.fillStyle = season.motif === 'snow' ? '#e5eff2' : '#f3eed8'; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h);
+  wash(ctx, FIELD.x + 70, FIELD.y + 80, 220, season.wash, 0.84);
+  wash(ctx, FIELD.x + FIELD.w - 10, FIELD.y + FIELD.h - 40, 250, season.wash, 0.72);
+  wash(ctx, 495, 410, 210, '#d9c696', 0.30);
   if (season.motif === 'maple') {
-    wash(ctx, 100, 550, 290, '#e57c35', 0.54);
-    wash(ctx, 840, 290, 260, '#db8839', 0.56);
-    wash(ctx, 480, 230, 310, '#edb85f', 0.43);
+    wash(ctx, 100, 550, 290, '#d9712c', 0.62);
+    wash(ctx, 840, 290, 260, '#cd772e', 0.64);
+    wash(ctx, 480, 230, 310, '#e0a64b', 0.52);
   }
   drawParallax(ctx, state, branch);
-  ctx.globalAlpha = 0.15;
+  ctx.globalAlpha = 0.18;
   for (let i = 0; i < 6; i++) {
-    ctx.strokeStyle = '#b5af96'; ctx.lineWidth = 1;
+    ctx.strokeStyle = '#9b9076'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(493, 422, 120 + i * 22, 68 + i * 15, -0.06, 0, Math.PI * 2); ctx.stroke();
   }
   ctx.globalAlpha = 1;
   // Sparse garden stones make the centre readable and keep the playing paper bright.
   for (const [x, y, r] of [[220, 301, 15], [760, 509, 19], [333, 590, 13], [825, 253, 14]]) {
-    ctx.fillStyle = '#c6c4b0'; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.5, -0.3, 0, Math.PI * 2); ctx.fill();
-    line(ctx, [[x - r * 0.6, y - 2], [x, y - r * 0.25], [x + r * 0.7, y - 1]], '#e9e3ce', 2);
-    line(ctx, [[x + 15, y + 3], [x + 20, y - 11]], '#a6b296', 1.4);
+    ctx.fillStyle = '#b7b5a1'; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.5, -0.3, 0, Math.PI * 2); ctx.fill();
+    line(ctx, [[x - r * 0.6, y - 2], [x, y - r * 0.25], [x + r * 0.7, y - 1]], '#ddd6c0', 2);
+    line(ctx, [[x + 15, y + 3], [x + 20, y - 11]], '#8e9b7e', 1.4);
   }
   const rng = createRng(91);
   const snowfall = season.motif === 'snow' ? 78 : 32;
@@ -99,16 +99,16 @@ export function drawGarden(ctx, state) {
     const y = FIELD.y + (baseY - FIELD.y + state.time * 3) % FIELD.h;
     ctx.save(); ctx.translate(x, y); ctx.rotate(i + state.time * 0.2); ctx.globalAlpha = 0.38;
     if (season.motif === 'maple') { ctx.globalAlpha = 0.55; maple(ctx, 0, 0, 5 + i % 5, 0, i % 3 ? '#ce6930' : '#b94c32'); }
-    else if (season.motif === 'snow') circle(ctx, 0, 0, 2 + i % 4, '#ffffff', '#669bb7', 1.25);
+    else if (season.motif === 'snow') circle(ctx, 0, 0, 2 + i % 4, '#ffffff', '#5087a5', 1.25);
     else { ctx.fillStyle = season.color; ctx.beginPath(); ctx.ellipse(0, 0, 3 + i % 3, 1.8, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
   drawGardenFibres(ctx);
   ctx.restore();
-  ctx.strokeStyle = '#817044'; ctx.lineWidth = 2; ctx.strokeRect(FIELD.x + 0.5, FIELD.y + 0.5, FIELD.w - 1, FIELD.h - 1);
+  ctx.strokeStyle = '#6d5a34'; ctx.lineWidth = 2; ctx.strokeRect(FIELD.x + 0.5, FIELD.y + 0.5, FIELD.w - 1, FIELD.h - 1);
   // Registration marks frame the garden like a printed scroll.
   for (const [x, y, dx, dy] of [[FIELD.x, FIELD.y, 1, 1], [FIELD.x + FIELD.w, FIELD.y, -1, 1], [FIELD.x, FIELD.y + FIELD.h, 1, -1], [FIELD.x + FIELD.w, FIELD.y + FIELD.h, -1, -1]]) {
-    line(ctx, [[x + dx * 5, y + dy * 23], [x + dx * 5, y + dy * 5], [x + dx * 23, y + dy * 5]], '#9e9278', 2);
+    line(ctx, [[x + dx * 5, y + dy * 23], [x + dx * 5, y + dy * 5], [x + dx * 23, y + dy * 5]], '#8b8268', 2);
   }
-  text(ctx, 'THE SHRINE GARDEN', FIELD.x + 20, FIELD.y + 27, 10, '#65583d', 'bold');
+  text(ctx, 'THE SHRINE GARDEN', FIELD.x + 20, FIELD.y + 27, 10, '#544a31', 'bold');
 }
