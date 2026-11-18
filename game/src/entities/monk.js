@@ -6,11 +6,15 @@ import { castArt } from '../fx/skillCasts.js';
 import { hasRelic } from '../arts/relics.js';
 import { addRing } from '../render/fx.js';
 
+import { landingDust } from '../fx/footsteps.js';
+
 export function createMonk() {
-  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0 };
+  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0, stepTime: 0, landingTime: 0 };
 }
 export function updateMonk(state, input, dt) {
-  const monk = state.monk;
+  const monk = state.monk, wasDashing = monk.dashTime > 0;
+  monk.landingTime = Math.max(0, monk.landingTime - dt);
+  monk.stepTime = Math.max(0, monk.stepTime - dt);
   let dx = Number(input.keys.has('KeyD') || input.keys.has('ArrowRight')) - Number(input.keys.has('KeyA') || input.keys.has('ArrowLeft'));
   let dy = Number(input.keys.has('KeyS') || input.keys.has('ArrowDown')) - Number(input.keys.has('KeyW') || input.keys.has('ArrowUp'));
   const length = Math.hypot(dx, dy);
@@ -49,4 +53,6 @@ export function updateMonk(state, input, dt) {
   monk.x = clamp(monk.x + (dx * speed + monk.recoilX * recoil) * dt, FIELD.x + 23, FIELD.x + FIELD.w - 23);
   monk.y = clamp(monk.y + (dy * speed + monk.recoilY * recoil) * dt, FIELD.y + 23, FIELD.y + FIELD.h - 23);
   monk.recoil = Math.max(0, monk.recoil - dt);
+  if (wasDashing && monk.dashTime <= 0) { monk.dashTime = 0; monk.landingTime = 0.2; landingDust(state, monk, true); }
+  else if (length && !monk.dashTime && monk.stepTime <= 0) { monk.stepTime = 0.22; landingDust(state, monk); }
 }

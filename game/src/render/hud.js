@@ -4,7 +4,7 @@ import { gradeRun } from '../world/state.js';
 import { YOKAI } from '../entities/yokai.js';
 import { findArt } from '../arts/brushArts.js';
 import { drawArtIcon, drawLevelPips } from './arts.js';
-import { comboDuration } from '../arts/levels.js';
+import { artLevel, comboDuration } from '../arts/levels.js';
 import { drawYokai } from './sprites.js';
 import { text, line, panel, circle, wrapText, stamp } from './primitives.js';
 import { wrathLevel, wrathMultiplier } from '../world/wrath.js';
@@ -33,7 +33,7 @@ export function drawHud(ctx, state, audio) {
   drawRelics(ctx, state, 900, 80);
   if (state.scroll > 1) text(ctx, state.activeRoad === 'swarm' ? 'SWARM ROAD +30%' : state.activeRoad === 'shrine' ? 'SHRINE / PASSIVE RELIC' : 'QUIET ROAD +2 BELL', 576, 81, 9, '#e1bf70', 'bold');
   text(ctx, 'SCORE', 690, 28, 11, COLORS.gold, 'bold');
-  text(ctx, String(state.score).padStart(6, '0'), 688, 64, 34, COLORS.white, 'bold', true);
+  text(ctx, String(Math.round(state.scoreShown ?? state.score)).padStart(6, '0'), 688, 64, 34, COLORS.white, 'bold', true);
   text(ctx, 'PERSONAL BEST', 906, 28, 11, COLORS.gold, 'bold');
   text(ctx, String(state.best).padStart(6, '0'), 904, 62, 30, '#f0c35b', 'bold', true);
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1250, 77, 10, '#e5dfd0', 'bold', false, 'right');
@@ -83,11 +83,13 @@ export function drawHud(ctx, state, audio) {
     wrapText(ctx, 'Clear a scroll. Choose 1 of 3 arts. Shape your own way to win.', 1028, 462, 210, 20, 13, '#d4cfbf');
   } else {
     state.arts.forEach((id, i) => {
+      const compact = state.arts.length > 7;
       const gap = synergies.length ? state.arts.length <= 5 ? 19 : 14 : state.arts.length <= 5 ? 23 : 17;
-      const art = findArt(id), x = 1028, y = 432 + i * gap;
-      drawArtIcon(ctx, id, x + 9, y - 4, Math.min(19, gap - 1));
-      text(ctx, art.name, x + 24, y, gap >= 19 ? 13 : 11, '#f4eddb', 'bold');
-      drawLevelPips(ctx, state, id, 1210, y - 4);
+      const art = findArt(id), x = 1028 + (compact ? Math.floor(i / 7) * 114 : 0), y = 432 + (compact ? i % 7 * 14 : i * gap);
+      drawArtIcon(ctx, id, x + 9, y - 4, compact ? 13 : Math.min(19, gap - 1));
+      text(ctx, compact ? art.name.split(' ')[0] : art.name, x + (compact ? 18 : 24), y, compact ? 9 : gap >= 19 ? 13 : 11, '#f4eddb', 'bold');
+      if (compact) text(ctx, String(artLevel(state, id)), x + 99, y, 9, '#f4d082', 'bold');
+      else drawLevelPips(ctx, state, id, 1210, y - 4);
     });
   }
   if (synergies.length) {
@@ -116,7 +118,14 @@ export function drawHud(ctx, state, audio) {
   for (let i = 0; i < state.bell.maxHp; i++) { const step = 195 / state.bell.maxHp; ctx.fillStyle = i < state.bell.hp ? (state.bell.hp < 4 ? '#ef5b48' : '#f0c35b') : '#4a4d51'; ctx.fillRect(287 + i * step, 740, step - 3, 12); }
   line(ctx, [[500, 720], [500, 759]], '#806c3e', 1);
   text(ctx, 'COMBO', 518, 729, 12, '#f0c35b', 'bold');
-  text(ctx, `×${state.combo.toFixed(1)}`, 585, 751, 30, '#ef5b48', 'bold', true);
+  const comboColor = state.combo >= 6 ? '#ffd273' : state.combo >= 3 ? '#ff9558' : '#ef5b48';
+  if (state.combo >= 3) {
+    for (let i = 0; i < Math.min(6, Math.floor(state.combo)); i++) {
+      const x = 574 + i * 11, rise = 8 + Math.sin(state.time * 11 + i * 2) * 5;
+      ctx.fillStyle = comboColor + '66'; ctx.beginPath(); ctx.moveTo(x - 4, 758); ctx.quadraticCurveTo(x - 6, 744, x + 2, 738 - rise); ctx.quadraticCurveTo(x + 7, 746, x + 4, 758); ctx.fill();
+    }
+  }
+  text(ctx, `×${state.combo.toFixed(1)}`, 585, 751, 30 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
   ctx.fillStyle = '#4a4d51'; ctx.fillRect(518, 741, 54, 6);
   ctx.fillStyle = '#ef5b48'; ctx.fillRect(518, 741, 54 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   text(ctx, 'RITUALS', 681, 729, 10, '#d4cfbf', 'bold');

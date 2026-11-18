@@ -55,11 +55,11 @@ function resetRun(start = true, runSeed = state.seed, expedition = state.expedit
 function pauseRun() {
   if (state.mode !== 'play') return;
   endStroke(state); input.release(); state.mode = 'pause';
-  clearControls(state);
+  clearControls(state); audio.play('click');
 }
 function handleMenus() {
-  if (input.pressed.has('KeyM')) audio.toggle();
-  if (input.pressed.has('KeyG')) post.toggle();
+  if (input.pressed.has('KeyM')) { audio.toggle(); if (!audio.muted) audio.play('click'); }
+  if (input.pressed.has('KeyG')) { post.toggle(); audio.play('click'); }
   const clicked = rect => input.clicks.some(p => hitRect(p, rect));
   if (state.mode === 'title') {
     for (let i = 0; i < DIFFICULTY_RECTS.length; i++) if (clicked(DIFFICULTY_RECTS[i]) || input.pressed.has(`Digit${i + 1}`)) {
@@ -76,7 +76,7 @@ function handleMenus() {
   } else if (state.mode === 'play') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();
   } else if (state.mode === 'pause') {
-    if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; input.clearFrame(); }
+    if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; audio.play('click'); input.clearFrame(); }
   } else if (state.mode === 'draft') {
     for (const road of ROAD_RECTS) {
       if (clicked(road) || pathChoiceRects(state).some(rect => rect.id === road.id && clicked(rect)) || input.pressed.has(road.id === 'swarm' ? 'ArrowLeft' : road.id === 'shrine' ? 'ArrowDown' : 'ArrowRight')) chooseRoad(state, road.id);

@@ -21,6 +21,9 @@ import { holdFinalFrame } from './finalFrame.js';
 
 import { drawTacticalTelegraphs } from './tacticalSpirits.js';
 
+import { drawScoreBurst } from './scoreBurst.js';
+import { drawInkMotes } from './inkMotes.js';
+
 export function renderScene(ctx, paper, state, input, audio) {
   const frozen = holdFinalFrame(ctx, state);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -62,6 +65,8 @@ export function renderScene(ctx, paper, state, input, audio) {
   if (state.monk.hitFlash > 0) drawSilhouette(ctx, drawMonk, state.monk, state.time, '#fffaf0', Math.min(0.95, state.monk.hitFlash * 10));
   drawEffects(ctx, state);
   drawSkillEffects(ctx, state);
+  drawInkMotes(ctx, state);
+  drawScoreBurst(ctx, state);
   if (state.mode === 'play') {
     drawCursor(ctx, input, state);
     drawInkCallouts(ctx, state);

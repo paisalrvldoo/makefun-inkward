@@ -147,6 +147,7 @@ try {
   const movement = await evaluate('({x:inkward.state.monk.x, mode:inkward.state.mode, keys:[...inkward.input.keys], time:inkward.state.runTime, hidden:document.hidden})');
   assert.ok(movement.x > beforeX + 20, `WASD moves the monk: ${JSON.stringify({ beforeX, ...movement })}`);
   await key('Space', ' '); await until('window.inkward.state.monk.dashCooldown > 0');
+  await until('inkward.state.monk.landingTime > 0 && inkward.state.particles.some(p => p.dust)');
   await mouse('mousePressed', 700, 210);
   for (let y = 220; y <= 470; y += 10) { await mouse('mouseMoved', 700, y); await pause(5); }
   await mouse('mouseReleased', 700, 470); await pause(40);
@@ -227,12 +228,13 @@ try {
       const lacquer = await evaluate('(() => { const c = document.querySelector("#game").getContext("2d"); const p = (x, y) => Array.from(c.getImageData(x, y, 1, 1).data); return { backdrop: p(10, 10), card: p(55, 380), seal: p(166, 423) }; })()');
       console.log('Draft pixels', JSON.stringify(lacquer));
       assert.deepEqual(lacquer.backdrop, [8, 15, 25, 255], 'Draft covers the game scene with opaque lacquer');
-      assert.ok(lacquer.card[0] < 50 && lacquer.card[2] < 80, 'Draft card uses a dark lacquer surface, including hover');
+      assert.ok(lacquer.card[0] < 50 && lacquer.card[2] < 100, 'Draft card uses a dark lacquer surface, including hover');
       assert.ok(Math.max(...lacquer.seal.slice(0, 3)) > 130, 'Draft art seal has a bright colored face');
       const labels = await paintedLabels();
       for (const value of ["PILGRIM'S PATH", 'SWARM ROAD', 'QUIET ROAD', 'CHOOSE SCROLL 6', 'CHOOSE A ROAD FIRST ↑']) {
         assert.ok(labels.some(label => label.text.includes(value)), `Draft presents ${value}`);
       }
+      assert.equal(labels.filter(label => ['COMMON', 'RARE', 'EPIC'].includes(label.text)).length, 4, 'Every offered art has a visible rarity glow and label');
       const cards = await evaluate('(async () => { const { draftRects } = await import("./src/screens/draft.js"); return draftRects(inkward.state); })()');
       for (const label of labels.filter(label => label.y >= 390 && label.y <= 674)) {
         const card = cards.find(rect => label.x >= rect.x && label.x <= rect.x + rect.w);

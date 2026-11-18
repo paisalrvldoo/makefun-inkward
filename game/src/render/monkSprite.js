@@ -13,6 +13,10 @@ export function drawMonk(ctx, monk, time = 0, scale = 1, silhouette = false) {
     const angle = Math.atan2(monk.vy ?? 0, monk.vx ?? 1);
     ctx.rotate(angle); ctx.scale(stretch, 1 / stretch); ctx.rotate(-angle);
   }
+  if (monk.landingTime > 0) {
+    const squash = Math.sin(monk.landingTime / 0.2 * Math.PI) * 0.19;
+    ctx.translate(0, 18); ctx.scale(1 + squash, 1 - squash); ctx.translate(0, -18);
+  }
   if (monk.recoil > 0) ctx.rotate(-Math.sign(monk.recoilX) * monk.recoil * 1.1);
   ctx.rotate(Math.sin(time * 1.8 + walk) * 0.025);
   // Rice-paper robes, vermilion scarf and an oversized sumi brush.

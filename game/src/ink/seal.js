@@ -13,6 +13,9 @@ import { beginFinalSeal } from '../scenes/finalSeal.js';
 
 import { relicScoreBonus } from '../arts/relics.js';
 
+import { beginScoreBurst } from '../fx/scoreBurst.js';
+import { releaseInkMotes } from '../fx/inkMotes.js';
+
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
   enemy.dead = true;
@@ -36,6 +39,8 @@ export function sealLoop(state, points) {
   if (!enclosed.length) {
     const centre = points[Math.floor(points.length / 2)];
     floatText(state, centre.x, centre.y, 'EMPTY SEAL', '#77796b', 16);
+    addRing(state, centre.x, centre.y, 48, '#7f8d88', 0.4);
+    state.soundEvents.push({ name: 'emptySeal' });
     return true;
   }
   const previousCombo = state.combo;
@@ -85,11 +90,13 @@ export function sealLoop(state, points) {
   state.ink = Math.min(state.maxInk, state.ink + refund);
   floatText(state, centre.x, centre.y - 24, `SEALED ×${enclosed.length} +${(state.score - before).toLocaleString('en-US')}`, '#bb4436', 29);
   floatText(state, centre.x, centre.y + 4, `+${refund} INK · WRATH ×${wrathMultiplier(state).toFixed(1)}`, '#b68a36', 17);
+  beginScoreBurst(state, centre, state.score - before, enclosed.length);
+  releaseInkMotes(state, enclosed);
   addRing(state, centre.x, centre.y, 95, '#bb4436', 0.7);
   state.shake = 3; state.soundEvents.push({ name: 'seal' });
   state.soundEvents.push({ name: 'petals' });
-  if (enclosed.length >= 4 || enclosed.some(e => e.kind === 'oni' && e.dead)) {
-    state.hitStop = 0.075; state.shake = 5;
+  if (enclosed.length >= 3 || enclosed.some(e => e.kind === 'oni' && e.hitFlash > 0)) {
+    state.hitStop = enclosed.some(e => e.kind === 'oni') || enclosed.length >= 4 ? 0.065 : 0.045; state.shake = 5;
     state.soundEvents.push({ name: 'bigSeal' });
   }
   state.tutorial = 'WALLS BUY TIME. CLOSED LOOPS SET THEM FREE.';

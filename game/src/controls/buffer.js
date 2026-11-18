@@ -3,6 +3,7 @@ export const INPUT_GRACE = 0.12;
 const ACTIONS = { Space: 'dash', KeyQ: 'lotus', KeyE: 'ward' };
 
 export function controlFeedback(state, action, text) {
+  if (state.controlFeedback?.text !== text || state.controlFeedback.life < 0.1) state.soundEvents.push({ name: 'unready' });
   state.controlFeedback = { action, text, life: 0.85 };
 }
 export function bufferActions(state, input, dt) {

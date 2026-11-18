@@ -65,6 +65,7 @@ export function drawEffects(ctx, state) {
   const bigSeal = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
   for (const f of state.floats) {
     // Combo and WRATH are already readable in the permanent HUD.
+    if (state.scoreBurst && /^SEALED ×/.test(f.text)) continue;
     if (/^(COMBO ×|WRATH \d)/.test(f.text) || (bigSeal && f.text === 'LOTUS HUSH')) continue;
     const value = f.text.replace(/ · WRATH ×[\d.]+$/, '');
     ctx.globalAlpha = Math.min(1, f.life * 2);

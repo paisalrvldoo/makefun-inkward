@@ -1,7 +1,7 @@
 import { BELL, INK, distance, inField } from '../config.js';
 import { segmentIntersection } from './geometry.js';
 import { sealLoop } from './seal.js';
-import { floatText } from '../render/fx.js';
+import { floatText, addRing } from '../render/fx.js';
 import { artLevel } from '../arts/levels.js';
 import { inkCost, closingSnap } from './cost.js';
 import { INPUT_GRACE, controlFeedback } from '../controls/buffer.js';
@@ -18,6 +18,7 @@ export function beginStroke(state, point) {
   state.strokeStart = null; state.strokeGrace = 0;
   const stroke = { id: state.nextId++, points: [{ ...point }], length: 0, integrity: 1, life: INK.lifetime, closed: false };
   state.strokes.push(stroke); state.activeStroke = stroke;
+  addRing(state, point.x, point.y, 18, '#243e48', 0.25); state.soundEvents.push({ name: 'stroke', value: 1 });
   if (artLevel(state, 'feather')) castArt(state, 'feather', point, { radius: 38, interval: 1.5 });
   if (artLevel(state, 'moonInk') && state.bell.wardTime > 0) castArt(state, 'moonInk', point, { interval: 2 });
 }
@@ -29,6 +30,7 @@ export function endStroke(state) {
     state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: BELL.x * 2 - p.x, y: p.y })), integrity: 0.5 + artLevel(state, 'twin') * 0.15 });
     if (artLevel(state, 'twin') >= 3) state.strokes.push({ ...stroke, id: state.nextId++, points: stroke.points.map(p => ({ x: p.x, y: BELL.y * 2 - p.y })), integrity: 0.8 });
   }
+  if (stroke && !stroke.closed && stroke.points.length > 1) { addRing(state, stroke.points.at(-1).x, stroke.points.at(-1).y, 16, '#b79b59', 0.25); state.soundEvents.push({ name: 'wallSet' }); }
   state.activeStroke = null;
 }
 export function paintPoint(state, point) {

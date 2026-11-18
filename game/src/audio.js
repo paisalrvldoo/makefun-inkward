@@ -1,5 +1,6 @@
 import { playArtSound } from './audio/artSounds.js';
 import { playFinaleSound } from './audio/finaleSounds.js';
+import { playJuiceSound } from './audio/juiceSounds.js';
 import { createMusic } from './audio/music.js';
 
 export function createAudio() {
@@ -50,6 +51,7 @@ export function createAudio() {
     get muted() { return muted; },
     toggle() { muted = !muted; if (context) output.gain.setTargetAtTime(muted ? 0 : 0.72, context.currentTime, 0.015); return muted; },
     play(name, value = 1) {
+      if (playJuiceSound(name, value, tone, rustle)) return;
       if (playFinaleSound(name, value, tone, rustle)) return;
       if (name.startsWith('art:')) {
         playArtSound(name.slice(4), tone, rustle);

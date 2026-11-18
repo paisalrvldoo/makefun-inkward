@@ -10,6 +10,8 @@ import { ONI } from '../entities/bosses.js';
 import { drawPath } from './path.js';
 import { artSchool, schoolCount, activeSynergies } from '../arts/schools.js';
 
+import { drawRarityGlow } from '../render/rarityGlow.js';
+
 export const DRAFT_RECTS = [0, 1, 2].map(i => ({ x: 116 + i * 356, y: 366, w: 336, h: 322 }));
 export const draftRects = state => state.draft.length === 4
   ? [0, 1, 2, 3].map(i => ({ x: 42 + i * 304, y: 366, w: 284, h: 322 }))
@@ -74,7 +76,7 @@ export function drawDraft(ctx, state, input) {
     panel(ctx, rect.x, rect.y, rect.w, rect.h, hover ? '#203347' : '#172635', hover && road ? '#ef5b45' : '#b28a43');
     panel(ctx, rect.x + 6, rect.y + 6, rect.w - 12, rect.h - 12, hover ? '#203347' : '#172635', '#36494f');
     text(ctx, '0' + (i + 1) + ' / ' + art.type, rect.x + 20, rect.y + 26, 10, '#e7ba56', 'bold');
-    text(ctx, level ? 'UPGRADE' : 'NEW ART', rect.x + rect.w - 18, rect.y + 26, 9, '#bfc6c2', 'bold', false, 'right');
+    drawRarityGlow(ctx, state, art, rect, hover);
     drawBrightSeal(ctx, art, rect.x + rect.w / 2, rect.y + 66);
     text(ctx, art.name, rect.x + rect.w / 2, rect.y + 114, 22, '#fff0d8', 'bold', true, 'center');
     const school = artSchool(art.id) || { name: 'REST', color: '#8dd8f3' }, pairs = (art.id === 'rest' ? 0 : schoolCount(state, school)) + (level ? 0 : 1) >= 2;

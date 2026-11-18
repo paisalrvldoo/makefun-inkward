@@ -21,6 +21,9 @@ import { beginDefeat } from '../scenes/defeat.js';
 import { isAscension, ascensionLabel } from './ascension.js';
 import { createPath } from './path.js';
 
+import { updateScoreBurst } from '../fx/scoreBurst.js';
+import { updateInkMotes } from '../fx/inkMotes.js';
+
 export function recordScroll(state) {
   const key = `${isAscension(state) ? state.ascension : 0}:${state.scroll}`;
   const value = Math.max(0, state.score - state.scrollStartScore);
@@ -87,6 +90,8 @@ export function updateWorld(state, input, dt) {
   state.comboTime = Math.max(0, state.comboTime - dt);
   if (state.comboTime <= 0) state.combo = 1;
   updateEffects(state, dt);
+  updateScoreBurst(state, dt);
+  updateInkMotes(state, dt);
   updateMonk(state, input, dt);
   updateStrokes(state, input, dt);
   if (state.mode === 'seal') { clearControls(state); return; }
