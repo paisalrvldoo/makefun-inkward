@@ -1,34 +1,34 @@
 [
   {
-    "name": "1-play.jpg",
-    "query": "?shot=play&seed=1",
+    "name": "1-title.jpg",
+    "query": "?shot=title&seed=1",
+    "caption": "Brush logo, earned best score, seed/difficulty selection and illustrated paint, loop, dash and ritual controls.",
     "width": 1280,
     "height": 800,
-    "bytes": 235950,
-    "caption": "Live tactics: 85% open loop, eroding wall, 2.1s bell-charge lane and boss omen 1/2; group seal refunds ink."
+    "bytes": 192970
   },
   {
-    "name": "2-title.jpg",
-    "query": "?shot=title&seed=1",
+    "name": "2-play.jpg",
+    "query": "?shot=play&seed=1",
+    "caption": "Live scroll-six tactics: vivid group seal, combo and WRATH multipliers, full HUD, open loop, eroding walls and a timed boss-charge lane.",
     "width": 1280,
     "height": 800,
-    "bytes": 192510,
-    "caption": "Illustrated brush tutorial: block a kappa, close a three-yokai loop, seal and refund ink."
+    "bytes": 236756
   },
   {
     "name": "3-draft.jpg",
     "query": "?shot=draft&seed=1",
+    "caption": "Pilgrim’s Path: eight scrolls, walked branches, real Swarm/Quiet effects, school synergies and four readable brush-art choices.",
     "width": 1280,
     "height": 800,
-    "bytes": 189920,
-    "caption": "Pilgrim's Path: eight scrolls, walked ink branches, real Swarm/Quiet road effects and four readable brush-art choices."
+    "bytes": 198718
   },
   {
     "name": "4-victory.jpg",
     "query": "?shot=win&seed=1",
+    "caption": "Dawn at the shrine and eight returned scrolls: S grade, final score, run stats, lasting unlocks, best-run ghost and a clear New Run prompt.",
     "width": 1280,
     "height": 800,
-    "bytes": 169996,
-    "caption": "THE BELL ENDURES: S seal, NEW BEST ribbon, seasonal scores and best-run ghost, lasting unlocks and R/S/Esc controls."
+    "bytes": 177326
   }
 ]

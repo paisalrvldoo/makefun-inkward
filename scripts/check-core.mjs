@@ -64,6 +64,9 @@ function circle(state, x, y, radius = 64) {
 }
 const win = stageShot('win').state, loss = stageShot('end').state, draft = stageShot('draft').state;
 const cover = stageShot('play').state;
+const title = stageShot('title').state;
+assert.equal(title.mode, 'title'); assert.equal(title.score, 0);
+assert.ok(title.best > 0 && title.best === title.previousBestRun.score, 'The title dossier shows an earned previous best');
 assert.equal(cover.scroll, 6); assert.equal(cover.mode, 'play');
 assert.ok(cover.best > cover.score && cover.arts.length === 5 && cover.combo >= 6);
 assert.equal(wrathLevel(cover), 3);

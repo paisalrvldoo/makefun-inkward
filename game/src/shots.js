@@ -91,7 +91,7 @@ export function createReplayPilot(options = {}) {
   };
 }
 export function stageShot(name, seed = 1) {
-  const previous = ['win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
+  const previous = ['title', 'win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
   const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
   if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };

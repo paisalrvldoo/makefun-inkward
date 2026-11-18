@@ -197,6 +197,10 @@ try {
     await checkPost();
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
+    if (scene === 'title') {
+      const best = await evaluate('inkward.state.best');
+      assert.ok(best > 0 && (await paintedLabels()).some(label => label.text === `BEST  ${best}`), 'Title visibly displays its earned saved best');
+    }
     if (scene === 'play') {
       const labels = await paintedLabels();
       const chargeTime = await evaluate('inkward.state.enemies.find(e => e.kind === "oni").telegraph.time.toFixed(1)');

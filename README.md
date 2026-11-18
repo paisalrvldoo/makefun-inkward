@@ -1,27 +1,28 @@
 # INKWARD
 
-Paint ink walls, encircle wandering yokai, and guard the last bell through eight scrolls and four seasons.
+Paint walls and looping seals to guard the last bell through eight seasonal scrolls, then break winter with a spectacular final brushstroke.
 
-- **Complete pilgrimage:** eight distinct bosses, win/lose results and grade, combo × WRATH scoring, saved best scores, pause and restart.
+- **Complete pilgrimage:** eight distinct bosses, a three-phase final warden, win/lose results and grade, combo × WRATH scoring, saved best scores, pause and restart.
 - **Build your brush:** 12 base brush arts, two victory unlocks, three real school synergies, three-level upgrades, optional omens and branching Swarm/Quiet roads.
 - **Tight controls:** WASD/arrows move, Space dash, mouse drag paint, right-click splash, Q hush, E ward; 120 ms input buffering, stroke-start grace and ink-cost/snap reticle.
 - **Touch:** one-finger paint, two-finger tap splash, and a dash button shown only on touch devices. Menus and draft/path choices also accept taps.
 - **Every run remembered:** seeded runs, same-seed replay, previous-best score ghost, permanent unlocks and bell skins saved locally.
 - **Ink comes alive:** distinct art casts and synthesized sounds, two-frame ritual inversions, yokai wind-ups/hurt flashes/petal deaths, monk recoil and i-frames, WRATH hunter auras.
+- **A spectacular finish:** cinematic phase changes, a frozen final-seal slash, clean bell and sweeping dawn, eight unrolling scrolls and an original skippable epilogue. Results count up, stamp your grade and reveal stats, unlocks and your best ghost; adaptive music, a victory fanfare and an ink-dissolve defeat complete the run.
 
 [![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![rank](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-![INKWARD gameplay: ink walls and yokai around the shrine bell](screenshots/1-play.jpg)
+![INKWARD title: brush logo, earned best score and controls](screenshots/1-title.jpg)
 
 ## Screenshots
 
-![INKWARD title screen](screenshots/2-title.jpg)
+![INKWARD gameplay: ink walls, vivid group seals, combo and a full boss HUD](screenshots/2-play.jpg)
 
 ![INKWARD brush-art draft after scroll five](screenshots/3-draft.jpg)
 
-![INKWARD victory results](screenshots/4-victory.jpg)
+![INKWARD dawn ending record: S grade, stats, unlocks and best ghost](screenshots/4-victory.jpg)
 
 ## How to play
 
@@ -47,7 +48,8 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | P / Esc | Pause or resume during play |
 | M | Toggle sound |
 | G | Toggle cinematic graphics (on by default) |
-| R / Run again | Start another run with a fresh seed from the results screen |
+| R / New Run / Retry | Start another run with a fresh seed; retry is available immediately during defeat |
+| Any key / tap during the ending | Skip the epilogue to the final record; another key completes its score reveal |
 | R / seed button on title | Roll a fresh seed before starting |
 | S / Same seed | Replay the finished run's seed and difficulty |
 | Esc / title button | Return to the title from the results screen |
@@ -92,6 +94,8 @@ The title and results display your run seed. Use **Same seed (S)** to revisit it
 
 Every scroll has its own boss. Early wardens teach readable attacks; the last three encounters demand stronger builds. Oni take multiple seals to defeat and become more aggressive as their health falls, changing silhouette and colour. Watch their body wind-ups and ground warnings for minion storms, bell charges, and wall-eating roars. Stun them with dash, splash, or Q, or seal them during recovery for stronger hits. Enclosing nearby minions with a boss adds damage; after a hit, wait for its brief seal lock to expire.
 
+Yukioro's final ward breaks at seven and three health: a screen-wide ink wash and slow-motion name card mark each phase, even with a powerful build. Its last breath alternates vertical and horizontal frost lanes; the gaps and post-attack recovery are your opening. The final seal holds the actual hit frame, cuts across the screen and releases every remaining spirit in a shockwave of ink and petals. Dawn then brings the monk home before your animated final record. Every scene also works in plain Canvas.
+
 | Scroll | Boss | Opening |
 | --- | --- | --- |
 | 1 | Suzune, the Reed Warden | Two health; petals signal its small minion storm |
@@ -101,7 +105,7 @@ Every scroll has its own boss. Early wardens teach readable attacks; the last th
 | 5 | Hibane, the Ash Oni | Five health; charge warnings expose its flame mask |
 | 6 | Momijara, the Maple Oni | Also takes stronger hits during its charge warning; walls can break a charge and expose it |
 | 7 | Sumigara, the Inkstone Oni | Six health; wall-eating roars leave a recovery window |
-| 8 | Yukioro, the Frost Oni | Break its ward by stunning it, catching recovery, or enclosing it with at least two minions |
+| 8 | Yukioro, the Frost Oni | Three enforced phases; stun or catch recovery, then dash through alternating frost lanes and land the last seal |
 
 Hold **two different arts from a school** to activate its bonus. More levels of one art do not count as a pair. The BRUSH ARTS panel shows a **SYNERGY** chip, and draft cards identify their school and prospective synergy.
 
@@ -130,6 +134,7 @@ node scripts/check-syntax.mjs
 node scripts/check-core.mjs
 node scripts/check-controls.mjs
 node scripts/check-systems.mjs
+node scripts/check-finale.mjs
 node serve.ts --port 8123
 # With the server running, in a second terminal:
 node scripts/check-browser.mjs http://localhost:8123
@@ -156,7 +161,7 @@ game/
     input.js           Keyboard and pointer input
     controls/          120 ms action buffers, stroke grace and touch gestures
     audio.js           Synthesized sound
-    audio/             Distinct oscillator/noise voices for every brush art
+    audio/             Original adaptive music, finale layers and distinct brush-art voices
     save.js            Local best runs, unlocks, and bell-skin persistence
     rng.js             Seeded randomness
     world/             Scrolls, branching roads, waves, difficulty, WRATH, omens, and state updates
@@ -166,10 +171,11 @@ game/
     fx/                Cast events, ritual impacts, death dissolves and recoil
     render/            Cached parallax scenery, animated sprites, light, effects, and HUD
       post/            Optional WebGL2 bloom, seasonal grade and paper composite
-    screens/           Title, draft, pause, and results
+    scenes/            Final-seal, dawn-ending and defeat timing
+    screens/           Title, draft, pause, ending, defeat and animated results
     shots.js           Submission-view staging
     coverReplay.js     Gameplay replay for the cover
-screenshots/           Four submission JPEGs: play, title, draft, and victory
+screenshots/           Four submission JPEGs: title, play, draft, and dawn victory record
 shots.json             Submission view definitions
 scripts/               Syntax, core-mechanics, and browser checks
 serve.ts               Local static server
