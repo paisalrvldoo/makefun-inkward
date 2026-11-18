@@ -47,6 +47,7 @@ export function paintPoint(state, point) {
   const end = length > available ? { x: previous.x + (point.x - previous.x) * available / length, y: previous.y + (point.y - previous.y) * available / length } : { ...point };
   length = Math.min(length, available);
   state.ink = Math.max(0, state.ink - length * cost);
+  state.inkPainted = (state.inkPainted || 0) + length * cost;
   stroke.length += length; stroke.life = INK.lifetime;
   // Interpolate long mouse movements: collision, ink use and closure stay consistent at every frame rate.
   const samples = Math.max(1, Math.ceil(length / 9));

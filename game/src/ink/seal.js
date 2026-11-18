@@ -21,6 +21,7 @@ export function releaseSpirit(state, enemy) {
   enemy.dead = true;
   dissolveSpirit(state, enemy);
   state.sealed++; state.cleared++;
+  if (!enemy.hunter) { const k = enemy.kind || 'unknown'; state.yokaiByType = state.yokaiByType || {}; state.yokaiByType[k] = (state.yokaiByType[k] || 0) + 1; }
   const base = enemy.value * state.combo * (1 + artLevel(state, 'gold') * 0.3) * synergyBonus(state, 'bloom') * relicScoreBonus(state) * (state.comboHeat >= 1 ? 1.25 : 1);
   const score = Math.round(base * wrathMultiplier(state));
   state.score += score; state.wrathScore += score - Math.round(base);

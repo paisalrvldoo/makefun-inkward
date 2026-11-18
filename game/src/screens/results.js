@@ -12,6 +12,7 @@ import { formatSeed } from '../rng.js';
 import { resultMotion, resultReveal } from './resultMotion.js';
 import { drawEndingVista } from '../render/endingVista.js';
 import { drawSeasonScroll } from '../render/seasonScrolls.js';
+import { YOKAI } from '../entities/yokai.js';
 
 export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
@@ -71,12 +72,27 @@ export function drawResults(ctx, state, input) {
   stats.forEach(([label, value, color], i) => {
     ctx.save(); ctx.globalAlpha = resultReveal(motion.age, 0.8 + i * 0.12);
     const x = 64 + i * 194;
-    panel(ctx, x, 354, 182, 52, '#1b2a36', '#586054');
-    ctx.fillStyle = color; ctx.fillRect(x, 354, 3, 52);
-    text(ctx, label, x + 13, 371, 9, '#b6c6c0', 'bold');
-    text(ctx, value, x + 13, 398, 26, '#fff0d8', 'bold', true);
+    panel(ctx, x, 344, 182, 52, '#1b2a36', '#586054');
+    ctx.fillStyle = color; ctx.fillRect(x, 344, 3, 52);
+    text(ctx, label, x + 13, 361, 9, '#b6c6c0', 'bold');
+    text(ctx, value, x + 13, 388, 26, '#fff0d8', 'bold', true);
     ctx.restore();
   });
+  ctx.save(); ctx.globalAlpha = resultReveal(motion.age, 1.6);
+  panel(ctx, 64, 404, 1152, 28, '#1b2a36', '#7a6a44');
+  const painted = Math.round(state.inkPainted || 0);
+  text(ctx, painted.toLocaleString('en-US') + ' INK PAINTED', 78, 423, 10, '#d1cfa3', 'bold');
+  text(ctx, 'LARGEST SEAL', 252, 416, 8, '#8f9180', 'bold');
+  text(ctx, state.largestSeal + ' SPIRITS', 252, 427, 12, '#f0d078', 'bold');
+  const topKinds = Object.entries(state.yokaiByType || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (topKinds.length) {
+    text(ctx, 'YOKAI', 420, 416, 8, '#8f9180', 'bold');
+    const names = topKinds.map(([k, n]) => (k === 'oni' ? 'ONI' : YOKAI[k]?.name || k.toUpperCase()) + ' ' + n).join(' · ');
+    text(ctx, names, 420, 427, 10, '#eddcc0', 'bold');
+  }
+  const avgTime = (state.scrollTimes || []).filter(t => t > 0).reduce((s, t, _, a) => s + t / a.length, 0);
+  text(ctx, (avgTime / 60).toFixed(1) + ' MIN / SCROLL', 1214, 423, 10, '#c8bfa6', 'bold', false, 'right');
+  ctx.restore();
   drawScoreChart(ctx, state);
   panel(ctx, 900, 422, 316, 184, '#111e2b', '#665538');
   text(ctx, 'THE BRUSH YOU BECAME', 920, 446, 12, '#edc571', 'bold');

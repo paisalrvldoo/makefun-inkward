@@ -4,8 +4,8 @@ import { resultReveal } from '../resultMotion.js';
 
 export function drawScoreChart(ctx, state) {
   const age = state.resultsTime ?? 5;
-  panel(ctx, 64, 422, 820, 184, '#111e2b', '#665538');
-  text(ctx, 'EIGHT SCROLLS / SCORE RECORD', 84, 446, 12, '#edc571', 'bold');
+  panel(ctx, 64, 436, 820, 170, '#111e2b', '#665538');
+  text(ctx, 'EIGHT SCROLLS / SCORE RECORD', 84, 460, 12, '#edc571', 'bold');
   const ghost = state.previousBestRun;
   const max = Math.max(1000, ...state.scrollScores, ...(ghost?.scrollScores || []));
   const baseline = 568, height = 94;

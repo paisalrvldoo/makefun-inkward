@@ -84,6 +84,7 @@ export function updateWorld(state, input, dt) {
     state.hitStop = Math.max(0, state.hitStop - dt); return;
   }
   state.time += dt; state.runTime += dt; state.scrollTime += dt;
+  if (state.scrollTimes && state.scroll >= 1 && state.scroll <= 8) state.scrollTimes[state.scroll - 1] = (state.scrollTimes[state.scroll - 1] || 0) + dt;
   state.bannerTime = Math.max(0, state.bannerTime - dt);
   state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);
   state.bell.wardTime = Math.max(0, state.bell.wardTime - dt);
