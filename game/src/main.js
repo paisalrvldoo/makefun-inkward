@@ -10,6 +10,7 @@ import { chooseRoad } from './world/path.js';
 import { endStroke } from './ink/strokes.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
+import { createPost } from './render/post/index.js';
 import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON } from './screens/title.js';
 import { draftRects } from './screens/draft.js';
 import { ROAD_RECTS, pathChoiceRects } from './screens/path.js';
@@ -20,6 +21,7 @@ import { stageShot } from './shots.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
+const post = createPost(canvas);
 const status = document.getElementById('status');
 const audio = createAudio();
 const input = createInput(canvas, audio.unlock);
@@ -35,6 +37,7 @@ let lastTime = performance.now(), accumulator = 0, previousMode = '', previousSe
 function fitCanvas() {
   const scale = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
   canvas.style.width = `${WIDTH * scale}px`; canvas.style.height = `${HEIGHT * scale}px`;
+  post.fit();
 }
 window.addEventListener('resize', fitCanvas); fitCanvas();
 
@@ -50,6 +53,7 @@ function pauseRun() {
 }
 function handleMenus() {
   if (input.pressed.has('KeyM')) audio.toggle();
+  if (input.pressed.has('KeyG')) post.toggle();
   const clicked = rect => input.clicks.some(p => hitRect(p, rect));
   if (state.mode === 'title') {
     for (let i = 0; i < DIFFICULTY_RECTS.length; i++) if (clicked(DIFFICULTY_RECTS[i]) || input.pressed.has(`Digit${i + 1}`)) {
@@ -101,12 +105,13 @@ function frame(now) {
     previousMode = state.mode; previousSeed = state.seed;
   }
   renderScene(ctx, paper, state, drawInput, audio);
+  post.present(state);
+  if (staged) document.documentElement.dataset.shotReady = 'true';
   requestAnimationFrame(frame);
 }
 if (shot) {
   const replay = stageShot(shot, seed); state = replay.state; drawInput = replay.input;
-  document.documentElement.dataset.shotReady = 'true';
 }
 // Read-only live state helps browser verification inspect actual input and simulation outcomes.
-window.inkward = { get state() { return state; }, get input() { return input; }, get audio() { return audio; } };
+window.inkward = { get state() { return state; }, get input() { return input; }, get audio() { return audio; }, get post() { return post; } };
 requestAnimationFrame(frame);

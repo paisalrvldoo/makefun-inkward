@@ -73,6 +73,58 @@ try {
   await call('Runtime.enable'); await call('Network.enable'); await call('Page.enable');
   await call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
   await call('Page.bringToFront');
+  const checkPost = async () => {
+    await until('inkward.post.active && inkward.post.frames > 0 && document.documentElement.dataset.renderer === "webgl2"');
+    const samples = await evaluate(`new Promise(resolve => requestAnimationFrame(() => {
+      const display = document.querySelector('#cinematic'), gl = display.getContext('webgl2');
+      const source = document.querySelector('#game').getContext('2d');
+      resolve([[100, 100], [640, 400], [1150, 700]].map(([x, y]) => {
+        const pixel = new Uint8Array(4); gl.readPixels(x, 799 - y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        return { source: Array.from(source.getImageData(x, y, 1, 1).data), display: Array.from(pixel) };
+      }));
+    }))`);
+    for (const sample of samples) {
+      assert.equal(sample.display[3], 255, 'Post display is opaque');
+      assert.ok(sample.display.slice(0, 3).some(v => v > 0), 'Post display has rendered pixels');
+      assert.ok(sample.display.slice(0, 3).every((v, i) => Math.abs(v - sample.source[i]) < 45), 'Post keeps source orientation and readable colors');
+    }
+    assert.ok(samples.some(s => s.display.some((v, i) => v !== s.source[i])), 'The screenshot display includes the actual post-process');
+  };
+  await call('Page.navigate', { url: `${base}/?shot=title&seed=1` });
+  await until('window.inkward?.state.mode === "title" && document.documentElement.dataset.shotReady === "true"');
+  await checkPost();
+  await key('KeyG', 'g'); await until('!inkward.post.active && document.documentElement.dataset.renderer === "2d"');
+  const plainTitle = await evaluate('document.querySelector("#game").toDataURL()');
+  assert.equal(await evaluate('document.querySelector("#cinematic").style.display'), 'none', 'G reveals the original input canvas');
+  await key('KeyG', 'g'); await checkPost();
+  for (const failure of ['missing', 'shader', 'target', 'upload']) {
+    const hook = await call('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(kind, ...args) {
+        if (kind === 'webgl2' && '${failure}' === 'missing') return null;
+        const context = original.call(this, kind, ...args);
+        if (kind === 'webgl2' && context) {
+          if ('${failure}' === 'shader') context.getShaderParameter = () => false;
+          if ('${failure}' === 'target') context.checkFramebufferStatus = () => context.FRAMEBUFFER_UNSUPPORTED;
+          if ('${failure}' === 'upload') context.texSubImage2D = () => { throw new Error('Injected upload failure'); };
+        }
+        return context;
+      };
+    })()` });
+    await call('Page.navigate', { url: `${base}/?shot=title&seed=1&fallback=${failure}` });
+    await until(`location.search.includes('fallback=${failure}') && window.inkward && document.documentElement.dataset.shotReady === 'true'`);
+    assert.equal(await evaluate('inkward.post.active'), false, `${failure} falls back`);
+    assert.equal(await evaluate('document.querySelector("#cinematic").style.display'), 'none');
+    assert.equal(await evaluate('document.querySelector("#game").toDataURL()'), plainTitle, `${failure} preserves the exact plain 2D frame`);
+    await call('Page.removeScriptToEvaluateOnNewDocument', { identifier: hook.identifier });
+  }
+  await call('Page.navigate', { url: `${base}/?shot=title&seed=1&restore=1` });
+  await until('location.search.includes("restore=1") && window.inkward?.post.active');
+  await checkPost();
+  await evaluate('window.contextLoss = document.querySelector("#cinematic").getContext("webgl2").getExtension("WEBGL_lose_context"); contextLoss.loseContext()');
+  await until('!inkward.post.available && document.documentElement.dataset.renderer === "2d"');
+  await pause(120); await evaluate('contextLoss.restoreContext()'); await checkPost();
+  console.log('Cinematic browser OK: processed pixels, G toggle, exact 2D fallback on missing WebGL/shader/target/upload failure, context loss and restoration');
   await call('Page.navigate', { url: base });
   await until('window.inkward?.state.mode === "title"');
   const initialSeed = await evaluate('inkward.state.seed');
@@ -121,6 +173,7 @@ try {
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     await until('(() => { const p = document.querySelector("#game").getContext("2d").getImageData(10, 10, 1, 1).data; return p[3] === 255 && (p[0] || p[1] || p[2]); })()');
+    await checkPost();
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
     if (scene === 'play') {
