@@ -1,7 +1,10 @@
+import { drawGrade } from './results/grade.js';
+import { drawScoreChart } from './results/scoreChart.js';
+export { drawScoreChart } from './results/scoreChart.js';
+import { drawUnlocks } from './results/unlocks.js';
+import { resultButton } from './results/buttons.js';
 import { gradeRun } from '../world/state.js';
-import { SCROLLS, SEASONS } from '../world/scrolls.js';
 import { wrathCap } from '../world/ascension.js';
-import { UNLOCKS } from '../save.js';
 import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
 import { artLevel } from '../arts/levels.js';
@@ -14,107 +17,6 @@ export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
 export const TITLE_BUTTON = { x: 848, y: 706, w: 368, h: 58 };
 const number = value => Math.round(value).toLocaleString('en-US');
-
-function drawGrade(ctx, state, motion) {
-  if (!motion.stamp) return;
-  ctx.save(); ctx.translate(1090, 221); ctx.rotate(-0.065 - (1 - motion.stamp) * 0.18);
-  const scale = 1 + (1 - motion.stamp) * 0.65; ctx.scale(scale, scale); ctx.globalAlpha = motion.stamp;
-  const points = Array.from({ length: 33 }, (_, i) => {
-    const a = i / 32 * Math.PI * 2, r = i % 2 ? 94 : 100;
-    return [Math.cos(a) * r, Math.sin(a) * r];
-  });
-  circle(ctx, 0, 0, 98, '#1b2934');
-  line(ctx, points, '#d7af57', 2);
-  circle(ctx, 0, 0, 85, null, '#e8c575', 2);
-  circle(ctx, 0, 0, 79, null, '#a47e3b', 1);
-  for (let i = 0; i < 16; i++) {
-    const a = i * Math.PI / 8;
-    circle(ctx, Math.cos(a) * 90, Math.sin(a) * 90, 1.5, '#edcd80');
-  }
-  ctx.shadowColor = '#dcae4c66'; ctx.shadowBlur = 16;
-  text(ctx, state.grade || gradeRun(state), 0, 41, 126, '#f6d680', 'bold', true, 'center');
-  ctx.shadowBlur = 0;
-  if (state.newBest) {
-    ctx.fillStyle = '#c74735'; ctx.beginPath();
-    ctx.moveTo(-116, 47); ctx.lineTo(116, 47); ctx.lineTo(106, 64);
-    ctx.lineTo(116, 81); ctx.lineTo(-116, 81); ctx.lineTo(-106, 64); ctx.closePath(); ctx.fill();
-    line(ctx, [[-105, 51], [105, 51]], '#f2bd6b', 1);
-    line(ctx, [[-105, 77], [105, 77]], '#f2bd6b', 1);
-    text(ctx, 'NEW BEST!', 0, 70, 18, '#fff2ca', 'bold', false, 'center');
-  }
-  ctx.restore();
-  text(ctx, 'BRUSH GRADE', 1090, 337, 10, '#d6b86e', 'bold', false, 'center');
-}
-
-export function drawScoreChart(ctx, state) {
-  const age = state.resultsTime ?? 5;
-  panel(ctx, 64, 422, 820, 184, '#111e2b', '#665538');
-  text(ctx, 'EIGHT SCROLLS / SCORE RECORD', 84, 446, 12, '#edc571', 'bold');
-  const ghost = state.previousBestRun;
-  const max = Math.max(1000, ...state.scrollScores, ...(ghost?.scrollScores || []));
-  const baseline = 568, height = 94;
-  if (ghost) {
-    ctx.save(); ctx.setLineDash([4, 4]);
-    line(ctx, [[708, 442], [736, 442]], '#f4dc9b', 2); ctx.restore();
-    text(ctx, 'BEST RUN / ' + ghost.difficulty.toUpperCase() + ' / ' + ghost.grade, 863, 446, 10, '#f4dc9b', 'bold', false, 'right');
-  } else text(ctx, 'SET YOUR FIRST RECORD', 863, 446, 10, '#98ada8', 'bold', false, 'right');
-  for (let i = 1; i <= 3; i++) {
-    const y = baseline - height * i / 3;
-    line(ctx, [[112, y], [863, y]], '#34424a', 1);
-    text(ctx, Math.round(max * i / 3000) + 'k', 101, y + 3, 9, '#7f959e', 'normal', false, 'right');
-  }
-  state.scrollScores.forEach((score, i) => {
-    const season = SEASONS[SCROLLS[i].season], x = 131 + i * 93;
-    const barHeight = score ? Math.max(3, score / max * height * resultReveal(age, 1.05 + i * 0.12, 0.65)) : 2;
-    const fill = ctx.createLinearGradient(0, baseline - barHeight, 0, baseline);
-    fill.addColorStop(0, season.wash); fill.addColorStop(1, season.color);
-    ctx.fillStyle = fill; ctx.fillRect(x - 26, baseline - barHeight, 52, barHeight);
-    ctx.fillStyle = '#fff0ce99'; ctx.fillRect(x - 26, baseline - barHeight, 52, 2);
-    text(ctx, String(i + 1).padStart(2, '0'), x, 584, 10, '#e9deca', 'bold', false, 'center');
-  });
-  if (ghost) {
-    const points = ghost.scrollScores.map((score, i) => [131 + i * 93, baseline - score / max * height * resultReveal(age, 1.35, 0.75)]);
-    line(ctx, points, '#101b25cc', 5);
-    ctx.save(); ctx.setLineDash([5, 4]); line(ctx, points, '#f4dc9b', 2); ctx.restore();
-    points.forEach(([x, y]) => circle(ctx, x, y, 3, '#152632', '#f4dc9b', 1.5));
-  }
-  state.scrollScores.forEach((score, i) => {
-    const barHeight = score ? Math.max(3, score / max * height * resultReveal(age, 1.05 + i * 0.12, 0.65)) : 2;
-    text(ctx, score ? (score / 1000).toFixed(1) + 'k' : '—', 131 + i * 93, baseline - barHeight - 7, 10, '#e4e7db', 'bold', false, 'center');
-  });
-  SEASONS.forEach((season, i) => text(ctx, season.name, 177.5 + i * 186, 600, 9, season.wash, 'bold', false, 'center'));
-}
-
-function drawUnlocks(ctx, state) {
-  panel(ctx, 64, 624, 1152, 64, '#18262d', '#be9649');
-  text(ctx, state.unlocks.length ? 'UNLOCKED' : 'NEXT RUN', 84, 651, 16, '#f3ce77', 'bold', true);
-  text(ctx, 'A LASTING LEGACY', 84, 671, 9, '#abbab7', 'bold');
-  UNLOCKS.forEach((unlock, i) => {
-    const x = 231 + i * 194, owned = state.unlocks.includes(unlock.id), fresh = state.newUnlocks.includes(unlock.id);
-    line(ctx, [[x - 12, 635], [x - 12, 677]], '#6e6243', 1);
-    ctx.save(); ctx.globalAlpha = (owned ? 1 : 0.4) * resultReveal(state.resultsTime ?? 5, 2.3 + i * 0.15);
-    if (unlock.kind === 'BRUSH ART') drawArtIcon(ctx, unlock.id, x + 18, 653, 29, { fill: '#e5d3a4', outline: '#f5d787' });
-    else if (unlock.kind === 'CHALLENGE') {
-      circle(ctx, x + 18, 653, 16, '#28424b', '#e3bd68', 1.5);
-      text(ctx, unlock.id === 'ascension' ? '∞' : 'M', x + 18, 660, 23, '#f2d182', 'bold', true, 'center');
-    } else {
-      circle(ctx, x + 18, 653, 16, '#c3dceb', '#f0d99f', 1.5);
-      circle(ctx, x + 17, 652, 9, '#fff5d6'); circle(ctx, x + 22, 648, 8, '#c3dceb');
-    }
-    text(ctx, unlock.name, x + 44, 653, 11, '#fff0d2', 'bold');
-    text(ctx, owned ? unlock.kind : 'SEAL ALL 8 SCROLLS', x + 44, 673, 9, '#b9c4bc', 'bold');
-    if (fresh) text(ctx, 'NEW', x + 175, 638, 8, '#f2c761', 'bold', false, 'right');
-    ctx.restore();
-  });
-}
-
-function resultButton(ctx, label, hint, rect, input, primary = false) {
-  const hover = hitRect(input.pointer, rect);
-  panel(ctx, rect.x, rect.y, rect.w, rect.h, primary ? hover ? '#df6247' : '#ba3d30' : hover ? '#29404c' : '#192b37', primary ? '#e8a26c' : '#bd974a');
-  panel(ctx, rect.x + 5, rect.y + 5, rect.w - 10, rect.h - 10, primary ? hover ? '#df6247' : '#ba3d30' : hover ? '#29404c' : '#192b37', primary ? '#ecb084' : '#506159');
-  text(ctx, label, rect.x + rect.w / 2, rect.y + 28, 22, '#fff0d5', 'bold', true, 'center');
-  text(ctx, hint, rect.x + rect.w / 2, rect.y + 46, 9, primary ? '#f9d9b2' : '#bbc8c5', 'bold', false, 'center');
-}
 
 export function drawResults(ctx, state, input) {
   const won = state.mode === 'win', fulfilled = state.omenHistory.filter(o => o.complete);
