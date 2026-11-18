@@ -75,7 +75,7 @@ export function drawTitle(ctx, state, input, audio) {
     text(ctx, DIFFICULTIES[i].name + (locked ? ' · LOCKED' : ''), rect.x + rect.w / 2, rect.y + 21, locked ? 10 : 12, locked ? '#90999c' : '#fff3d9', 'bold', false, 'center');
   });
   text(ctx, DIFFICULTIES.find(d => d.id === state.difficulty).hint, 68, 578, 12, '#d0c9b8');
-  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 600, 11, '#e5b854');
+  if (!state.unlocks.includes('master')) text(ctx, 'Seal all 8 scrolls to unlock Master + 2 new arts.', 68, 590, 10, '#e5b854');
 
   const endless = state.unlocks.includes('ascension');
   panel(ctx, ASCENSION_BUTTON.x, ASCENSION_BUTTON.y, ASCENSION_BUTTON.w, ASCENSION_BUTTON.h, state.expedition === 'ascension' ? '#704e92' : '#24313d', endless ? '#d8b5fa' : '#776951');

@@ -126,8 +126,8 @@ try {
   const pausedTime = await evaluate('window.inkward.state.runTime'); await pause(180);
   assert.equal(await evaluate('window.inkward.state.runTime'), pausedTime, 'Pause freezes simulation');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "play"');
-  for (const scene of ['title', 'play', 'draft', 'end', 'winter', 'win']) {
-    const expectedMode = { title: 'title', play: 'play', draft: 'draft', end: 'lose', winter: 'play', win: 'win' }[scene];
+  for (const scene of ['title', 'play', 'action', 'draft', 'end', 'winter', 'win']) {
+    const expectedMode = { title: 'title', play: 'play', action: 'play', draft: 'draft', end: 'lose', winter: 'play', win: 'win' }[scene];
     await call('Page.navigate', { url: `${base}/?shot=${scene}&seed=1` });
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     await until('(() => { const p = document.querySelector("#game").getContext("2d").getImageData(10, 10, 1, 1).data; return p[3] === 255 && (p[0] || p[1] || p[2]); })()');
@@ -155,6 +155,12 @@ try {
       })()`);
       assert.ok(arrowPixel[0] > 160 && arrowPixel[1] < 100 && arrowPixel[2] < 100, 'Vermilion charge arrowhead remains visible over the shrine');
       console.log('Live tactics OK: closure progress, collision erosion, timed bell lane and boss omen; labels fit the field');
+    }
+    if (scene === 'action') {
+      const labels = await paintedLabels();
+      const total = await evaluate('inkward.state.scoreBurst.total.toLocaleString("en-US")');
+      assert.ok(labels.some(label => label.text === '+' + total), 'Action dossier shows the actual settled score slam');
+      assert.ok(labels.some(label => label.text.includes('COMBO ×8.0') && label.text.includes('WRATH ×1.6')));
     }
     if (scene === 'draft') {
       assert.equal(state.scroll, 5, 'Draft shot stops after scroll 5');

@@ -1,7 +1,7 @@
 import { text, panel, circle, line, hitRect } from '../render/primitives.js';
 import { drawYokai } from '../render/sprites.js';
 import { SCROLLS, SEASONS } from '../world/scrolls.js';
-import { shrineRelic } from '../arts/relics.js';
+import { RELICS, shrineRelic } from '../arts/relics.js';
 import { ROADS, availableRoads } from '../world/path.js';
 
 const nodeX = column => 98 + column * 104;
@@ -74,6 +74,7 @@ export function drawPath(ctx, state, input) {
       if (walked && !current) circle(ctx, node.x + 13, node.y + 12, 3.5, '#fff0bb', '#172b34', 1);
     });
   });
+  if (state.relics.length) text(ctx, 'RELICS / ' + state.relics.map(id => RELICS.find(r => r.id === id).name.toUpperCase()).join(' · '), 463, 258, 9, '#61437e', 'bold', false, 'center');
   text(ctx, 'INK = YOUR WALKED PATH', 61, 258, 8, '#374842', 'bold');
   text(ctx, state.scroll === 8 ? 'NEXT CIRCUIT / SCROLL 1' : 'CHOOSE SCROLL ' + (state.scroll + 1), 861, 258, 8, '#8f3428', 'bold', false, 'right');
   text(ctx, 'FIGHT / REST / RELIC SHRINE', 906, 104, 11, '#e4bf6d', 'bold');

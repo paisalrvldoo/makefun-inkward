@@ -1,14 +1,13 @@
-# INKWARD
+**INKWARD — paint living ink walls, seal entire spirit swarms, and guard the last bell through eight boss scrolls and an endless ascension.**
 
-Paint walls and looping seals to guard the last bell through eight seasonal scrolls, then break winter with a spectacular final brushstroke.
-
-- **Complete pilgrimage:** eight distinct bosses, a three-phase final warden, win/lose results and grade, combo × WRATH scoring, saved best scores, pause and restart.
-- **Build your brush:** 12 base brush arts, two victory unlocks, three real school synergies, three-level upgrades, optional omens and branching Swarm/Quiet roads.
-- **Tight controls:** WASD/arrows move, Space dash, mouse drag paint, right-click splash, Q hush, E ward; 120 ms input buffering, stroke-start grace and ink-cost/snap reticle.
-- **Touch:** one-finger paint, two-finger tap splash, and a dash button shown only on touch devices. Menus and draft/path choices also accept taps.
-- **Every run remembered:** seeded runs, same-seed replay, previous-best score ghost, permanent unlocks and bell skins saved locally.
-- **Ink comes alive:** distinct art casts and synthesized sounds, two-frame ritual inversions, yokai wind-ups/hurt flashes/petal deaths, monk recoil and i-frames, WRATH hunter auras.
-- **A spectacular finish:** cinematic phase changes, a frozen final-seal slash, clean bell and sweeping dawn, eight unrolling scrolls and an original skippable epilogue. Results count up, stamp your grade and reveal stats, unlocks and your best ghost; adaptive music, a victory fanfare and an ink-dissolve defeat complete the run.
+- **A complete game:** win by clearing eight scrolls and their bosses; lose when the bell breaks. Pause, restart, animated ending/results, S–C grades, combo × WRATH scoring and saved personal bests.
+- **Build your brush:** 12 base brush arts + two victory unlocks, three upgrade levels, three numerical school synergies, common/rare/epic draft glows and optional omen rewards.
+- **Eight spirit tactics:** lunging kappa, wall-phasing lanterns, hopping umbrellas, splitting foxes, wall-eaters, weaving cranes, interruptible Reed Drummers and telegraphed Needle Moth dives.
+- **Pilgrim's Path:** choose Swarm fights, Quiet rest or three Relic Shrines; Reed Quill saves ink, Dew Bead wards on dash, Ember Charm rewards high combos.
+- **Endless ascension:** victory unlocks repeating eight-boss circuits. Keep arts and relics; each ascension raises the WRATH ceiling and increases spirit count, speed, wall erosion and boss pressure.
+- **Every stroke feels alive:** tapered ink and blooming seals, 40–70 ms heavy-hit stops, white hurt flashes, theatrical score count-up/slam, rising vacuum chimes, dash afterimages, landing dust/squash and original synthesized music and sound.
+- **Your run remembered:** displayed seeds, same-seed replay, previous-best score ghost, permanent unlocks and bell skins saved locally; keyboard and touch menus.
+- **Controls:** WASD/arrows move; Space dash; mouse drag paint/close loops; right-click splash; Q hush; E ward; P/Esc pause; M sound; G graphics; 1–4 choose arts; ←/→/↓ choose fight/rest/shrine; R restart/new seed; S same seed; A ascension after victory. Touch: one finger paints, two-finger tap splashes, on-screen button dashes, taps choose menus.
 
 [![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![rank](https://make.fun/badge/best-game-01/paisalrvldoo/makefun-inkward/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
@@ -20,7 +19,7 @@ Paint walls and looping seals to guard the last bell through eight seasonal scro
 
 ![INKWARD gameplay: ink walls, vivid group seals, combo and a full boss HUD](screenshots/2-play.jpg)
 
-![INKWARD brush-art draft after scroll five](screenshots/3-draft.jpg)
+![INKWARD Pilgrim’s Path: six cleared scrolls, held relics, a third shrine passive and rarity drafts](screenshots/3-draft.jpg)
 
 ![INKWARD dawn ending record: S grade, stats, unlocks and best ghost](screenshots/4-victory.jpg)
 
@@ -28,7 +27,7 @@ Paint walls and looping seals to guard the last bell through eight seasonal scro
 
 Protect the shrine bell from incoming yokai. Hold the left mouse button to paint walls that block spirits, then close a loop around them by returning to the red starting dot or crossing your own stroke. Sealing groups earns score, builds combos, and refunds ink. Release the brush to refill; walls fade and erode under pressure.
 
-Clear every spirit in a scroll to advance and choose a brush art. Clear all **eight scrolls**, including their bosses, to win. You lose when the bell's health reaches zero; its damage carries between scrolls. Start with Novice (16 bell health) or Monk (12). Your first victory permanently unlocks Master (10), two new brush arts, and the Moon Bell skin. Best scores, per-scroll records, unlocks, and your selected skin save locally in the browser.
+Clear every spirit in a scroll to advance and choose a brush art. Clear all **eight scrolls**, including their bosses, to win. You lose when the bell's health reaches zero; its damage carries between scrolls. Start with Novice (16 bell health) or Monk (12). Your first victory permanently unlocks Master (10), two new brush arts, the Moon Bell skin, and **Endless Ascension**. Best scores, per-scroll records, unlocks, and your selected skin save locally in the browser.
 
 ### Controls
 
@@ -53,13 +52,15 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | R / seed button on title | Roll a fresh seed before starting |
 | S / Same seed | Replay the finished run's seed and difficulty |
 | Esc / title button | Return to the title from the results screen |
+| A / ascension button | After victory, toggle endless ascension on the title; enter it directly from results |
+| Down / shrine road / tap | Preview a Relic Shrine when available; take an art to commit |
 | B / bell skin button | Switch between Bronze and the unlocked Moon Bell on the title |
 
 Dash, splash, and rituals have cooldowns. Press up to **120 ms** before an action is ready to buffer one cast; the reticle shows buffered/cooldown feedback. Q and E are available from the start; their brush arts strengthen them. A stroke can start up to 120 ms before entering the garden or recovering its minimum ink, and brief field-edge slips retain the stroke. The cursor shows current ink, the next segment's cost, and a green snap when it can close your loop. Empty ink prompts a release to refill.
 
 ### WRATH
 
-Successful seals raise **WRATH** through five levels. Each level adds 20% to spirit score, up to **×2.0**, but also speeds up incoming waves and summons fox hunters while threats remain queued. Level five starts the hunt. WRATH begins cooling after three seconds without a successful seal, so balance fast combos against pressure on the bell.
+Successful seals raise **WRATH** through five levels in a normal pilgrimage, with higher ceilings in ascension. Each level adds 20% to spirit score, up to **×2.0**, but also speeds up incoming waves and summons fox hunters while threats remain queued. Level five starts the hunt. WRATH begins cooling after three seconds without a successful seal, so balance fast combos against pressure on the bell.
 
 ### Omens
 
@@ -69,7 +70,27 @@ Each scroll offers an optional challenge: seal three cranes in one loop, finish 
 
 Between scrolls, choose one of three offered arts (four with an omen reward). Picking an owned art upgrades it, up to level three. Every choice refills your ink.
 
-First choose your next node on **Pilgrim's Path**, the eight-scroll branching map. Swarm road adds 30% more ordinary spirits to the next scroll and an extra level to your drafted art (up to level three). Quiet road repairs two bell health when you enter the next scroll. Click either next node or a road card; Left selects Swarm and Right selects Quiet. Then press 1–4 or click an art to commit the road. Past roads remain drawn in ink.
+First choose your next node on **Pilgrim's Path**, the eight-scroll branching map. Swarm road adds 30% more ordinary spirits to the next scroll and an extra level to your drafted art (up to level three). Quiet road repairs two bell health when you enter the next scroll. Click either next node or a road card; Left selects Swarm and Right selects Quiet. Then press 1–4 or click an art to commit the road. Past roads remain drawn in ink. **Relic Shrine** branches appear before scrolls 3, 5 and 7. Press **Down** or tap the shrine road, then take an art to claim its passive. Previewing or changing a node never grants its reward. Choosing a shrine trades away the Swarm level bonus and Quiet repair.
+
+### Shrine relics
+
+Relics last for the whole run and survive ascension circuits. Their lettered charms sit beside the score in the HUD; the path screen names the held relics and previews the next shrine's effect.
+
+| Shrine | Relic | Passive |
+| --- | --- | --- |
+| Before scroll 3 | Reed Quill | Every stroke costs 12% less ink; stacks with Feather hand and Moonlit ink |
+| Before scroll 5 | Dew Bead | Every dash gives the bell a 1.2-second ward; never shortens an existing ward |
+| Before scroll 7 | Ember Charm | 15% more spirit-seal score while combo is ×3 or higher |
+
+### Endless ascension
+
+Win a normal pilgrimage, then press **A** on the title to toggle ascension, or **A** on results to enter it directly. Ascension begins at tier 1: WRATH can reach **6**, ordinary waves have 12% more spirits, spirits move 8% faster and walls erode 15% faster. Each circuit adds those modifiers again, shortens spawn intervals, and adds boss health and storm minions. The HUD and scroll intro show the current tier and danger modifiers.
+
+The last seal opens another draft instead of ending the run. Your score, arts, relics and bell damage carry forward; the path resets, and a new circuit begins at scroll 1. Every completed circuit awards a tier-scaled score bonus. If every art reaches level 3, the draft offers **Pilgrim’s respite** to repair two cracks and continue. Play until the bell falls; results save the best score, grade and cumulative eight-scroll chart. A normal eight-scroll victory and its dawn ending remain available from the title.
+
+### Spirit intent
+
+**Reed Drummers** stop to fill an amber pulse. Let it complete and nearby spirits gain 50% speed for 2.5 seconds; dash, splash or hush to interrupt the wind-up. **Needle Moths** approach in an orbit, stop to mark a red dive lane, then rush the shrine. A wall blocks the dive, a stun cancels it, and a bell ward deflects it. Both join the seasonal waves from the middle scrolls onward.
 
 The title and results display your run seed. Use **Same seed (S)** to revisit it at the same difficulty, or **Run again (R)** for a fresh pilgrimage. Results compare all eight scrolls against the best run saved before you started: a gold dashed ghost line shares the score scale with your seasonal bars, and the total shows how much you gained or lost against that record. A first record starts without a ghost.
 
@@ -132,6 +153,8 @@ Verify mechanics and browser play:
 ```sh
 node scripts/check-syntax.mjs
 node scripts/check-core.mjs
+node scripts/check-depth.mjs
+node scripts/check-juice.mjs
 node scripts/check-controls.mjs
 node scripts/check-systems.mjs
 node scripts/check-finale.mjs
@@ -139,6 +162,14 @@ node serve.ts --port 8123
 # With the server running, in a second terminal:
 node scripts/check-browser.mjs http://localhost:8123
 ```
+
+Recapture the four views from the same running server:
+
+```sh
+node scripts/capture-screenshots.mjs http://localhost:8123
+```
+
+Each JPEG is 1280 × 800 and at most 256 KiB. `shots.json` records the real replay query, dimensions, bytes and capture quality. The capture script checks these limits before writing the dossier views.
 
 ## How it hands in
 
@@ -164,20 +195,25 @@ game/
     audio/             Original adaptive music, finale layers and distinct brush-art voices
     save.js            Local best runs, unlocks, and bell-skin persistence
     rng.js             Seeded randomness
-    world/             Scrolls, branching roads, waves, difficulty, WRATH, omens, and state updates
-    entities/          Monk, yokai, eight boss profiles and attack behavior
+    world/             Scrolls, branching shrine roads, waves, WRATH, omens, endless ascension and state updates
+    entities/          Monk, eight yokai tactics, interruptible pulse/dive AI and eight boss profiles
+    systems/           Ink-wall collision, erosion and contact combat
     ink/               Strokes, geometry, and seals
-    arts/              Twelve base arts, two unlocks, school synergies and drafts
-    fx/                Cast events, ritual impacts, death dissolves and recoil
+    arts/              Separate art catalog, draft rules, active rituals, schools and three shrine relics
+    fx/                Particle creation/lifetimes, score beats, pickup vacuum, footsteps and cast events
     render/            Cached parallax scenery, animated sprites, light, effects, and HUD
       post/            Optional WebGL2 bloom, seasonal grade and paper composite
     scenes/            Final-seal, dawn-ending and defeat timing
-    screens/           Title, draft, pause, ending, defeat and animated results
-    shots.js           Submission-view staging
+    screens/           Title, path/draft, pause, ending, defeat and results
+      results/         Separate grade stamp, score/ghost chart, unlocks and buttons
+    shots.js           Input-driven submission replays
+    replays/           Earned path-map screenshot timing
     coverReplay.js     Gameplay replay for the cover
 screenshots/           Four submission JPEGs: title, play, draft, and dawn victory record
 shots.json             Submission view definitions
-scripts/               Syntax, core-mechanics, and browser checks
+scripts/               Syntax, mechanics, depth, juice, controls, systems and finale checks
+  browser/             Shared Chrome harness and JPEG cap validation
+  capture-screenshots.mjs  Reproducible four-view capture with dimension/byte gates
 serve.ts               Local static server
 main.ts                Submission packaging entry
 vendor/makefun-game.ts  Bundled make.fun dossier builder

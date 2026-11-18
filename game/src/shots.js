@@ -8,6 +8,7 @@ import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 import { chooseRoad } from './world/path.js';
 import { advanceEnding } from './scenes/ending.js';
+import { stagePathShot } from './replays/pathShot.js';
 import { advanceDefeat } from './scenes/defeat.js';
 
 export function replayInput() {
@@ -91,9 +92,14 @@ export function createReplayPilot(options = {}) {
   };
 }
 export function stageShot(name, seed = 1) {
+  if (name === 'action') {
+    const replay = stageShot('play', seed);
+    for (let i = 0; i < 36; i++) { replay.input.clearFrame(); replay.input.keys.clear(); updateWorld(replay.state, replay.input, STEP); }
+    replay.state.soundEvents.length = 0; return replay;
+  }
   const previous = ['title', 'win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
   const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
-  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'winter'].includes(name)) {
+  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'path', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
   if (name === 'draft') {
@@ -102,7 +108,8 @@ export function stageShot(name, seed = 1) {
     chooseArt(state, 0);
   }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, relics: ['play', 'draft', 'win', 'ending'].includes(name), branching: ['play', 'draft', 'win', 'ending'].includes(name) });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, relics: ['play', 'draft', 'path', 'win', 'ending'].includes(name), branching: ['play', 'draft', 'path', 'win', 'ending'].includes(name) });
+  if (name === 'path') return stagePathShot(state, input, pilot);
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);
