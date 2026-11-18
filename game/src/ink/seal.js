@@ -15,6 +15,7 @@ import { relicScoreBonus } from '../arts/relics.js';
 
 import { beginScoreBurst } from '../fx/scoreBurst.js';
 import { releaseInkMotes } from '../fx/inkMotes.js';
+import { addUltFromSeal } from '../arts/ultimate.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
@@ -99,6 +100,7 @@ if (Math.floor(state.combo) > Math.floor(previousCombo)) {
   beginScoreBurst(state, centre, state.score - before, enclosed.length);
   releaseInkMotes(state, enclosed);
   addRing(state, centre.x, centre.y, 95, '#bb4436', 0.7);
+  addUltFromSeal(state, enclosed.length, enclosed.some(e => e.kind === 'oni'));
   state.shake = 3; state.soundEvents.push({ name: 'seal' });
   state.soundEvents.push({ name: 'petals' });
   if (enclosed.length >= 3 || enclosed.some(e => e.kind === 'oni' && e.hitFlash > 0)) {

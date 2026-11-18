@@ -24,6 +24,7 @@ import { checkAchievements } from '../achievements.js';
 
 import { updateScoreBurst } from '../fx/scoreBurst.js';
 import { updateInkMotes } from '../fx/inkMotes.js';
+import { updateUlt } from '../arts/ultimate.js';
 
 export function recordScroll(state) {
   const key = `${isAscension(state) ? state.ascension : 0}:${state.scroll}`;
@@ -97,6 +98,7 @@ export function updateWorld(state, input, dt) {
   updateEffects(state, dt);
   updateScoreBurst(state, dt);
   updateInkMotes(state, dt);
+  updateUlt(state, dt);
   updateMonk(state, input, dt);
   updateStrokes(state, input, dt);
   if (state.mode === 'seal') { clearControls(state); return; }

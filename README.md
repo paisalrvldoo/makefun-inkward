@@ -5,6 +5,7 @@
 - **Brush arts:** 12 base arts + 2 victory unlocks, three upgrade levels, three school synergies (CARVE/FLOW/BLOOM), common/rare/epic rarity glows, and omen draft rewards.
 - **Shrine relics:** Reed Quill saves ink, Dew Bead shields on dash, Ember Charm boosts high-combo score.
 - **Combo heat:** repeated seals fill a visible flame meter; at max heat every seal scores +25%.
+- **Great Seal ultimate:** an ULT meter fills from seals, combos and boss damage; press R to sweep the screen with a sumi-ink brush and a kanji-like seal mark that seals all regular yokai and deals heavy damage to bosses, with screen shake, white flash, an ULTIMATE! callout, score popups and a synthesized taiko hit. The bottom HUD shows an R ULT keycap that glows when full.
 - **Bosses:** eight scroll guardians with telegraphed charges, storms, wall-eating roars and phased health; Yukioro's three-stage winter finale.
 - **Pilgrim's Path:** branching eight-scroll map with Swarm, Quiet and Relic Shrine roads; walked path shown in ink.
 - **Spirit tactics:** eight yokai with lunge, phase, hop, split, eat, weave, interruptible haste pulse and telegraphed dive patterns.

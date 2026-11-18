@@ -29,6 +29,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     tutorial: 'DRAW A LOOP AROUND THE SPIRITS', ended: false, climax: null, finalSeal: null, frostLanes: [],
     ending: null, defeat: null, resultsTime: 0, resultsBeat: -1, showAchievements: false, daily: false,
     ...getSkinPrefs(),
+    ultMeter: 0, ult: null,
   };
   state.monk.outfit = state.outfit;
   state.monk.brush = state.brush;

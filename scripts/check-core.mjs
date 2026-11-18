@@ -13,6 +13,7 @@ import { draftArts, chooseArt, BRUSH_ARTS } from '../game/src/arts/brushArts.js'
 import { chooseRoad } from '../game/src/world/path.js';
 import { readBest, readProgress, recordRun, selectBellSkin, UNLOCKS } from '../game/src/save.js';
 import { formatSeed, newRunSeed } from '../game/src/rng.js';
+import { fillUlt, ultCharge, ultReady, tryUltimate, ULT_MAX } from '../game/src/arts/ultimate.js';
 
 function world() { const state = createState(1); startRun(state); state.queue = []; return state; }
 function circle(state, x, y, radius = 64) {
@@ -270,4 +271,45 @@ console.log('Combo heat OK: builds with seals, +25% score at max, decays on comb
   for (let i = 0; i < 2 / STEP; i++) { winTest.monk.stunned = false; updateWorld(winTest, replayInput(), STEP); }
   assert.ok(winTest.mode === 'play' || winTest.mode === 'draft', 'Monk health never ends the run directly');
 }
+{
+  const state = world();
+  assert.equal(ultCharge(state), 0, 'ULT meter starts at zero');
+  assert.equal(ultReady(state), false, 'ULT is not ready at zero');
+  fillUlt(state, ULT_MAX);
+  assert.equal(ultCharge(state), ULT_MAX, 'ULT meter fills to max');
+  assert.ok(ultReady(state), 'ULT is ready when meter full');
+  // Fill via seals: spawn spirits and seal them
+  const s2 = world();
+  for (let i = 0; i < 4; i++) spawnYokai(s2, 'crane', { x: 260 + i * 9, y: 350 });
+  circle(s2, 270, 350);
+  assert.ok(ultCharge(s2) > 15, 'Sealing four spirits fills ULT meter by a visible amount');
+  assert.ok(ultCharge(s2) < ULT_MAX, 'Single seal does not instantly max ULT');
+  // Activation
+  const s3 = world();
+  fillUlt(s3, ULT_MAX);
+  const boss = spawnBoss(s3, 'moss', { x: 250, y: 250 });
+  spawnYokai(s3, 'kappa', { x: 360, y: 350 });
+  spawnYokai(s3, 'crane', { x: 370, y: 360 });
+  spawnYokai(s3, 'lantern', { x: 380, y: 370 });
+  assert.ok(tryUltimate(s3), 'ULT activates when meter full');
+  assert.equal(ultCharge(s3), 0, 'ULT meter resets to zero on use');
+  assert.ok(s3.ult, 'ULT effect object is set');
+  assert.ok(s3.flash > 0.2 && s3.shake >= 14, 'ULT triggers screen flash and heavy shake');
+  // Simulate the delayed hit by running updateWorld
+  for (let step = 0; step < 60; step++) updateWorld(s3, replayInput(), STEP);
+  assert.ok(s3.ult.hits, 'ULT hits fire after delay');
+  assert.equal(ultCharge(s3), 0, 'ULT meter stays zero after effect');
+  // Check regular yokai were sealed (via sealed count)
+  assert.ok(s3.sealed >= 2, 'ULT seals regular yokai on screen');
+  // Check boss took damage
+  assert.ok(boss.hp < boss.maxHp, 'ULT deals heavy damage to bosses');
+  // Cannot activate again while active
+  assert.equal(tryUltimate(s3), false, 'ULT cannot double-activate');
+  // Clear the active ult to test refilling
+  s3.ult = null;
+  // Meter fills again after use
+  fillUlt(s3, 30);
+  assert.equal(ultCharge(s3), 30, 'ULT meter can refill after use');
+}
+console.log('ULT OK: meter fills from seals, activates, seals yokai, damages bosses, resets');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

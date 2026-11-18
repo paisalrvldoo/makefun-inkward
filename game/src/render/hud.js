@@ -14,6 +14,7 @@ import { activeSynergies } from '../arts/schools.js';
 
 import { drawRelics } from './relics.js';
 import { isAscension, wrathCap, ascensionLabel } from '../world/ascension.js';
+import { ultRatio, ultReady } from '../arts/ultimate.js';
 
 export function drawHud(ctx, state, audio) {
   const scroll = getScroll(state), season = getSeason(state);
@@ -154,12 +155,27 @@ export function drawHud(ctx, state, audio) {
   text(ctx, `SPACE ${state.monk.dashCooldown > 0 ? state.monk.dashCooldown.toFixed(1) + 's' : 'READY'} · SPLASH ${state.splashCooldown > 0 ? state.splashCooldown.toFixed(1) + 's' : 'READY'}`, 294, 690, 10, '#171c24', 'bold');
   text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 681, 751, 12, '#8dc8e2', 'bold');
   text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 758, 751, 12, '#f0c35b', 'bold');
+  // ULTIMATE — Great Seal meter and R keycap; glows when full.
+  const ultFull = ultReady(state), ultFill = ultRatio(state);
+  const ultX = 826;
+  if (ultFull) {
+    const glow = 0.5 + Math.sin(state.time * 8) * 0.3;
+    ctx.fillStyle = `rgba(255,210,115,${glow})`; ctx.fillRect(ultX - 4, 716, 86, 40);
+  }
+  ctx.fillStyle = ultFull ? '#ffd273' : '#2a3040'; ctx.fillRect(ultX, 720, 24, 24);
+  ctx.strokeStyle = ultFull ? '#fffaf0' : '#5a606e'; ctx.lineWidth = 1.5; ctx.strokeRect(ultX + 0.5, 720.5, 23, 23);
+  text(ctx, 'R', ultX + 12, 737, 15, ultFull ? '#0a0f16' : '#9aa0ae', 'bold', true, 'center');
+  text(ctx, 'ULT', ultX + 52, 731, 11, ultFull ? '#ffd273' : '#d4cfbf', 'bold');
+  ctx.fillStyle = '#4a4d51'; ctx.fillRect(ultX + 32, 738, 50, 7);
+  const ultColor = ultFill >= 1 ? '#ffd273' : ultFill >= 0.5 ? '#e8682a' : '#c93127';
+  ctx.fillStyle = ultColor; ctx.fillRect(ultX + 32, 738, 50 * ultFill, 7);
+  if (ultFill >= 1) text(ctx, 'READY', ultX + 57, 759, 9, '#ffd273', 'bold', false, 'center');
   text(ctx, 'GRADE', 927, 727, 9, '#d4cfbf', 'bold', false, 'center');
   text(ctx, gradeRun(state), 927, 754, 29, COLORS.white, 'bold', true, 'center');
   const mastery = Math.floor(state.sealed / 8) + state.circuits;
   text(ctx, `LV ${mastery + 1}  ·  ${state.sealed % 8}/8 SEALS`, 884, 751, 10, '#c4a4f0', 'bold');
   text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 996, 729, 12, COLORS.white, 'bold', true, 'right');
-  const hints = [['WASD', 'MOVE'], ['LMB', 'PAINT'], ['RMB', 'SPLASH'], ['SPACE', 'DASH'], ['Q', 'LOTUS'], ['E', 'BELL'], ['P', 'PAUSE'], ['M', 'SOUND']];
+  const hints = [['WASD', 'MOVE'], ['LMB', 'PAINT'], ['RMB', 'SPLASH'], ['SPACE', 'DASH'], ['Q', 'LOTUS'], ['E', 'BELL'], ['R', 'ULT'], ['P', 'PAUSE'], ['M', 'SOUND']];
   let kx = 20;
   for (const [key, label] of hints) {
     const kw = ctx.measureText(key).width + 16;

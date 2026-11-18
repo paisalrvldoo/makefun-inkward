@@ -15,6 +15,7 @@ import { drawSkillEffects } from './skillEffects.js';
 import { drawSilhouette } from './silhouette.js';
 import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffects.js';
 import { drawClimax } from './climax.js';
+import { drawUltimate } from './ultimate.js';
 import { drawEnding } from '../screens/ending.js';
 import { drawDefeat } from '../screens/defeat.js';
 import { holdFinalFrame } from './finalFrame.js';
@@ -89,4 +90,5 @@ export function renderScene(ctx, paper, state, input, audio) {
   if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);
   drawClimax(ctx, state);
+  drawUltimate(ctx, state);
 }

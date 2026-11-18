@@ -194,6 +194,11 @@ export function createAudio() {
         [330, 440, 550, 660].forEach((f, i) => tone(f, 0.7, 0.09, 'triangle', i * 0.15));
       } else if (name === 'lose') {
         [294, 220, 147].forEach((f, i) => tone(f, 0.7, 0.1, 'sine', i * 0.2));
+      } else if (name === 'ultimate') {
+        taiko(1.0); taiko(0.85, 0.06); taiko(0.7, 0.12);
+        tone(48, 1.2, 0.32, 'triangle', 0.02);
+        [220, 330, 440, 660].forEach((f, i) => tone(f, 0.7, 0.1, 'sine', 0.08 + i * 0.05));
+        rustle(0.5, 0.18, 500, 0.05);
       } else tone(550, 0.12, 0.05, 'triangle');
     },
   };

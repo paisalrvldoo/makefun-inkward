@@ -9,6 +9,7 @@ import { chooseArt } from './arts/brushArts.js';
 import { chooseRoad } from './world/path.js';
 import { endStroke } from './ink/strokes.js';
 import { clearControls } from './controls/buffer.js';
+import { tryUltimate } from './arts/ultimate.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { createPost } from './render/post/index.js';
@@ -85,7 +86,8 @@ function handleMenus() {
     if (state.showAchievements && input.pressed.has('Escape')) { state.showAchievements = false; audio.play('click'); }
     if (input.pressed.has('Enter') || clicked(START_BUTTON)) { resetRun(); input.clearFrame(); }
   } else if (state.mode === 'play') {
-    if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();
+    if (input.pressed.has('KeyR') && tryUltimate(state)) { input.pressed.delete('KeyR'); }
+    else if (input.pressed.has('KeyP') || input.pressed.has('Escape')) pauseRun();
   } else if (state.mode === 'pause') {
     if (input.pressed.has('KeyP') || input.pressed.has('Escape') || clicked(RESUME_BUTTON)) { input.release(); state.mode = 'play'; audio.play('click'); input.clearFrame(); }
   } else if (state.mode === 'draft') {
