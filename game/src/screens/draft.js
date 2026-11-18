@@ -90,9 +90,17 @@ export function drawDraft(ctx, state, input) {
     text(ctx, road ? 'PRESS ' + (i + 1) + ' / TAKE ART' : 'CHOOSE A ROAD FIRST ↑', rect.x + rect.w / 2, chip.y + 23, road ? 14 : 12, '#fff4df', 'bold', false, 'center');
   });
 
-  panel(ctx, 42, 704, 1196, 62, '#111c29', '#78643c');
+  panel(ctx, 42, 704, 1196, 62, '#0d1622', '#6d5231');
   const combos = activeSynergies(state);
-  text(ctx, combos.length ? 'SYNERGY / ' + combos.map(s => s.name + ' ' + s.bonus).join('  ·  ') : 'BELL ' + state.bell.hp + '/' + state.bell.maxHp + '   ·   SCORE ' + state.score.toLocaleString('en-US') + '   ·   ' + state.sealed + ' SPIRITS FREED', 640, 729, 13, '#e8bd60', 'bold', false, 'center');
-  const relicText = state.relics.map(id => RELICS.find(r => r.id === id).name).join(' · ');
-  text(ctx, road?.id === 'shrine' ? shrineRelic(state).effect.toUpperCase() : relicText ? 'RELICS / ' + relicText.toUpperCase() : road ? road.effect.toUpperCase() + '  ·  1–' + state.draft.length + ' / CLICK TO TAKE AN ART' : '← SWARM ROAD   ·   → QUIET ROAD   ·   OR CLICK THE NEXT MAP NODE', 640, 751, 11, '#d4d0c6', 'bold', false, 'center');
+  if (combos.length) {
+    panel(ctx, 50, 710, 1180, 22, '#1a2e38', combos[0].color);
+    text(ctx, 'SYNERGY / ' + combos.map(s => s.name + ' ' + s.bonus).join('  \u00b7  '), 640, 725, 14, '#fff0d0', 'bold', false, 'center');
+  }
+  text(ctx, combos.length ? '' : 'BELL ' + state.bell.hp + '/' + state.bell.maxHp + '   \u00b7   SCORE ' + state.score.toLocaleString('en-US') + '   \u00b7   ' + state.sealed + ' SPIRITS FREED', 640, 729, combos.length ? 0 : 13, '#e8bd60', 'bold', false, 'center');
+  const relicText = state.relics.map(id => RELICS.find(r => r.id === id).name).join(' \u00b7 ');
+  if (relicText) {
+    panel(ctx, 50, combos.length ? 733 : 733, 1180, 18, '#1d1428', '#7b5da0');
+    text(ctx, 'RELICS / ' + relicText.toUpperCase(), 640, 746, 10, '#d0b8f0', 'bold', false, 'center');
+  }
+  text(ctx, road?.id === 'shrine' ? shrineRelic(state).effect.toUpperCase() : relicText ? '' : road ? road.effect.toUpperCase() + '  \u00b7  1\u2013' + state.draft.length + ' / CLICK TO TAKE AN ART' : '\u2190 SWARM ROAD   \u00b7   \u2192 QUIET ROAD   \u00b7   OR CLICK THE NEXT MAP NODE', 640, 756, road?.id === 'shrine' ? 11 : 10, road?.id === 'shrine' ? '#e0c0ff' : '#cbc7ba', 'bold', false, 'center');
 }
