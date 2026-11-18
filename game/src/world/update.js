@@ -25,6 +25,7 @@ import { checkAchievements } from '../achievements.js';
 import { updateScoreBurst } from '../fx/scoreBurst.js';
 import { updateInkMotes } from '../fx/inkMotes.js';
 import { updateUlt } from '../arts/ultimate.js';
+import { spawnCombatText } from '../fx/combatText.js';
 
 export function recordScroll(state) {
   const key = `${isAscension(state) ? state.ascension : 0}:${state.scroll}`;
@@ -112,8 +113,9 @@ export function updateWorld(state, input, dt) {
     finishOmen(state, true);
     endStroke(state);
     if (!state.bellHitThisScroll) state.unharmedScroll = true;
-    state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + artLevel(state, 'afterglow'));
-    if (artLevel(state, 'afterglow')) castArt(state, 'afterglow', state.bell, { radius: 90, force: true });
+    const afterglowHeal = artLevel(state, 'afterglow');
+    state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + afterglowHeal);
+    if (afterglowHeal) { castArt(state, 'afterglow', state.bell, { radius: 90, force: true }); spawnCombatText(state, state.bell.x, state.bell.y - 40, '+' + afterglowHeal, 'heal', 'AFTERGLOW'); }
     if (state.scroll === 8) { if (isAscension(state)) finishCircuit(state); else finishRun(state, true); }
     else {
       state.score += 400 + state.bell.hp * 25;

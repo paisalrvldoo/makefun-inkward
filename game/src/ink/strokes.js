@@ -7,6 +7,7 @@ import { inkCost, closingSnap } from './cost.js';
 import { INPUT_GRACE, controlFeedback } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
 import { synergyBonus } from '../arts/schools.js';
+import { spawnCombatText } from '../fx/combatText.js';
 
 export function beginStroke(state, point) {
   if (state.waitRelease) return;
@@ -109,6 +110,16 @@ export function updateStrokes(state, input, dt) {
   if (state.activeStroke && !state.strokes.includes(state.activeStroke)) state.activeStroke = null;
   if (!state.activeStroke) {
     if (state.ink < state.maxInk - 10 && artLevel(state, 'breath')) castArt(state, 'breath', state.monk, { radius: 38, interval: 2.5 });
+    const before = state.ink;
     state.ink = Math.min(state.maxInk, state.ink + (INK.regen + (state.shopInkRegen || 0)) * dt * (1 + artLevel(state, 'breath') * 0.3) * synergyBonus(state, 'flow'));
+    const gained = state.ink - before;
+    if (gained > 0.05) {
+      state._inkTextAcc = (state._inkTextAcc || 0) + gained;
+      state._inkTextTime = (state._inkTextTime || 0) + dt;
+      if (state._inkTextAcc >= 4 && state._inkTextTime <= 0.5) {
+        spawnCombatText(state, state.monk.x + 26, state.monk.y - 14, '+' + Math.round(state._inkTextAcc), 'ink', null);
+        state._inkTextAcc = 0; state._inkTextTime = 0;
+      } else if (state._inkTextTime > 0.5) { state._inkTextAcc = 0; state._inkTextTime = 0; }
+    }
   }
 }

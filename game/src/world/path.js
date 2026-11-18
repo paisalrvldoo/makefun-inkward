@@ -1,5 +1,6 @@
 import { grantRelic } from '../arts/relics.js';
 import { isAscension } from './ascension.js';
+import { spawnCombatText } from '../fx/combatText.js';
 
 export const ROADS = [
   { id: 'swarm', name: 'Swarm road', effect: '+30% spirits · +1 art level', color: '#df7150', key: 'ArrowLeft' },
@@ -23,7 +24,7 @@ export function walkRoad(state) {
   if (state.mode !== 'draft' || (state.scroll >= 8 && !isAscension(state)) || !road) return false;
   if (state.scroll < 8) state.route[state.scroll] = road.id;
   state.activeRoad = road.id;
-  if (road.id === 'quiet') state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + 2);
+  if (road.id === 'quiet') { state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + 2); spawnCombatText(state, state.bell.x, state.bell.y - 40, '+2', 'heal', 'BELL REPAIRED'); }
   if (road.id === 'shrine') grantRelic(state);
   state.roadChoice = null;
   return true;

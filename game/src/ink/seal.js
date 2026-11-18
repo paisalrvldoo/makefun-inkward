@@ -18,6 +18,7 @@ import { releaseInkMotes } from '../fx/inkMotes.js';
 import { addUltFromSeal } from '../arts/ultimate.js';
 
 import { rollInkGold } from '../run/shop.js';
+import { spawnCombatText } from '../fx/combatText.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
@@ -35,6 +36,7 @@ export function releaseSpirit(state, enemy) {
     state.inkGold = (state.inkGold || 0) + gold;
     floatText(state, enemy.x, enemy.y - 28, '+' + gold + ' \u25c9', '#f0c35b', 16);
   }
+  spawnCombatText(state, enemy.x, enemy.y - enemy.radius - 6, '+' + score.toLocaleString('en-US'), 'score', 'SCORE');
   if (enemy.boss === 'frost' && state.scroll === 8) {
     beginFinalSeal(state, enemy);
     for (const spirit of state.enemies) if (!spirit.dead) releaseSpirit(state, spirit);
@@ -63,6 +65,10 @@ if (Math.floor(state.combo) > Math.floor(previousCombo)) {
     floatText(state, state.monk.x, state.monk.y + 66, `COMBO \u00d7${state.combo.toFixed(1)}`, '#bb4436', 22);
     state.soundEvents.push({ name: 'combo', value: state.combo });
   }
+  if (enclosed.length >= 2) {
+    const chainCount = enclosed.length + artLevel(state, 'thunder');
+    if (chainCount >= 2) spawnCombatText(state, state.monk.x, state.monk.y - 96, `CHAIN ×${chainCount}!`, 'chain', chainCount >= 4 ? 'UNSTOPPABLE' : null);
+  }
   if (state.comboHeat >= 1 && (state.comboHeat - enclosed.length * 0.05 - 0.15) < 1) {
     floatText(state, state.monk.x, state.monk.y - 72, 'HEAT MAX \u00b7 +25% SCORE', '#f2a247', 20);
     state.soundEvents.push({ name: 'seal' });
@@ -83,6 +89,7 @@ if (Math.floor(state.combo) > Math.floor(previousCombo)) {
         state.score += Math.round(350 * state.combo);
         burst(state, enemy.x, enemy.y, 30, enemy.color);
         floatText(state, enemy.x, enemy.y - 50, `ONI SEAL · ${enemy.hp} LEFT`, enemy.color, 23);
+        spawnCombatText(state, enemy.x, enemy.y - enemy.radius - 18, String(damage), damage >= 3 ? 'crit' : 'hit', damage >= 3 ? 'CRIT!' : null);
       } else releaseSpirit(state, enemy);
     } else releaseSpirit(state, enemy);
   }
@@ -104,6 +111,8 @@ if (Math.floor(state.combo) > Math.floor(previousCombo)) {
   state.ink = Math.min(state.maxInk, state.ink + refund);
   floatText(state, centre.x, centre.y - 24, `SEALED ×${enclosed.length} +${(state.score - before).toLocaleString('en-US')}`, '#bb4436', 29);
   floatText(state, centre.x, centre.y + 4, `+${refund} INK · WRATH ×${wrathMultiplier(state).toFixed(1)}`, '#b68a36', 17);
+  spawnCombatText(state, centre.x, centre.y - 60, `SEALED ×${enclosed.length}`, 'seal', '+' + (state.score - before).toLocaleString('en-US'));
+  if (refund >= 10) spawnCombatText(state, centre.x + 70, centre.y - 24, '+' + refund, 'ink', 'INK');
   beginScoreBurst(state, centre, state.score - before, enclosed.length);
   releaseInkMotes(state, enclosed);
   addRing(state, centre.x, centre.y, 95, '#bb4436', 0.7);

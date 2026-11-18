@@ -22,7 +22,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     huntersSpawned: 0, huntersSealed: 0, wrathScore: 0,
     omen: null, omenHistory: [], omenScore: 0, bonusDraft: false,
     ink: INK.max, maxInk: INK.max, bell: { ...BELL, hp: profile.hp, maxHp: profile.hp, hitTime: 0, wardTime: 0, skin: progress.selectedSkin }, monk: createMonk(),
-    enemies: [], strokes: [], activeStroke: null, waitRelease: false, strokeStart: null, strokeGrace: 0, paintBuffer: [], actionBuffer: {}, controlFeedback: null, particles: [], floats: [], rings: [],
+    enemies: [], strokes: [], activeStroke: null, waitRelease: false, strokeStart: null, strokeGrace: 0, paintBuffer: [], actionBuffer: {}, controlFeedback: null, particles: [], floats: [], rings: [], combatTexts: [],
     seals: [], ghosts: [], dissolves: [], bolts: [], skillEffects: [], artFxTimes: {}, impactFrames: 0, impactColor: '#fffaf0', ritualFlash: 0, arts: [], artLevels: {}, draft: [], queue: [], spawned: 0, cleared: 0, total: 0,
     spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,
     banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, hitStop: 0, soundEvents: [], nextId: 1,

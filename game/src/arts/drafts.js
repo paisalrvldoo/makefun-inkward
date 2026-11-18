@@ -2,6 +2,7 @@ import { BRUSH_ARTS } from './catalog.js';
 import { artLevel, MAX_ART_LEVEL } from './levels.js';
 import { burst, floatText } from '../render/fx.js';
 import { castArt } from '../fx/skillCasts.js';
+import { spawnCombatText } from '../fx/combatText.js';
 
 export const draftArtLevel = (state, id) => Math.min(MAX_ART_LEVEL, artLevel(state, id) + 1 + (state.roadChoice === 'swarm' ? 1 : 0));
 
@@ -13,13 +14,13 @@ export function draftArts(state) {
 export function chooseArt(state, index) {
   const art = state.draft[index];
   if (!art || (state.mode === 'draft' && !state.roadChoice)) return false;
-  if (art.id === 'rest') { state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + 2); state.ink = state.maxInk; state.soundEvents.push({ name: 'bell' }); return true; }
+  if (art.id === 'rest') { state.bell.hp = Math.min(state.bell.maxHp, state.bell.hp + 2); state.ink = state.maxInk; state.soundEvents.push({ name: 'bell' }); spawnCombatText(state, state.bell.x, state.bell.y - 40, '+2', 'heal', 'RESPITE'); return true; }
   const current = artLevel(state, art.id), level = draftArtLevel(state, art.id), gained = level - current;
   if (gained <= 0) return false;
   if (!state.arts.includes(art.id)) state.arts.push(art.id);
   state.artLevels[art.id] = level;
   if (art.id === 'breath') state.maxInk += 30 * gained;
-  if (art.id === 'mending') state.bell.hp = Math.min(state.bell.hp + 3 * gained, state.bell.maxHp);
+  if (art.id === 'mending') { state.bell.hp = Math.min(state.bell.hp + 3 * gained, state.bell.maxHp); spawnCombatText(state, state.bell.x, state.bell.y - 40, '+' + (3 * gained), 'heal', 'MENDING'); }
   state.ink = state.maxInk;
   castArt(state, art.id, state.monk, { force: true });
   burst(state, state.monk.x, state.monk.y, 26, '#b68a36');

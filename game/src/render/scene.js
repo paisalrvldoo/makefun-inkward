@@ -25,6 +25,7 @@ import { drawTacticalTelegraphs } from './tacticalSpirits.js';
 
 import { drawScoreBurst } from './scoreBurst.js';
 import { drawInkMotes } from './inkMotes.js';
+import { drawCombatTexts } from './combatText.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   const frozen = holdFinalFrame(ctx, state);
@@ -69,6 +70,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   drawSkillEffects(ctx, state);
   drawInkMotes(ctx, state);
   drawScoreBurst(ctx, state);
+  drawCombatTexts(ctx, state);
   if (state.mode === 'play') {
     drawCursor(ctx, input, state);
     drawInkCallouts(ctx, state);
