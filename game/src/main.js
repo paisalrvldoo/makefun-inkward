@@ -2,7 +2,7 @@ import { WIDTH, HEIGHT, STEP } from './config.js';
 import { createInput } from './input.js';
 import { createAudio } from './audio.js';
 import { readBest, readProgress, recordRun, selectBellSkin } from './save.js';
-import { newRunSeed } from './rng.js';
+import { newRunSeed, dailySeed, dailyDateString } from './rng.js';
 import { createState, startRun } from './world/state.js';
 import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt } from './arts/brushArts.js';
@@ -12,7 +12,7 @@ import { clearControls } from './controls/buffer.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { createPost } from './render/post/index.js';
-import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON, ASCENSION_BUTTON, ACHIEVEMENTS_BUTTON } from './screens/title.js';
+import { START_BUTTON, DIFFICULTY_RECTS, SKIN_BUTTON, SEED_BUTTON, ASCENSION_BUTTON, ACHIEVEMENTS_BUTTON, DAILY_BUTTON } from './screens/title.js';
 import { draftRects } from './screens/draft.js';
 import { ROAD_RECTS, pathChoiceRects } from './screens/path.js';
 import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/results.js';
@@ -48,7 +48,9 @@ function fitCanvas() {
 window.addEventListener('resize', fitCanvas); fitCanvas();
 
 function resetRun(start = true, runSeed = state.seed, expedition = state.expedition) {
+  const daily = state.daily;
   state = createState(runSeed, readBest(), state.difficulty, readProgress(), expedition);
+  state.daily = daily;
   staged = false; previewRun = false; drawInput = input; accumulator = 0;
   input.release(); input.clearFrame();
   if (start) startRun(state);
@@ -71,7 +73,13 @@ function handleMenus() {
       const skin = state.bell.skin === 'moon' ? 'bronze' : 'moon';
       if (selectBellSkin(state.progress, skin)) { state.bell.skin = skin; audio.play('click'); }
     }
-    if (input.pressed.has('KeyR') || clicked(SEED_BUTTON)) { resetRun(false, newRunSeed(state.seed)); audio.play('click'); }
+    if (input.pressed.has('KeyR') || clicked(SEED_BUTTON)) { resetRun(false, newRunSeed(state.seed)); state.daily = false; audio.play('click'); }
+    if (input.pressed.has('KeyD') || clicked(DAILY_BUTTON)) {
+      state.daily = !state.daily;
+      if (state.daily) { resetRun(false, dailySeed()); state.daily = true; }
+      else resetRun(false, newRunSeed(state.seed));
+      audio.play('click');
+    }
     if (state.unlocks.includes('ascension') && (input.pressed.has('KeyA') || clicked(ASCENSION_BUTTON))) { state.expedition = state.expedition === 'ascension' ? 'pilgrimage' : 'ascension'; audio.play('click'); }
     if (input.pressed.has('Tab') || clicked(ACHIEVEMENTS_BUTTON)) { state.showAchievements = !state.showAchievements; audio.play('click'); }
     if (state.showAchievements && input.pressed.has('Escape')) { state.showAchievements = false; audio.play('click'); }
@@ -95,10 +103,16 @@ function handleMenus() {
       if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
       return;
     }
-    if (state.unlocks.includes('ascension') && input.pressed.has('KeyA')) resetRun(true, newRunSeed(state.seed), 'ascension');
-    else if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON) || state.mode === 'lose' && state.defeat?.age < state.defeat?.duration && clicked(DEFEAT_RETRY_BUTTON)) resetRun(true, newRunSeed(state.seed));
+    if (state.unlocks.includes('ascension') && input.pressed.has('KeyA')) { resetRun(true, newRunSeed(state.seed), 'ascension'); state.daily = false; }
+    else if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON) || state.mode === 'lose' && state.defeat?.age < state.defeat?.duration && clicked(DEFEAT_RETRY_BUTTON)) { resetRun(true, newRunSeed(state.seed)); state.daily = false; }
     else if (input.pressed.has('KeyS') || clicked(SAME_SEED_BUTTON)) resetRun();
     else if (input.pressed.has('Escape') || clicked(TITLE_BUTTON)) resetRun(false);
+    else if (state.daily && input.pressed.has('KeyC')) {
+      const won = state.mode === 'win';
+      const line = `INKWARD Daily ${dailyDateString()} · ${state.grade} · ${state.score.toLocaleString('en-US')} · ${won ? 8 : state.scroll - 1}/8 · ×${state.peakCombo.toFixed(1)}`;
+      try { navigator.clipboard?.writeText(line); } catch { /* clipboard is optional */ }
+      audio.play('click');
+    }
     else if (input.pressed.size || input.clicks.length || input.splashes.length) { skipDefeat(state); skipResults(state); }
   }
 }
@@ -123,7 +137,7 @@ function frame(now) {
   } else input.clearFrame();
   const showingEnding = state.mode === 'win' && state.ending?.age < state.ending?.duration;
   if (previousMode !== state.mode || previousSeed !== state.seed || previousEnding !== showingEnding) {
-    status.textContent = state.mode === 'title' ? `INKWARD. Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : state.mode === 'win' && state.ending?.age < state.ending?.duration ? `Victory. The bell rings at dawn. Any key or tap skips to your final record. Score ${state.score}.` : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.`;
+    status.textContent = state.mode === 'title' ? `INKWARD.${state.daily ? ' Daily scroll ' + dailyDateString() + '.' : ''} Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : state.mode === 'win' && state.ending?.age < state.ending?.duration ? `Victory. The bell rings at dawn. Any key or tap skips to your final record. Score ${state.score}.` : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.${state.daily ? ' C copies your daily result.' : ''}`;
     if (!previewRun && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
     previousMode = state.mode; previousSeed = state.seed; previousEnding = showingEnding;
   }

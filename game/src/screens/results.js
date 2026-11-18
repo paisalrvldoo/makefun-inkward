@@ -8,7 +8,7 @@ import { wrathCap } from '../world/ascension.js';
 import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
 import { artLevel } from '../arts/levels.js';
-import { formatSeed } from '../rng.js';
+import { formatSeed, dailyDateString } from '../rng.js';
 import { resultMotion, resultReveal } from './resultMotion.js';
 import { drawEndingVista } from '../render/endingVista.js';
 import { drawSeasonScroll } from '../render/seasonScrolls.js';
@@ -56,6 +56,11 @@ export function drawResults(ctx, state, input) {
   text(ctx, 'PERSONAL BEST', 465, 228, 11, '#b3c1be', 'bold');
   text(ctx, number(state.best), 463, 266, 34, '#eac66f', 'bold', true);
   text(ctx, 'SEED ' + formatSeed(state.seed) + ' / ' + state.difficulty.toUpperCase(), 66, 317, 12, '#d6b86e', 'bold');
+  if (state.daily) {
+    const dailyLine = `INKWARD Daily ${dailyDateString()} · ${state.grade} · ${number(state.score)} · ${won ? 8 : state.scroll - 1}/8 · ×${state.peakCombo.toFixed(1)}`;
+    text(ctx, dailyLine, 66, 336, 11, '#c4a4f0', 'bold');
+    text(ctx, 'PRESS C TO COPY', 884, 336, 10, '#a890d0', 'bold', false, 'right');
+  }
   if (state.previousBestRun) {
     const difference = state.score - state.previousBestRun.score;
     text(ctx, (difference >= 0 ? '+' : '−') + number(Math.abs(difference)) + ' VS PREVIOUS BEST', 884, 317, 11, difference >= 0 ? '#91c9aa' : '#dda18a', 'bold', false, 'right');

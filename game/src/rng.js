@@ -18,3 +18,16 @@ export function newRunSeed(previous = 0) {
   const seed = values[0] || 1;
   return seed === previous ? (seed + 1) >>> 0 || 1 : seed;
 }
+
+export function dailySeed() {
+  const d = new Date();
+  const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = ((hash * 31 + key.charCodeAt(i)) >>> 0);
+  return hash || 1;
+}
+
+export function dailyDateString() {
+  const d = new Date();
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}

@@ -6,7 +6,7 @@ import { wash, blossom } from '../render/paper.js';
 import { DIFFICULTIES } from '../world/difficulty.js';
 import { ONI } from '../entities/bosses.js';
 import { drawTutorial } from './tutorial.js';
-import { formatSeed } from '../rng.js';
+import { formatSeed, dailyDateString } from '../rng.js';
 import { ACHIEVEMENTS, drawAchievementIcon, drawAchievementPanel } from '../achievements.js';
 
 export const ASCENSION_BUTTON = { x: 510, y: 562, w: 310, h: 34 };
@@ -15,6 +15,7 @@ export const DIFFICULTY_RECTS = DIFFICULTIES.map((d, i) => ({ x: 64 + i * 136, y
 export const SKIN_BUTTON = { x: 290, y: 388, w: 208, h: 27 };
 export const SEED_BUTTON = { x: 64, y: 388, w: 208, h: 27 };
 export const ACHIEVEMENTS_BUTTON = { x: 510, y: 388, w: 208, h: 27 };
+export const DAILY_BUTTON = { x: 728, y: 388, w: 208, h: 27 };
 export function drawTitle(ctx, state, input, audio) {
   ctx.fillStyle = '#0a1220'; ctx.fillRect(0, 0, 1280, 800);
   wash(ctx, 973, 258, 352, '#a2241f', 0.32);
@@ -75,6 +76,8 @@ export function drawTitle(ctx, state, input, audio) {
   const earned = (state.progress.achievements || []).length;
   panel(ctx, ACHIEVEMENTS_BUTTON.x, ACHIEVEMENTS_BUTTON.y, ACHIEVEMENTS_BUTTON.w, ACHIEVEMENTS_BUTTON.h, hitRect(input.pointer, ACHIEVEMENTS_BUTTON) ? '#2c3f4a' : '#1e2d39', '#7a5a32');
   text(ctx, 'ACHIEVEMENTS ' + earned + '/' + ACHIEVEMENTS.length + '  /  TAB', 614, 406, 11, '#e4b550', 'bold', false, 'center');
+  panel(ctx, DAILY_BUTTON.x, DAILY_BUTTON.y, DAILY_BUTTON.w, DAILY_BUTTON.h, state.daily ? '#704e92' : hitRect(input.pointer, DAILY_BUTTON) ? '#2c3f4a' : '#1e2d39', '#a07ad0');
+  text(ctx, 'DAILY SCROLL ' + (state.daily ? 'ON / D' : '/ D') + ' · ' + dailyDateString(), 832, 406, 10, '#dcc2f6', 'bold', false, 'center');
 
   button(ctx, 'OPEN THE FIRST SCROLL', START_BUTTON, hitRect(input.pointer, START_BUTTON), 'CLICK TO BEGIN  /  ENTER');
   DIFFICULTY_RECTS.forEach((rect, i) => {
