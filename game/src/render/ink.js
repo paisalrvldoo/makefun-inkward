@@ -2,6 +2,7 @@ import { COLORS, FIELD, INK, distance, clamp } from '../config.js';
 import { polygonArea } from '../ink/geometry.js';
 import { circle, text, stamp, line, panel } from './primitives.js';
 import { drawGlow } from './light.js';
+import { inkCost, closingSnap } from '../ink/cost.js';
 
 function strokePath(ctx, points, width, color) {
   if (points.length < 2) return;
@@ -85,8 +86,19 @@ export function drawInkCallouts(ctx, state) {
 export function drawCursor(ctx, input, state) {
   const { x, y } = input.pointer;
   if (x < FIELD.x || x > FIELD.x + FIELD.w || y < FIELD.y || y > FIELD.y + FIELD.h) return;
-  circle(ctx, x, y, input.painting ? 7 : 12, null, state.ink < 5 ? COLORS.red : COLORS.ink, 1);
+  const snap = closingSnap(state.activeStroke, input.pointer), feedback = state.controlFeedback;
+  const cost = state.activeStroke ? distance(state.activeStroke.points.at(-1), snap || input.pointer) * inkCost(state) : 2;
+  const color = state.ink < cost ? COLORS.red : snap ? '#258f78' : COLORS.ink;
+  circle(ctx, x, y, input.painting ? 7 : 12, null, color, 2);
   circle(ctx, x, y, 2, COLORS.ink);
+  ctx.beginPath(); ctx.arc(x, y, 17, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * state.ink / state.maxInk);
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+  if (snap) { circle(ctx, snap.x, snap.y, 12, '#258f7830', '#258f78', 2); line(ctx, [[x, y], [snap.x, snap.y]], '#258f78', 2); }
+  const label = feedback?.life > 0 ? feedback.text : state.ink < cost ? 'NOT ENOUGH INK' : snap ? `SNAP · ${cost.toFixed(1)} INK` : state.activeStroke ? `${cost.toFixed(1)} INK` : `INK ${Math.ceil(state.ink)}`;
+  ctx.font = 'bold 10px Arial';
+  const width = ctx.measureText(label).width + 16, px = clamp(x + 23, FIELD.x + 8, FIELD.x + FIELD.w - width - 8), py = clamp(y - 29, FIELD.y + 103, FIELD.y + FIELD.h - 30);
+  panel(ctx, px, py, width, 24, '#171c24ee', feedback?.life > 0 ? COLORS.red : color);
+  text(ctx, label, px + 8, py + 16, 10, feedback?.life > 0 ? '#ffad8d' : '#fff5dd', 'bold');
   if (state.activeStroke) {
     const last = state.activeStroke.points[state.activeStroke.points.length - 1];
     ctx.strokeStyle = '#bb443660'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);

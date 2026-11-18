@@ -1,5 +1,6 @@
 import { BELL, FIELD, MONK, clamp, distance } from '../config.js';
 import { artLevel } from '../arts/levels.js';
+import { takeAction } from '../controls/buffer.js';
 
 export function createMonk() {
   return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, walk: 0 };
@@ -12,11 +13,12 @@ export function updateMonk(state, input, dt) {
   if (length) { dx /= length; dy /= length; monk.vx = dx; monk.vy = dy; monk.walk += dt * 12; }
   monk.dashCooldown = Math.max(0, monk.dashCooldown - dt);
   monk.hurtTime = Math.max(0, monk.hurtTime - dt);
-  if (input.pressed.has('Space') && monk.dashCooldown <= 0) {
+  const dash = takeAction(state, 'dash', monk.dashCooldown <= 1e-6);
+  if (dash) {
     if (!length) {
-      const aim = distance(monk, input.pointer) || 1;
-      monk.vx = (input.pointer.x - monk.x) / aim;
-      monk.vy = (input.pointer.y - monk.y) / aim;
+      const aim = distance(monk, dash.point) || 1;
+      monk.vx = (dash.point.x - monk.x) / aim;
+      monk.vy = (dash.point.y - monk.y) / aim;
     }
     monk.dashTime = MONK.dashTime;
     monk.dashCooldown = MONK.dashCooldown / (1 + artLevel(state, 'willow') * 0.7);

@@ -2,6 +2,7 @@ import { distance, inField } from '../config.js';
 import { spawnYokai } from '../entities/yokai.js';
 import { burst, addRing, floatText } from '../render/fx.js';
 import { artLevel, MAX_ART_LEVEL } from './levels.js';
+import { takeAction } from '../controls/buffer.js';
 
 export const BRUSH_ARTS = [
   { id: 'vermilion', name: 'Vermilion edge', rune: 'V', type: 'WALL' },
@@ -62,7 +63,7 @@ export function chooseArt(state, index) {
   return true;
 }
 export function splashInk(state, point) {
-  if (state.splashCooldown > 0 || !inField(point)) return;
+  if (state.splashCooldown > 1e-6 || !inField(point)) return;
   state.splashCooldown = 4;
   addRing(state, point.x, point.y, 85, '#537f72', 0.6);
   burst(state, point.x, point.y, 20, '#537f72');
@@ -82,8 +83,9 @@ export function splashInk(state, point) {
 }
 export function updateArts(state, input, dt) {
   for (const key of ['splashCooldown', 'qCooldown', 'eCooldown']) state[key] = Math.max(0, state[key] - dt);
-  for (const point of input.splashes) splashInk(state, point);
-  if (input.pressed.has('KeyQ') && state.qCooldown <= 0) {
+  const splash = takeAction(state, 'splash', state.splashCooldown <= 1e-6);
+  if (splash) splashInk(state, splash.point);
+  if (takeAction(state, 'lotus', state.qCooldown <= 1e-6)) {
     const level = artLevel(state, 'lotus');
     state.qCooldown = Math.max(6, 14 - level * 3);
     for (const enemy of state.enemies) enemy.stun = Math.max(enemy.stun, 2.5 + level * 1.4);
@@ -91,7 +93,7 @@ export function updateArts(state, input, dt) {
     floatText(state, state.monk.x, state.monk.y - 35, 'LOTUS HUSH', '#7191a6', 23);
     state.soundEvents.push({ name: 'bell' });
   }
-  if (input.pressed.has('KeyE') && state.eCooldown <= 0) {
+  if (takeAction(state, 'ward', state.eCooldown <= 1e-6)) {
     const level = artLevel(state, 'mending');
     state.eCooldown = Math.max(8, 18 - level * 4);
     state.bell.wardTime = 8.5 + level * 1.5;

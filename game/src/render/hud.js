@@ -107,6 +107,7 @@ export function drawHud(ctx, state, audio) {
   ctx.fillStyle = '#4a4d51'; ctx.fillRect(518, 741, 54, 6);
   ctx.fillStyle = '#ef5b48'; ctx.fillRect(518, 741, 54 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   text(ctx, 'RITUALS', 681, 729, 10, '#d4cfbf', 'bold');
+  text(ctx, `SPACE ${state.monk.dashCooldown > 0 ? state.monk.dashCooldown.toFixed(1) + 's' : 'READY'} · SPLASH ${state.splashCooldown > 0 ? state.splashCooldown.toFixed(1) + 's' : 'READY'}`, 294, 690, 10, '#171c24', 'bold');
   text(ctx, `Q ${state.qCooldown > 0 ? Math.ceil(state.qCooldown) + 's' : 'READY'}`, 681, 751, 12, '#8dc8e2', 'bold');
   text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 758, 751, 12, '#f0c35b', 'bold');
   text(ctx, 'GRADE', 927, 727, 9, '#d4cfbf', 'bold', false, 'center');

@@ -8,6 +8,7 @@ import { updateWorld, nextScroll } from './world/update.js';
 import { chooseArt } from './arts/brushArts.js';
 import { chooseRoad } from './world/path.js';
 import { endStroke } from './ink/strokes.js';
+import { clearControls } from './controls/buffer.js';
 import { createPaper } from './render/paper.js';
 import { renderScene } from './render/scene.js';
 import { createPost } from './render/post/index.js';
@@ -50,6 +51,7 @@ function resetRun(start = true, runSeed = state.seed) {
 function pauseRun() {
   if (state.mode !== 'play') return;
   endStroke(state); input.release(); state.mode = 'pause';
+  clearControls(state);
 }
 function handleMenus() {
   if (input.pressed.has('KeyM')) audio.toggle();
@@ -105,6 +107,10 @@ function frame(now) {
     previousMode = state.mode; previousSeed = state.seed;
   }
   renderScene(ctx, paper, state, drawInput, audio);
+  canvas.style.cursor = state.mode === 'play' ? 'none' : 'pointer';
+  const touchDash = document.getElementById('touch-dash');
+  touchDash.hidden = !input.touch || state.mode !== 'play';
+  touchDash.textContent = state.monk.dashCooldown > 0 ? `DASH ${state.monk.dashCooldown.toFixed(1)}s` : 'DASH';
   post.present(state);
   if (staged) document.documentElement.dataset.shotReady = 'true';
   requestAnimationFrame(frame);

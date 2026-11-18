@@ -3,9 +3,17 @@ import { segmentIntersection } from './geometry.js';
 import { sealLoop } from './seal.js';
 import { floatText } from '../render/fx.js';
 import { artLevel } from '../arts/levels.js';
+import { inkCost, closingSnap } from './cost.js';
+import { INPUT_GRACE, controlFeedback } from '../controls/buffer.js';
 
 export function beginStroke(state, point) {
-  if (!inField(point) || state.ink < 2 || state.waitRelease) return;
+  if (state.waitRelease) return;
+  if (!inField(point) || state.ink < 2) {
+    state.strokeStart = { life: INPUT_GRACE };
+    if (state.ink < 2) controlFeedback(state, 'ink', 'NOT ENOUGH INK · RELEASE');
+    return;
+  }
+  state.strokeStart = null; state.strokeGrace = 0;
   const stroke = { id: state.nextId++, points: [{ ...point }], length: 0, integrity: 1, life: INK.lifetime, closed: false };
   state.strokes.push(stroke); state.activeStroke = stroke;
 }
@@ -21,12 +29,13 @@ export function endStroke(state) {
 export function paintPoint(state, point) {
   const stroke = state.activeStroke;
   if (!stroke || state.waitRelease) return;
-  if (!inField(point)) { endStroke(state); state.waitRelease = true; return; }
+  if (!inField(point)) { if (!state.strokeGrace) state.strokeGrace = INPUT_GRACE; return; }
+  state.strokeGrace = 0;
+  point = closingSnap(stroke, point) || point;
   const previous = stroke.points[stroke.points.length - 1];
   let length = distance(previous, point);
   if (length < 3) return;
-  const wardDiscount = state.bell.wardTime > 0 ? 1 - artLevel(state, 'moonInk') * 0.15 : 1;
-  const cost = INK.cost * (1 - artLevel(state, 'feather') * 0.18) * wardDiscount;
+  const cost = inkCost(state);
   const available = state.ink / cost;
   const end = length > available ? { x: previous.x + (point.x - previous.x) * available / length, y: previous.y + (point.y - previous.y) * available / length } : { ...point };
   length = Math.min(length, available);
@@ -59,13 +68,26 @@ export function paintPoint(state, point) {
   if (state.ink <= 0.1) {
     endStroke(state); state.waitRelease = true;
     floatText(state, end.x, end.y - 20, 'INK EMPTY · RELEASE TO REFILL', '#bb4436', 17);
+    controlFeedback(state, 'ink', 'NOT ENOUGH INK · RELEASE');
   }
 }
 export function updateStrokes(state, input, dt) {
+  if (state.strokeStart) {
+    state.strokeStart.life -= dt;
+    if (!input.painting || state.strokeStart.life < -1e-6) state.strokeStart = null;
+    else if (inField(input.pointer) && state.ink >= 2) beginStroke(state, input.pointer);
+  }
+  if (state.strokeGrace > 0) {
+    state.strokeGrace = Math.max(0, state.strokeGrace - dt);
+    if (!state.strokeGrace) { endStroke(state); state.waitRelease = true; }
+  }
   for (const event of input.paintEvents) {
     if (event.type === 'begin') { state.waitRelease = false; beginStroke(state, event.point); }
-    else if (event.type === 'move') paintPoint(state, event.point);
-    else { paintPoint(state, event.point); endStroke(state); state.waitRelease = false; }
+    else if (event.type === 'move') {
+      if (state.strokeStart && inField(event.point) && state.ink >= 2) beginStroke(state, event.point);
+      paintPoint(state, event.point);
+    }
+    else { paintPoint(state, event.point); endStroke(state); state.waitRelease = false; state.strokeStart = null; state.strokeGrace = 0; }
   }
   for (const stroke of state.strokes) {
     if (stroke !== state.activeStroke) stroke.life -= dt / (1 + artLevel(state, 'stone') * 0.5);

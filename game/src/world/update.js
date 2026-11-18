@@ -12,6 +12,7 @@ import { gradeRun } from './state.js';
 import { recordRun } from '../save.js';
 import { artLevel } from '../arts/levels.js';
 import { walkRoad } from './path.js';
+import { bufferActions, clearControls } from '../controls/buffer.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -20,6 +21,7 @@ export function recordScroll(state) {
 export function finishRun(state, won) {
   if (state.ended) return;
   endStroke(state);
+  clearControls(state);
   state.ended = true;
   finishOmen(state, won);
   state.mode = won ? 'win' : 'lose';
@@ -30,6 +32,7 @@ export function finishRun(state, won) {
 }
 export function nextScroll(state) {
   if (!walkRoad(state)) return false;
+  clearControls(state);
   state.scroll++;
   state.scrollStartScore = state.score;
   state.scrollTime = 0; state.cleared = 0;
@@ -45,6 +48,7 @@ export function nextScroll(state) {
 }
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
+  bufferActions(state, input, dt);
   if (state.hitStop > 0) { state.hitStop = Math.max(0, state.hitStop - dt); return; }
   state.time += dt; state.runTime += dt; state.scrollTime += dt;
   state.bannerTime = Math.max(0, state.bannerTime - dt);
