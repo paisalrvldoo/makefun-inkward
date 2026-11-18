@@ -1,4 +1,4 @@
-import { BELL, FIELD, MONK, clamp, distance } from '../config.js';
+import { BELL, FIELD, MONK, MONK_HEALTH, clamp, distance } from '../config.js';
 import { artLevel } from '../arts/levels.js';
 import { takeAction } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
@@ -9,12 +9,15 @@ import { addRing } from '../render/fx.js';
 import { landingDust } from '../fx/footsteps.js';
 
 export function createMonk() {
-  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0, stepTime: 0, landingTime: 0 };
+  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0, stepTime: 0, landingTime: 0, health: MONK_HEALTH, maxHealth: MONK_HEALTH, invincibleTime: 0, stunned: false, stunTimer: 0 };
 }
 export function updateMonk(state, input, dt) {
   const monk = state.monk, wasDashing = monk.dashTime > 0;
   monk.landingTime = Math.max(0, monk.landingTime - dt);
   monk.stepTime = Math.max(0, monk.stepTime - dt);
+  monk.invincibleTime = Math.max(0, monk.invincibleTime - dt);
+  if (monk.stunned) { monk.stunTimer = Math.max(0, monk.stunTimer - dt); if (monk.stunTimer <= 0) { monk.stunned = false; monk.invincibleTime = 0.3; monk.health = monk.maxHealth; } return; }
+  if (monk.invincibleTime <= 0 && monk.health < monk.maxHealth) monk.health = Math.min(monk.maxHealth, monk.health + 1.2 * dt);
   let dx = Number(input.keys.has('KeyD') || input.keys.has('ArrowRight')) - Number(input.keys.has('KeyA') || input.keys.has('ArrowLeft'));
   let dy = Number(input.keys.has('KeyS') || input.keys.has('ArrowDown')) - Number(input.keys.has('KeyW') || input.keys.has('ArrowUp'));
   const length = Math.hypot(dx, dy);

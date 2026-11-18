@@ -107,30 +107,36 @@ export function drawHud(ctx, state, audio) {
   if (!bossOmen) text(ctx, omenProgress(state.omen), 1028, 675, 11, state.omen.complete ? '#8bd0ac' : '#ef5b48', 'bold');
   text(ctx, omenReward(state.omen), 1246, 675, 9, '#f0c35b', 'bold', false, 'right');
 
-  panel(ctx, 18, 708, 978, 62, '#222936', COLORS.gold);
-  text(ctx, 'INK', 34, 729, 12, '#f0c35b', 'bold');
-  text(ctx, `${Math.ceil(state.ink)} / ${state.maxInk}`, 261, 729, 12, COLORS.white, 'bold', false, 'right');
-  ctx.fillStyle = '#4a4d51'; ctx.fillRect(34, 740, 218, 12);
-  ctx.fillStyle = state.ink < 20 ? '#ef5b48' : '#f0c35b'; ctx.fillRect(34, 740, 218 * state.ink / state.maxInk, 12);
-  line(ctx, [[270, 720], [270, 759]], '#806c3e', 1);
-  text(ctx, 'BELL', 287, 729, 12, '#f0c35b', 'bold');
-  text(ctx, `${state.bell.hp} / ${state.bell.maxHp}`, 478, 729, 12, state.bell.hp < 4 ? '#ef5b48' : COLORS.white, 'bold', false, 'right');
-  for (let i = 0; i < state.bell.maxHp; i++) { const step = 195 / state.bell.maxHp; ctx.fillStyle = i < state.bell.hp ? (state.bell.hp < 4 ? '#ef5b48' : '#f0c35b') : '#4a4d51'; ctx.fillRect(287 + i * step, 740, step - 3, 12); }
-  line(ctx, [[500, 720], [500, 759]], '#806c3e', 1);
-  text(ctx, 'COMBO', 518, 729, 12, '#f0c35b', 'bold');
+  panel(ctx, 18, 708, 978, 58, '#222936', COLORS.gold);
+  text(ctx, 'HEALTH', 34, 722, 11, '#e8c06a', 'bold');
+  text(ctx, `${Math.ceil(state.monk.health)} / ${state.monk.maxHealth}`, 261, 722, 11, state.monk.health < 3 ? '#ef5b48' : COLORS.white, 'bold', false, 'right');
+  ctx.fillStyle = '#4a4d51'; ctx.fillRect(34, 730, 218, 12);
+  const healthColor = state.monk.health < 3 ? '#ef5b48' : state.monk.health < 6 ? '#f0a838' : '#8bd0ac';
+  ctx.fillStyle = healthColor; ctx.fillRect(34, 730, 218 * state.monk.health / state.monk.maxHealth, 12);
+  line(ctx, [[270, 720], [270, 754]], '#806c3e', 1);
+  text(ctx, 'INK', 287, 722, 11, '#f0c35b', 'bold');
+  text(ctx, `${Math.ceil(state.ink)} / ${state.maxInk}`, 478, 722, 11, state.ink < 20 ? '#ef5b48' : COLORS.white, 'bold', false, 'right');
+  ctx.fillStyle = '#4a4d51'; ctx.fillRect(287, 730, 178, 12);
+  ctx.fillStyle = state.ink < 20 ? '#ef5b48' : '#f0c35b'; ctx.fillRect(287, 730, 178 * state.ink / state.maxInk, 12);
+  if (state.monk.stunned) { text(ctx, 'STUNNED', 376, 751, 11, '#ef5b48', 'bold', false, 'center'); }
+  line(ctx, [[480, 720], [480, 754]], '#806c3e', 1);
+  text(ctx, 'BELL', 500, 722, 11, '#f0c35b', 'bold');
+  text(ctx, `${state.bell.hp} / ${state.bell.maxHp}`, 680, 722, 11, state.bell.hp < 4 ? '#ef5b48' : COLORS.white, 'bold', false, 'right');
+  for (let i = 0; i < state.bell.maxHp; i++) { const step = 170 / state.bell.maxHp; ctx.fillStyle = i < state.bell.hp ? (state.bell.hp < 4 ? '#ef5b48' : '#f0c35b') : '#4a4d51'; ctx.fillRect(500 + i * step, 730, step - 3, 12); }
+  line(ctx, [[695, 720], [695, 754]], '#806c3e', 1);
+  text(ctx, 'COMBO', 710, 722, 11, '#f0c35b', 'bold');
   const comboColor = state.combo >= 6 ? '#ffd273' : state.combo >= 3 ? '#ff9558' : '#ef5b48';
   if (state.combo >= 3) {
     for (let i = 0; i < Math.min(6, Math.floor(state.combo)); i++) {
-      const x = 574 + i * 11, rise = 8 + Math.sin(state.time * 11 + i * 2) * 5;
-      ctx.fillStyle = comboColor + '66'; ctx.beginPath(); ctx.moveTo(x - 4, 758); ctx.quadraticCurveTo(x - 6, 744, x + 2, 738 - rise); ctx.quadraticCurveTo(x + 7, 746, x + 4, 758); ctx.fill();
+      const x = 760 + i * 11, rise = 8 + Math.sin(state.time * 11 + i * 2) * 5;
+      ctx.fillStyle = comboColor + '66'; ctx.beginPath(); ctx.moveTo(x - 4, 753); ctx.quadraticCurveTo(x - 6, 739, x + 2, 733 - rise); ctx.quadraticCurveTo(x + 7, 741, x + 4, 753); ctx.fill();
     }
   }
-  text(ctx, `×${state.combo.toFixed(1)}`, 585, 751, 30 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
-  ctx.fillStyle = '#4a4d51'; ctx.fillRect(518, 741, 54, 6);
-  ctx.fillStyle = '#ef5b48'; ctx.fillRect(518, 741, 54 * Math.min(1, state.comboTime / comboDuration(state)), 6);
-  // Combo heat meter — intensifies with repeated seals, grants +25% score at max heat.
+  text(ctx, `×${state.combo.toFixed(1)}`, 772, 751, 28 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
+  ctx.fillStyle = '#4a4d51'; ctx.fillRect(710, 741, 80, 6);
+  ctx.fillStyle = '#ef5b48'; ctx.fillRect(710, 741, 80 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   if (state.comboHeat > 0.01) {
-    const hx = 518, hy = 754, hw = 54, heat = state.comboHeat;
+    const hx = 710, hy = 754, hw = 80, heat = state.comboHeat;
     const heatColor = heat >= 0.66 ? '#f2a247' : heat >= 0.33 ? '#e8682a' : '#c94224';
     ctx.fillStyle = '#4a4d51'; ctx.fillRect(hx, hy, hw, 4);
     ctx.fillStyle = heatColor; ctx.fillRect(hx, hy, hw * heat, 4);
@@ -142,8 +148,7 @@ export function drawHud(ctx, state, audio) {
         ctx.beginPath(); ctx.moveTo(fx - 2, hy); ctx.quadraticCurveTo(fx - 1, hy - flicker, fx + 1, hy - flicker); ctx.quadraticCurveTo(fx + 2, hy - 3, fx + 2, hy); ctx.fill();
       }
     }
-    text(ctx, 'HEAT', hx - 3, hy + 17, 9, heat >= 0.66 ? '#f2a247' : '#d96438', 'bold');
-    if (heat >= 1) text(ctx, '+25%', hx + hw + 2, hy + 17, 9, '#ffb84d', 'bold');
+    if (heat >= 1) text(ctx, '+25%', hx + hw + 2, hy + 12, 9, '#ffb84d', 'bold');
   }
   text(ctx, 'RITUALS', 681, 729, 10, '#d4cfbf', 'bold');
   text(ctx, `SPACE ${state.monk.dashCooldown > 0 ? state.monk.dashCooldown.toFixed(1) + 's' : 'READY'} · SPLASH ${state.splashCooldown > 0 ? state.splashCooldown.toFixed(1) + 's' : 'READY'}`, 294, 690, 10, '#171c24', 'bold');
@@ -151,8 +156,18 @@ export function drawHud(ctx, state, audio) {
   text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 758, 751, 12, '#f0c35b', 'bold');
   text(ctx, 'GRADE', 927, 727, 9, '#d4cfbf', 'bold', false, 'center');
   text(ctx, gradeRun(state), 927, 754, 29, COLORS.white, 'bold', true, 'center');
-  text(ctx, 'WASD MOVE  ·  LMB PAINT + CLOSE LOOP  ·  RMB SPLASH  ·  SPACE DASH  ·  Q LOTUS  ·  E BELL  ·  P PAUSE  ·  G CINEMATIC', 20, 790, 11, '#e5dfd0');
-  text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 1260, 751, 15, COLORS.white, 'bold', true, 'right');
+  const mastery = Math.floor(state.sealed / 8) + state.circuits;
+  text(ctx, `LV ${mastery + 1}  ·  ${state.sealed % 8}/8 SEALS`, 884, 751, 10, '#c4a4f0', 'bold');
+  text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 996, 729, 12, COLORS.white, 'bold', true, 'right');
+  const hints = [['WASD', 'MOVE'], ['LMB', 'PAINT'], ['RMB', 'SPLASH'], ['SPACE', 'DASH'], ['Q', 'LOTUS'], ['E', 'BELL'], ['P', 'PAUSE'], ['M', 'SOUND']];
+  let kx = 20;
+  for (const [key, label] of hints) {
+    const kw = ctx.measureText(key).width + 16;
+    panel(ctx, kx, 768, kw, 18, '#1a2330', '#5a6a7a');
+    text(ctx, key, kx + kw / 2, 781, 9, '#e5dfd0', 'bold', false, 'center');
+    text(ctx, label, kx + kw + 3, 781, 9, '#9aa8b0', 'bold');
+    kx += kw + ctx.measureText(label).width + 16;
+  }
   text(ctx, 'AN ORIGINAL INK-PAINTING DEFENCE', 1260, 789, 10, '#e5dfd0', 'bold', false, 'right');
 }
 export function drawWaveBanner(ctx, state) {

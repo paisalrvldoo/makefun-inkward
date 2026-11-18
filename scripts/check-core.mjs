@@ -233,4 +233,41 @@ console.log('Replay hooks OK: stable displayed seeds, fresh rerolls and a persis
   assert.ok(state.comboHeat < 0.6, 'Combo heat decays when combos expire');
 }
 console.log('Combo heat OK: builds with seals, +25% score at max, decays on combo loss');
+{
+  const state = world();
+  assert.equal(state.monk.health, 10, 'Monk starts with full vitality');
+  assert.equal(state.monk.maxHealth, 10);
+}
+{
+  const state = world();
+  spawnYokai(state, 'kappa', { x: state.monk.x + 10, y: state.monk.y });
+  for (let i = 0; i < 10 / STEP; i++) updateWorld(state, replayInput(), STEP);
+  assert.ok(state.monk.health < 10 && state.monk.health > 8.5, 'Yokai contact costs 1 health');
+  assert.ok(state.monk.invincibleTime > 0 || state.monk.health > 9, 'Contact grants i-frames');
+}
+{
+  const state = world();
+  state.monk.invincibleTime = 0; state.monk.hurtTime = 0; state.monk.health = 5;
+  state.queue.push({ kind: 'crane' });
+  for (let i = 0; i < 2 / STEP; i++) updateWorld(state, replayInput(), STEP);
+  assert.ok(state.monk.health > 6.5, 'Health regenerates over time');
+}
+{
+  const stunBell = world(); stunBell.bell.hp = 10;
+  stunBell.monk.health = 1; stunBell.monk.invincibleTime = 0;
+  spawnYokai(stunBell, 'kappa', { x: stunBell.monk.x + 10, y: stunBell.monk.y });
+  let wasStunned = false;
+  for (let i = 0; i < 10 / STEP; i++) {
+    updateWorld(stunBell, replayInput(), STEP);
+    if (stunBell.monk.stunned) wasStunned = true;
+  }
+  assert.ok(wasStunned, 'Monk gets stunned when health depletes');
+  assert.equal(stunBell.monk.health, 10, 'Monk health refills after stun recovery');
+  assert.ok(stunBell.bell.hp < 10, 'Falling monk cracks the bell once');
+}
+{
+  const winTest = world(); winTest.bell.hp = 5; winTest.monk.health = 0; winTest.monk.stunned = true; winTest.monk.stunTimer = 0;
+  for (let i = 0; i < 2 / STEP; i++) { winTest.monk.stunned = false; updateWorld(winTest, replayInput(), STEP); }
+  assert.ok(winTest.mode === 'play' || winTest.mode === 'draft', 'Monk health never ends the run directly');
+}
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);

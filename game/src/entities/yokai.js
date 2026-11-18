@@ -98,11 +98,14 @@ export function updateYokai(state, dt) {
     if (enemy.dead) continue;
     enemy.x = clamp(enemy.x, FIELD.x + enemy.radius, FIELD.x + FIELD.w - enemy.radius);
     enemy.y = clamp(enemy.y, FIELD.y + enemy.radius, FIELD.y + FIELD.h - enemy.radius);
-    if (state.monk.hurtTime <= 0 && state.monk.dashTime <= 0 && distance(enemy, state.monk) < enemy.radius + 13) {
+    if (!state.monk.stunned && state.monk.invincibleTime <= 0 && state.monk.dashTime <= 0 && distance(enemy, state.monk) < enemy.radius + 13) {
       hurtMonk(state, enemy);
+      state.monk.invincibleTime = 1.5;
       state.ink = Math.max(0, state.ink - 9);
       enemy.stun = 0.7;
-      floatText(state, state.monk.x, state.monk.y - 22, '−9 INK', '#bb4436', 16);
+      state.monk.health = Math.max(0, state.monk.health - 1);
+      if (state.monk.health < 1) { state.monk.stunned = true; state.monk.stunTimer = 2; state.monk.health = 0; state.bell.hp = Math.max(0, state.bell.hp - 1); state.bell.hitTime = 0.7; state.shake = 9; state.flash = 0.2; state.soundEvents.push({ name: 'bellHit' }); burst(state, state.bell.x, state.bell.y, 16, '#bb4436'); floatText(state, state.bell.x, state.bell.y - 45, 'MONK FELL · BELL CRACKED', '#bb4436', 18); }
+      else { floatText(state, state.monk.x, state.monk.y - 22, '−1 HEALTH', '#bb4436', 16); }
       state.soundEvents.push({ name: 'splash' });
     }
   }

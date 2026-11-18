@@ -81,7 +81,6 @@ export function createReplayPilot(options = {}) {
       lastWall = state.time;
     }
     input.keys.clear();
-    // Circle the shrine while drawing, avoiding ink-stealing collisions.
     const x = state.bell.x + Math.cos(state.time * 0.27) * 145, y = state.bell.y + Math.sin(state.time * 0.27) * 125;
     if (x > state.monk.x + 8) input.keys.add('KeyD'); else if (x < state.monk.x - 8) input.keys.add('KeyA');
     if (y > state.monk.y + 8) input.keys.add('KeyS'); else if (y < state.monk.y - 8) input.keys.add('KeyW');
