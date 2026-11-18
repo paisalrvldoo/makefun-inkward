@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const base = process.argv[2] || 'http://localhost:8123';
+const capture = process.argv.includes('--capture');
+const shotFile = new URL('../shots.json', import.meta.url);
+const submissionShots = JSON.parse(readFileSync(shotFile, 'utf8'));
+const captured = new Set();
 const profile = mkdtempSync(join(tmpdir(), 'inkward-chrome-'));
 const chrome = spawn('google-chrome', ['--headless=new', '--no-sandbox', '--hide-scrollbars', '--window-size=1280,800', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -191,6 +195,20 @@ try {
     await until(`location.search === '?shot=${scene}&seed=1' && document.documentElement?.dataset.shotReady === 'true' && window.inkward?.state.mode === '${expectedMode}'`); await pause(80);
     await until('(() => { const p = document.querySelector("#game").getContext("2d").getImageData(10, 10, 1, 1).data; return p[3] === 255 && (p[0] || p[1] || p[2]); })()');
     await checkPost();
+    if (capture) {
+      const shot = submissionShots.find(s => s.query === `?shot=${scene}&seed=1`);
+      if (shot) {
+        let bytes;
+        for (let quality = 90; quality >= 75; quality -= 3) {
+          const screenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality });
+          bytes = Buffer.from(screenshot.data, 'base64');
+          if (bytes.length <= 262144) break;
+        }
+        assert.ok(bytes.length <= 262144, `${shot.name} fits the dossier cap`);
+        writeFileSync(new URL(`../screenshots/${shot.name}`, import.meta.url), bytes);
+        shot.bytes = bytes.length; captured.add(shot.name);
+      }
+    }
     const state = await evaluate('({ mode: inkward.state.mode, scroll: inkward.state.scroll, score: inkward.state.score, arts: inkward.state.arts.length, choices: inkward.state.draft.length, bonus: inkward.state.bonusDraft })');
     assert.equal(state.mode, expectedMode);
     if (scene === 'play') {
@@ -311,9 +329,26 @@ try {
     const { updateWorld } = await import('./src/world/update.js');
     const { startRun } = await import('./src/world/state.js');
     const state = inkward.state, input = replayInput(), pilot = createReplayPilot({ branching: true });
+    window.endingPilot = pilot; window.endingInput = input;
     startRun(state);
-    for (let frame = 0; frame < 54000 && !state.ended; frame++) { pilot(state, input); updateWorld(state, input, 1/60); }
+    for (let frame = 0; frame < 54000 && !state.ended && !(state.climax?.kind === 'phase' && state.climax.phase === 2); frame++) { pilot(state, input); updateWorld(state, input, 1/60); }
   })()`);
+  assert.equal(await evaluate('inkward.state.climax?.phase'), 2, 'Real play reaches the final desperation cinematic');
+  const phaseLabels = await paintedLabels();
+  assert.ok(phaseLabels.some(l => l.text === 'CRIMSON WHITEOUT'));
+  assert.ok(phaseLabels.some(l => l.text === 'YUKIORO · THE FROST ONI'));
+  await key('KeyG', 'g'); await until('!inkward.post.active');
+  assert.ok((await paintedLabels()).some(l => l.text === 'CRIMSON WHITEOUT'), 'Phase wash and name card work in Canvas fallback');
+  await key('KeyG', 'g'); await until('inkward.post.active');
+  await evaluate(`(async () => {
+    const { updateWorld } = await import('./src/world/update.js'), s = inkward.state;
+    for (let i = 0; i < 54000 && !s.ended && s.climax?.kind !== 'seal'; i++) { endingPilot(s, endingInput); updateWorld(s, endingInput, 1/60); }
+    if (s.climax?.kind !== 'seal') throw new Error('Final seal cinematic was not reached');
+    updateWorld(s, endingInput, 0.6);
+  })()`);
+  const sealLabels = await paintedLabels(); assert.ok(sealLabels.some(l => l.text === 'WINTER, RELEASED.'), 'Final brush slash is painted before the dawn');
+  await evaluate(`(async () => { const { updateWorld } = await import('./src/world/update.js'); for (let i = 0; i < 240 && !inkward.state.ended; i++) updateWorld(inkward.state, endingInput, 1/60); })()`);
+  console.log('Final boss browser OK: natural desperation, ink wash/name card in both renderers and final slash before victory');
   await until('inkward.state.mode === "win" && JSON.parse(localStorage.getItem("inkward.progress.v2"))?.wins === 1');
   const saved = await evaluate('JSON.parse(localStorage.getItem("inkward.progress.v2"))');
   assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'moonBell'], 'A real browser victory persists all four unlocks');
@@ -367,6 +402,11 @@ try {
   await call('Emulation.setTouchEmulationEnabled', { enabled: false });
   console.log('Touch browser OK: menu tap, one-finger wall, two-finger splash and the touch-only dash button');
   assert.deepEqual(errors, [], `Browser errors: ${JSON.stringify(errors)}`);
+  if (capture) {
+    assert.equal(captured.size, 4, 'Recaptured all four distinct dossier screenshots');
+    writeFileSync(shotFile, JSON.stringify(submissionShots, null, 2) + '\n');
+    console.log('Captured all four 1280×800 dossier JPEGs within 256 KiB each');
+  }
   console.log('Browser OK: buffered controls and touch, all art VFX, live tactics/synergy, readable drafts, victory, seeds/ghost and saves; zero console errors, exceptions or failed resources');
 } finally {
   ws?.close(); chrome.kill('SIGTERM');
