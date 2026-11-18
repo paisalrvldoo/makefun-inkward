@@ -8,6 +8,8 @@ import { recordOmenSeal } from '../world/omens.js';
 import { castArt } from '../fx/skillCasts.js';
 import { dissolveSpirit } from '../fx/characterStates.js';
 import { synergyBonus } from '../arts/schools.js';
+import { finalPhase, finalSealHealth, beginFinalPhase } from '../entities/finalBoss.js';
+import { beginFinalSeal } from '../scenes/finalSeal.js';
 
 export function releaseSpirit(state, enemy) {
   if (enemy.dead) return;
@@ -19,6 +21,10 @@ export function releaseSpirit(state, enemy) {
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;
   burst(state, enemy.x, enemy.y, enemy.kind === 'oni' ? 65 : 18, enemy.color);
+  if (enemy.boss === 'frost' && state.scroll === 8) {
+    beginFinalSeal(state, enemy);
+    for (const spirit of state.enemies) if (!spirit.dead) releaseSpirit(state, spirit);
+  }
 }
 export function sealLoop(state, points) {
   if (polygonArea(points) < 1200) return false;
@@ -46,9 +52,12 @@ export function sealLoop(state, points) {
     if (enemy.kind === 'oni') {
       const damage = bossLoopDamage(enemy, enclosed.length);
       if (!damage) { floatText(state, enemy.x, enemy.y - 55, 'WARD · STUN TO OPEN', '#7191a6', 19); continue; }
-      enemy.hp = Math.max(0, enemy.hp - damage); enemy.sealLock = 1.3; enemy.stun = 1.4; enemy.hitTime = 0.8;
+      const phase = enemy.boss === 'frost' ? finalPhase(enemy) : 0;
+      enemy.hp = enemy.boss === 'frost' && state.scroll === 8 ? finalSealHealth(enemy, damage) : Math.max(0, enemy.hp - damage);
+      enemy.sealLock = 1.3; enemy.stun = 1.4; enemy.hitTime = 0.8;
       enemy.hitFlash = 0.14;
       enemy.actionTime = 0; enemy.charge = null;
+      if (enemy.boss === 'frost' && enemy.hp > 0 && state.scroll === 8 && finalPhase(enemy) !== phase) beginFinalPhase(state, enemy);
       if (enemy.hp > 0) {
         state.score += Math.round(350 * state.combo);
         burst(state, enemy.x, enemy.y, 30, enemy.color);

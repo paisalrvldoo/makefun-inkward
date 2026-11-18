@@ -1,6 +1,7 @@
 import { COLORS } from '../config.js';
 import { circle, line } from './primitives.js';
 import { drawGlow, drawShadow as shadow } from './light.js';
+import { finalPhase } from '../entities/finalBoss.js';
 
 function eye(ctx, x, y, radius, color, opening, pupil = true) {
   if (opening < 0.18) { line(ctx, [[x - radius, y], [x + radius, y]], COLORS.ink, 1.6); return; }
@@ -71,6 +72,13 @@ function drawOni(ctx, enemy, time, silhouette = false) {
     for (const side of [-1, 1]) { ctx.beginPath(); ctx.moveTo(side * 10, -24); ctx.quadraticCurveTo(side * 29, -66, side * 35, -38); ctx.quadraticCurveTo(side * 32, -24, side * 24, -17); ctx.fillStyle = '#efa44e'; ctx.fill(); ctx.stroke(); }
   } else if (enemy.crest === 'stone') {
     line(ctx, [[-31, -16], [-38, 0], [-33, 24]], '#b2c1cb', 10); line(ctx, [[31, -16], [38, 0], [33, 24]], '#b2c1cb', 10);
+  } else if (enemy.boss === 'frost') {
+    const phase = finalPhase(enemy);
+    for (const side of [-1, 1]) {
+      line(ctx, [[side * 20, -24], [side * (42 + phase * 8), -56 - phase * 8], [side * 39, -20]], phase === 2 ? '#f1d7a2' : '#c8ebf3', 5);
+      if (phase > 0) line(ctx, [[side * 30, 3], [side * (56 + phase * 7), -2], [side * 46, 22]], '#c8ebf3', 4);
+    }
+    if (phase === 2) line(ctx, [[-20, -22], [-3, -10], [-12, 8], [9, 26]], '#fff0c9', 3);
   }
   ctx.fillStyle = '#f7df99'; ctx.beginPath(); ctx.moveTo(-21, -7); ctx.lineTo(-5, -3); ctx.lineTo(-11, 5); ctx.lineTo(-21, 3); ctx.closePath(); ctx.fill();
   ctx.beginPath(); ctx.moveTo(21, -7); ctx.lineTo(5, -3); ctx.lineTo(11, 5); ctx.lineTo(21, 3); ctx.closePath(); ctx.fill();
@@ -98,7 +106,7 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1, silhouette = false) {
   if (enemy.kind === 'oni') {
     const breath = Math.sin(time * 1.8 + phase);
     ctx.translate(0, 36); ctx.scale(1 + breath * 0.02, 1 + breath * 0.035); ctx.translate(0, -36);
-    const stage = Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3));
+    const stage = enemy.boss === 'frost' ? finalPhase(enemy) : Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3));
     ctx.scale(1 + stage * 0.07, 1 + stage * 0.03);
     if (enemy.telegraph) {
       const charge = 1 - enemy.telegraph.time / enemy.telegraph.total;
@@ -115,7 +123,7 @@ export function drawYokai(ctx, enemy, time = 0, scale = 1, silhouette = false) {
   else if (enemy.kind === 'crane') drawCrane(ctx, time, opening);
   else if (enemy.kind === 'oni') {
     const colors = [enemy.color, enemy.boss === 'frost' ? '#7fb8db' : '#c18152', enemy.boss === 'frost' ? '#bdd8ee' : '#d9644d'];
-    drawOni(ctx, { ...enemy, color: colors[Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3))] }, time, silhouette);
+    drawOni(ctx, { ...enemy, color: colors[enemy.boss === 'frost' ? finalPhase(enemy) : Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3))] }, time, silhouette);
   }
   ctx.restore();
   if (!silhouette && enemy.kind === 'oni') {

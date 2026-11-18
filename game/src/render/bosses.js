@@ -5,6 +5,14 @@ import { omenProgress } from '../world/omens.js';
 import { drawGlow } from './light.js';
 
 export function drawBossTelegraphs(ctx, state) {
+  for (const effect of state.frostLanes) {
+    ctx.save(); ctx.globalAlpha = effect.life / effect.maxLife;
+    for (const lane of effect.lanes) {
+      line(ctx, [[lane.from.x, lane.from.y], [lane.to.x, lane.to.y]], '#b7edf8', 44);
+      line(ctx, [[lane.from.x, lane.from.y], [lane.to.x, lane.to.y]], '#fff9de', 5);
+    }
+    ctx.restore();
+  }
   for (const boss of state.enemies) {
     if (boss.kind !== 'oni' || boss.dead || !boss.telegraph) continue;
     const warning = boss.telegraph, progress = 1 - warning.time / warning.total;
@@ -12,7 +20,13 @@ export function drawBossTelegraphs(ctx, state) {
     drawGlow(ctx, warning.x, warning.y, boss.radius * 2.3, 0.25 + progress * 0.45, color);
     ctx.save(); ctx.globalAlpha *= 0.32 + progress * 0.4 + Math.sin(state.time * 6) * 0.08;
     circle(ctx, warning.x, warning.y, boss.radius + 12 + progress * 5, null, '#ffd078', 3); ctx.restore();
-    if (warning.kind === 'charge') {
+    if (warning.kind === 'divide') {
+      for (const lane of warning.lanes) {
+        line(ctx, [[lane.from.x, lane.from.y], [lane.to.x, lane.to.y]], '#d43b2f24', 48);
+        line(ctx, [[lane.from.x, lane.from.y], [lane.to.x, lane.to.y]], '#e86554', 3 + progress * 28);
+        ctx.setLineDash([10, 10]); line(ctx, [[lane.from.x, lane.from.y], [lane.to.x, lane.to.y]], '#fff4d0', 2); ctx.setLineDash([]);
+      }
+    } else if (warning.kind === 'charge') {
       line(ctx, [[warning.x, warning.y], [warning.end.x, warning.end.y]], '#bb44361c', 76);
     } else {
       circle(ctx, warning.x, warning.y, warning.radius, color + '18', color, 2);

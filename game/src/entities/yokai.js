@@ -37,9 +37,13 @@ export function damageBell(state, enemy) {
     addRing(state, state.bell.x, state.bell.y, 63, '#b68a36', 0.4);
     state.soundEvents.push({ name: 'bell' }); return;
   }
-  enemy.dead = true;
-  dissolveSpirit(state, enemy);
-  state.cleared++;
+  if (enemy.boss === 'frost' && state.scroll === 8) {
+    const length = distance(enemy, state.bell) || 1;
+    enemy.x += (enemy.x - state.bell.x || 1) / length * 105; enemy.y += (enemy.y - state.bell.y) / length * 105;
+    enemy.stun = 1.2; enemy.exposed = 2.8; enemy.charge = null; enemy.actionTime = 0;
+  } else {
+    enemy.dead = true; dissolveSpirit(state, enemy); state.cleared++;
+  }
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));
   recordOmenBellHit(state, enemy.kind === 'oni' ? 4 : 1);
   state.bell.hitTime = 0.7;
@@ -107,7 +111,7 @@ export function updateYokai(state, dt) {
     enemy.hitFlash = Math.max(0, (enemy.hitFlash || 0) - dt);
     enemy.stun = Math.max(0, enemy.stun - dt);
     enemy.animation = enemy.hitTime > 0 ? 'hit' : enemy.kind === 'oni' && (enemy.telegraph || enemy.actionTime > 0) ? 'attack' : 'idle';
-    if (enemy.stun > 0) continue;
+    if (enemy.stun > 0 || enemy.cinematicTime > 0) continue;
     const target = enemy.hunter ? state.monk : state.bell;
     const dx = target.x - enemy.x, dy = target.y - enemy.y;
     const length = Math.hypot(dx, dy) || 1;

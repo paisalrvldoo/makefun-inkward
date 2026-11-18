@@ -95,14 +95,14 @@ function frame(now) {
   const elapsed = Math.min((now - lastTime) / 1000, 0.1); lastTime = now;
   handleMenus();
   if (!staged) {
-    if (state.mode === 'play') {
+    if (state.mode === 'play' || state.mode === 'seal') {
       accumulator += elapsed;
       while (accumulator >= STEP) { updateWorld(state, input, STEP); input.clearFrame(); accumulator -= STEP; }
     } else { state.time += elapsed; accumulator = 0; input.clearFrame(); }
     for (const event of state.soundEvents.splice(0)) audio.play(event.name, event.value);
   } else input.clearFrame();
   if (previousMode !== state.mode || previousSeed !== state.seed) {
-    status.textContent = state.mode === 'title' ? `INKWARD. Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.`;
+    status.textContent = state.mode === 'title' ? `INKWARD. Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.`;
     if (!staged && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
     previousMode = state.mode; previousSeed = state.seed;
   }

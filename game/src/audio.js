@@ -1,4 +1,5 @@
 import { playArtSound } from './audio/artSounds.js';
+import { playFinaleSound } from './audio/finaleSounds.js';
 
 export function createAudio() {
   let context = null;
@@ -39,6 +40,7 @@ export function createAudio() {
     get muted() { return muted; },
     toggle() { muted = !muted; return muted; },
     play(name, value = 1) {
+      if (playFinaleSound(name, value, tone, rustle)) return;
       if (name.startsWith('art:')) {
         playArtSound(name.slice(4), tone, rustle);
       } else if (name === 'stroke') {

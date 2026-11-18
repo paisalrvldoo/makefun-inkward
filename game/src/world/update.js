@@ -14,6 +14,8 @@ import { artLevel } from '../arts/levels.js';
 import { walkRoad } from './path.js';
 import { bufferActions, clearControls } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
+import { advanceClimax } from '../entities/finalBoss.js';
+import { advanceFinalSeal } from '../scenes/finalSeal.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -48,8 +50,10 @@ export function nextScroll(state) {
   return true;
 }
 export function updateWorld(state, input, dt) {
+  if (state.mode === 'seal') { if (advanceFinalSeal(state, dt)) finishRun(state, true); return; }
   if (state.mode !== 'play') return;
   bufferActions(state, input, dt);
+  dt *= advanceClimax(state, dt);
   if (state.hitStop > 0) {
     state.paintBuffer = [...new Set([...state.paintBuffer, ...input.paintEvents])].slice(-650);
     state.hitStop = Math.max(0, state.hitStop - dt); return;
@@ -63,6 +67,7 @@ export function updateWorld(state, input, dt) {
   updateEffects(state, dt);
   updateMonk(state, input, dt);
   updateStrokes(state, input, dt);
+  if (state.mode === 'seal') { clearControls(state); return; }
   updateArts(state, input, dt);
   updateWrath(state, dt);
   updateWaves(state, dt);

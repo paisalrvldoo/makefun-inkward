@@ -14,6 +14,7 @@ import { drawBossBanner, drawBossTelegraphs, drawBossCallouts } from './bosses.j
 import { drawSkillEffects } from './skillEffects.js';
 import { drawSilhouette } from './silhouette.js';
 import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffects.js';
+import { drawClimax } from './climax.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -68,4 +69,5 @@ export function renderScene(ctx, paper, state, input, audio) {
   if (state.mode === 'draft') drawDraft(ctx, state, input);
   if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);
+  drawClimax(ctx, state);
 }
