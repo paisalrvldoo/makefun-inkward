@@ -3,9 +3,9 @@ import { text, circle, line } from './primitives.js';
 import { drawYokai } from './sprites.js';
 
 // An original tapered sumi stroke, with parallel dry-brush hairs at its tail.
-export function brushSlash(ctx, progress, color = '#161c29', width = 100) {
+export function brushSlash(ctx, progress, color = '#161c29', width = 100, centerY = 490) {
   const end = clamp(progress, 0, 1) * (WIDTH + 260) - 100;
-  ctx.save(); ctx.translate(0, 490); ctx.rotate(-0.13);
+  ctx.save(); ctx.translate(0, centerY); ctx.rotate(-0.13);
   for (let i = 0; i < 22; i++) {
     const y = (i / 21 - 0.5) * width;
     line(ctx, [[-110, y * 0.2], [end * 0.28, y], [end * 0.74, y * 0.83], [end, y * 0.08 + Math.sin(i * 12.3) * 5]], color, 2 + width / 25);
@@ -31,7 +31,7 @@ export function drawClimax(ctx, state) {
     ctx.translate(640, 310); ctx.scale(1 + t * 0.045, 1 + t * 0.045);
     drawYokai(ctx, { ...scene.boss, x: 0, y: 0, hitTime: 0, hitFlash: 0 }, state.time, 2.5);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    brushSlash(ctx, Math.min(1, t * 3), '#f1dbaf', 110);
+    brushSlash(ctx, Math.min(1, t * 3), '#f1dbaf', 110, 565);
     text(ctx, scene.boss.name, 640, 495, 43, '#192231', 'bold', true, 'center');
     text(ctx, scene.boss.phases[scene.phase], 640, 558, 24, scene.phase === 2 ? '#ff957a' : '#e6ca82', 'bold', true, 'center');
     text(ctx, scene.phase === 2 ? 'DESPERATION · PAINT THE SPOKES / DASH THE WHITEOUT' : scene.phase ? 'THE WARD BREAKS. WINTER ANSWERS.' : 'SCROLL VIII · THE LAST WARDEN', 640, 601, 13, '#fff0d4', 'bold', false, 'center');
@@ -46,7 +46,7 @@ export function drawClimax(ctx, state) {
       ctx.globalAlpha = Math.max(0, 1 - (t - 0.5) / 2);
       circle(ctx, scene.boss.x, scene.boss.y, Math.max(1, (t - 0.24) * 690), null, '#fff3cb', 10);
       brushSlash(ctx, p, '#f4d37d', 145); brushSlash(ctx, p, '#151e2d', 106);
-      if (t > 0.55) text(ctx, 'WINTER, RELEASED.', 640, 495, 52, '#fff0cb', 'bold', true, 'center');
+      if (t > 0.55) text(ctx, 'WINTER, RELEASED.', 640, 428, 52, '#fff0cb', 'bold', true, 'center');
       text(ctx, 'THE FINAL SEAL', 640, 559, 18, '#b23c39', 'bold', false, 'center');
     }
   }

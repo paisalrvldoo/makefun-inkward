@@ -17,6 +17,8 @@ export function updateEnding(state, dt) {
   cue(0.45, 'cleanBell');
   for (let i = 0; i < 8; i++) cue(3.1 + i * 0.42, 'unroll', i);
   cue(ENDING_DURATION, 'victoryFanfare');
+  for (let i = 0; i < 10; i++) cue(ENDING_DURATION + 0.2 * (i + 1), 'scoreTick', i);
+  for (let i = 0; i < state.newUnlocks.length; i++) cue(ENDING_DURATION + 2.25 + i * 0.12, 'legacy', i);
   state.resultTime += Math.max(0, after - Math.max(before, ENDING_DURATION));
   if (before < ENDING_DURATION + 2.2 && after >= ENDING_DURATION + 2.2) state.soundEvents.push({ name: 'gradeStamp' });
 }

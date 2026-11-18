@@ -20,6 +20,7 @@ import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
 import { stageShot } from './shots.js';
 import { endingActive, updateEnding, skipEnding } from './scenes/ending.js';
+import { defeatActive, updateDefeat, skipDefeat } from './scenes/defeat.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -84,6 +85,13 @@ function handleMenus() {
       }
     }
   } else if (state.mode === 'win' || state.mode === 'lose') {
+    if (state.mode === 'lose' && (defeatActive(state) || state.resultTime < 3)) {
+      if (input.pressed.has('KeyR')) resetRun(true, newRunSeed(state.seed));
+      else if (input.pressed.has('KeyS')) resetRun();
+      else if (input.pressed.has('Escape')) resetRun(false);
+      else if (input.pressed.size || input.clicks.length || input.splashes.length) { skipDefeat(state); input.release(); input.clearFrame(); }
+      return;
+    }
     if (state.mode === 'win' && (endingActive(state) || state.resultTime < 3)) {
       if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); input.release(); input.clearFrame(); }
       return;
@@ -103,7 +111,8 @@ function frame(now) {
     if (state.mode === 'play') {
       accumulator += elapsed;
       while (accumulator >= STEP) { updateWorld(state, input, STEP); input.clearFrame(); accumulator -= STEP; }
-    } else { state.time += elapsed; updateEnding(state, elapsed); accumulator = 0; input.clearFrame(); }
+    } else { state.time += elapsed; updateEnding(state, elapsed); updateDefeat(state, elapsed); accumulator = 0; input.clearFrame(); }
+    audio.update(state);
     for (const event of state.soundEvents.splice(0)) audio.play(event.name, event.value);
   } else input.clearFrame();
   if (previousMode !== state.mode || previousSeed !== state.seed) {

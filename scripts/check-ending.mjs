@@ -7,6 +7,9 @@ import { sealLoop } from '../game/src/ink/seal.js';
 import { releaseWhiteout, updateFrostWaves } from '../game/src/entities/frostPattern.js';
 import { replayInput } from '../game/src/shots.js';
 import { ENDING_DURATION, updateEnding, skipEnding, scoreReveal } from '../game/src/scenes/ending.js';
+import { finishRun } from '../game/src/world/update.js';
+import { updateDefeat, defeatActive, skipDefeat } from '../game/src/scenes/defeat.js';
+import { createMusic } from '../game/src/audio/music.js';
 
 const s = createState(17); startRun(s); s.scroll = 8; s.queue = [];
 spawnBoss(s, 'frost', { x: 360, y: 330 });
@@ -44,6 +47,18 @@ updateEnding(s, 1); assert.equal(s.soundEvents.filter(e => e.name === 'unroll').
 s.ending.time = 1; s.resultTime = 0;
 assert.ok(skipEnding(s)); assert.equal(s.resultTime, 3); assert.equal(s.mode, 'win'); assert.equal(s.score, score);
 assert.equal(skipEnding(s), false, 'Skipping again does not replay cues');
+assert.equal(s.soundEvents.filter(e => e.name === 'scoreTick').length, 10, 'The score reveal has ten rising cues');
+const loss = createState(7); startRun(loss); loss.bell.hp = 0; finishRun(loss, false);
+assert.ok(defeatActive(loss)); const record = loss.progress.runs;
+updateDefeat(loss, 0.5); assert.ok(defeatActive(loss)); assert.equal(loss.resultTime, 0);
+updateDefeat(loss, 4.5); assert.ok(!defeatActive(loss)); assert.ok(loss.resultTime >= 3);
+skipDefeat(loss); assert.equal(loss.progress.runs, record, 'Dissolve/skip never records a second loss');
+const tones = [], musicState = createState(11), music = createMusic((...args) => tones.push(args), () => {});
+startRun(musicState); music(musicState); const quiet = tones.length;
+musicState.mode = 'pause'; musicState.runTime = 1; music(musicState); assert.equal(tones.length, quiet, 'Music stops with pause');
+musicState.mode = 'play'; musicState.scroll = 8; music(musicState);
+assert.ok(tones.length - quiet >= 2 && tones.slice(quiet).some(t => t[0] === 49), 'Final scroll adds layered rhythm');
+musicState.finalSealed = true; musicState.runTime = 2; const stopped = tones.length; music(musicState); assert.equal(tones.length, stopped, 'Music yields to the final seal');
 
 const frost = createState(9); frost.scroll = 8; spawnBoss(frost, 'frost', { x: 300, y: 300 });
 const oni = frost.enemies[0]; oni.hp = 3; oni.pulse = 0; oni.stun = 0;

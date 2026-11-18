@@ -8,6 +8,7 @@ import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 import { chooseRoad } from './world/path.js';
 import { updateEnding } from './scenes/ending.js';
+import { updateDefeat } from './scenes/defeat.js';
 
 export function replayInput() {
   return {
@@ -124,6 +125,7 @@ export function stageShot(name, seed = 1) {
     throw new Error('Draft director missed its frame: scroll ' + state.scroll + ', mode ' + state.mode + ', bonus ' + state.bonusDraft + ', arts ' + state.arts.length + ', choices ' + state.draft.length);
   }
   if (name === 'win') updateEnding(state, ending ? 7.8 : 12.8);
+  if (name === 'end') updateDefeat(state, 4.7);
   state.soundEvents.length = 0;
   return { state, input };
 }

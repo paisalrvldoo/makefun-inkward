@@ -16,6 +16,7 @@ import { bufferActions, clearControls } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
 import { updateClimax } from '../fx/climax.js';
 import { beginEnding, updateEnding } from '../scenes/ending.js';
+import { beginDefeat, updateDefeat } from '../scenes/defeat.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -32,8 +33,8 @@ export function finishRun(state, won) {
   recordScroll(state); state.grade = gradeRun(state);
   recordRun(state, { persist: false });
   if (won) beginEnding(state);
-  else state.resultTime = 3;
-  state.soundEvents.push({ name: won ? 'win' : 'lose' });
+  else beginDefeat(state);
+  state.soundEvents.push({ name: won ? 'dawn' : 'lose' });
 }
 export function nextScroll(state) {
   if (!walkRoad(state)) return false;
@@ -53,6 +54,7 @@ export function nextScroll(state) {
 }
 export function updateWorld(state, input, dt) {
   if (state.mode === 'win') { updateEnding(state, dt); return; }
+  if (state.mode === 'lose') { updateDefeat(state, dt); return; }
   if (state.mode !== 'play') return;
   const speed = updateClimax(state, dt);
   if (state.finalSealed) {

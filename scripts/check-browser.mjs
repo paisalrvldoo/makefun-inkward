@@ -296,12 +296,15 @@ try {
   await call('Page.navigate', { url: base }); await until('window.inkward?.state.mode === "title"');
   await evaluate(`(async () => { const { replayInput, createReplayPilot } = await import('./src/shots.js'); const { updateWorld, nextScroll } = await import('./src/world/update.js'); const { startRun } = await import('./src/world/state.js'); const s = inkward.state; const input = replayInput(); const pilot = createReplayPilot(); startRun(s); for (let i = 0; i < 12000 && s.mode !== 'lose'; i++) { if (s.runTime < 35) pilot(s, input); else { input.clearFrame(); input.keys.clear(); } updateWorld(s, input, 1/60); } })()`);
   await until('window.inkward.state.mode === "lose"'); await pause(60);
+  assert.ok(await evaluate('inkward.state.defeat.time < 1.65'), 'A real loss starts its ink dissolve');
+  const defeatLabels = await paintedLabels(); assert.ok(defeatLabels.some(l => l.text === 'THE BELL FELL'), 'Defeat renders its cinematic card');
   const lossScore = await evaluate('window.inkward.state.score');
   await until(`Number(localStorage.getItem('inkward.best.v1')) >= ${lossScore}`);
   assert.ok(await evaluate('Number(localStorage.getItem("inkward.best.v1"))') >= lossScore, 'Best score persists');
   await key('KeyR', 'r'); await until('window.inkward.state.mode === "play"');
   assert.equal(await evaluate('window.inkward.state.bell.hp'), 12, 'Restart restores bell HP');
   assert.equal(await evaluate('window.inkward.state.score'), 0, 'Restart clears score');
+  console.log('Defeat browser OK: animated ink dissolve, persisted result and immediate R retry');
   await call('Page.navigate', { url: `${base}/?seed=1` }); await until('window.inkward?.state.mode === "title" && inkward.state.seed === 1');
   await evaluate(`(async () => {
     const { replayInput, createReplayPilot } = await import('./src/shots.js');
@@ -320,6 +323,8 @@ try {
   const epilogue = await paintedLabels();
   for (const value of ['THE BELL ENDURES', 'Only a bell, and room for spring.', 'ANY KEY / TAP · REVEAL YOUR RECORD']) assert.ok(epilogue.some(l => l.text === value), 'The original epilogue is painted');
   assert.equal(epilogue.filter(l => ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'].includes(l.text)).length, 8, 'All eight scrolls unroll');
+  const endingShot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
+  writeFileSync('/tmp/ink-ending.jpg', Buffer.from(endingShot.data, 'base64'));
   await key('KeyG', 'g'); await until('!inkward.post.active');
   const plainEnding = await paintedLabels(); assert.ok(plainEnding.some(l => l.text === 'NEW RUN  (R)'), 'Canvas fallback paints the animated results');
   assert.equal(await evaluate('inkward.state.ending.skipped'), true, 'Any key reveals the results without restarting');

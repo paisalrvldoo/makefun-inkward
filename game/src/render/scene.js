@@ -17,6 +17,8 @@ import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffe
 import { drawClimax } from './climax.js';
 import { endingActive } from '../scenes/ending.js';
 import { drawEnding } from './endingScene.js';
+import { defeatActive } from '../scenes/defeat.js';
+import { drawDefeat } from './defeatScene.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
@@ -71,6 +73,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   drawBossBanner(ctx, state);
   drawClimax(ctx, state);
   if (state.mode === 'draft') drawDraft(ctx, state, input);
-  if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
+  if (defeatActive(state)) drawDefeat(ctx, state);
+  else if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);
 }
