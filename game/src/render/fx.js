@@ -1,4 +1,5 @@
 import { getSeason } from '../world/scrolls.js';
+import { FIELD } from '../config.js';
 
 export function burst(state, x, y, count = 16, color = null) {
   const ink = color || getSeason(state).color;
@@ -61,15 +62,27 @@ export function drawEffects(ctx, state) {
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  const bigSeal = state.floats.some(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
+  const bigSeal = state.floats.findLast(f => Number(/^SEALED ×(\d+)/.exec(f.text)?.[1]) >= 4);
   for (const f of state.floats) {
     // Combo and WRATH are already readable in the permanent HUD.
-    if (/^(COMBO ×|WRATH \d)/.test(f.text) || (bigSeal && f.text === 'LOTUS HUSH')) continue;
+    if (/^(COMBO ×|WRATH \d)/.test(f.text) || (bigSeal && /^(LOTUS HUSH|SEALED ×|\+\d+ INK)/.test(f.text))) continue;
     const value = f.text.replace(/ · WRATH ×[\d.]+$/, '');
     ctx.globalAlpha = Math.min(1, f.life * 2);
     ctx.font = `bold ${f.size}px Georgia, serif`; ctx.textAlign = 'center';
     ctx.lineWidth = 5; ctx.strokeStyle = '#fffaf0'; ctx.strokeText(value, f.x, f.y);
     ctx.fillStyle = f.color; ctx.fillText(value, f.x, f.y);
+  }
+  if (bigSeal) {
+    // Give a heavy group seal one clear score card away from the boss lane.
+    const refund = state.floats.findLast(f => /^\+\d+ INK/.test(f.text));
+    const x = FIELD.x + 275, y = FIELD.y + FIELD.h - 78;
+    ctx.globalAlpha = Math.min(1, bigSeal.life * 2);
+    ctx.font = 'bold 25px Georgia, serif';
+    const width = Math.min(460, Math.max(290, ctx.measureText(bigSeal.text).width + 30));
+    ctx.fillStyle = '#171c24ed'; ctx.fillRect(x - width / 2, y, width, 62);
+    ctx.strokeStyle = '#dc9d46'; ctx.lineWidth = 1.5; ctx.strokeRect(x - width / 2, y, width, 62);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#fff3d5'; ctx.fillText(bigSeal.text, x, y + 29);
+    if (refund) { ctx.font = 'bold 13px Arial'; ctx.fillStyle = '#f1ca75'; ctx.fillText(refund.text.replace(/ · WRATH ×[\d.]+$/, ''), x, y + 49); }
   }
   ctx.globalAlpha = 1; ctx.textAlign = 'left';
 }

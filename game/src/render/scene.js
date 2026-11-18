@@ -55,7 +55,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   }
   if (state.flash > 0) { ctx.fillStyle = `rgba(187,68,54,${state.flash * 0.4})`; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); }
   if (state.ritualFlash > 0) { ctx.globalAlpha = state.ritualFlash * 0.9; ctx.fillStyle = state.impactColor; ctx.fillRect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.globalAlpha = 1; }
-  if (state.impactFrames > 0 && state.mode === 'play') {
+  if (state.impactFrames > 0 && state.time - state.impactTime <= 2 / 60 + 1e-6 && state.mode === 'play') {
     ctx.save(); ctx.globalCompositeOperation = 'difference';
     drawSilhouette(ctx, drawMonk, state.monk, state.time, '#ffffff');
     for (const enemy of state.enemies) if (!enemy.dead) drawSilhouette(ctx, drawYokai, enemy, state.time, '#ffffff');

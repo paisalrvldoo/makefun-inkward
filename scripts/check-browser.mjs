@@ -165,6 +165,21 @@ try {
   await until('window.inkward.state.splashCooldown > 0');
   await key('KeyQ', 'q'); await until('window.inkward.state.qCooldown > 0');
   await key('KeyE', 'e'); await until('window.inkward.state.eCooldown > 0');
+  for (const [field, code, value] of [['monk.dashCooldown', 'Space', ' '], ['qCooldown', 'KeyQ', 'q'], ['eCooldown', 'KeyE', 'e'], ['splashCooldown', null, null]]) {
+    await evaluate(`inkward.state.${field} = 0.09`);
+    if (code) await key(code, value);
+    else { await mouse('mousePressed', 250, 350, 'right'); await mouse('mouseReleased', 250, 350, 'right'); }
+    await until(`inkward.state.${field} > 0.3`);
+  }
+  await evaluate(`(async () => {
+    const { castArt } = await import('./src/fx/skillCasts.js');
+    const { BRUSH_ARTS } = await import('./src/arts/brushArts.js');
+    inkward.state.skillEffects = [];
+    BRUSH_ARTS.forEach((art, i) => castArt(inkward.state, art.id, {x: 160 + i % 7 * 110, y: 340 + Math.floor(i / 7) * 150}, {force:true}));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  })()`);
+  assert.equal(await evaluate('new Set(inkward.state.skillEffects.map(f => f.id)).size'), 14, 'All art motifs render in the live browser');
+  console.log('Controls/VFX browser OK: four real early presses fire once ready; all fourteen cast motifs render');
   await key('KeyM', 'm'); await until('window.inkward.audio.muted');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "pause"');
   const pausedTime = await evaluate('window.inkward.state.runTime'); await pause(180);
@@ -180,10 +195,12 @@ try {
     assert.equal(state.mode, expectedMode);
     if (scene === 'play') {
       const labels = await paintedLabels();
-      for (const value of ['LOOP 85% · CLOSE HERE', 'WALL ERODING', 'BELL CHARGE 2.1s', 'OMEN 1 / 2 LOOPS']) {
+      const chargeTime = await evaluate('inkward.state.enemies.find(e => e.kind === "oni").telegraph.time.toFixed(1)');
+      for (const value of ['LOOP 85% · CLOSE HERE', 'WALL ERODING', `BELL CHARGE ${chargeTime}s`, 'OMEN 1 / 2 LOOPS', 'SYNERGY']) {
         const label = labels.find(label => label.text === value);
         assert.ok(label, `Play renderer draws ${value}`);
-        assert.ok(label.x - label.width / 2 >= 18 && label.x + label.width / 2 <= 996 && label.y >= 233 && label.y <= 694, `${value} fits the visible field below the boss HUD`);
+        if (value === 'SYNERGY') assert.ok(label.x >= 1014 && label.y > 529 && label.y < 560, 'School bonuses occupy their existing BRUSH ARTS panel');
+        else assert.ok(label.x - label.width / 2 >= 18 && label.x + label.width / 2 <= 996 && label.y >= 233 && label.y <= 694, `${value} fits the visible field below the boss HUD`);
       }
       assert.ok(!labels.some(label => /^(COMBO ×|WRATH \d|1 \/ 2 LOOPS$)/.test(label.text)), 'Tactical field removes duplicate HUD values');
       const arrowPixel = await evaluate(`(() => {
@@ -307,8 +324,29 @@ try {
   assert.equal(await evaluate('inkward.state.bell.maxHp'), 10, 'Unlocked Master starts with its actual difficulty');
   assert.equal(await evaluate('inkward.state.previousBestRun.score'), saved.bestRun.score, 'New runs inherit the persisted score ghost');
   console.log('Persistence browser OK: real victory unlocks, best seed/chart, Moon Bell and Master survive reload');
+  await call('Page.navigate', { url: `${base}/?seed=1&touch=1` });
+  await until('window.inkward?.state.mode === "title" && location.search.includes("touch=1")');
+  assert.ok(await evaluate('document.querySelector("#touch-dash").hidden'), 'Desktop title hides touch controls');
+  await call('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+  const touch = (type, points) => call('Input.dispatchTouchEvent', { type, touchPoints: points.map(([id, x, y]) => ({ id, x, y })) });
+  await touch('touchStart', [[1, 230, 470]]); await touch('touchEnd', []);
+  await until('inkward.state.mode === "play" && !document.querySelector("#touch-dash").hidden');
+  const touchInk = await evaluate('inkward.state.ink');
+  await touch('touchStart', [[1, 220, 320]]);
+  await touch('touchMove', [[1, 380, 320]]); await touch('touchMove', [[1, 380, 450]]); await touch('touchEnd', []);
+  await until('inkward.state.strokes.some(s => s.length > 200)');
+  assert.ok(await evaluate('inkward.state.ink') < touchInk, 'One finger paints and spends actual ink');
+  await touch('touchStart', [[1, 530, 380]]);
+  await touch('touchStart', [[1, 530, 380], [2, 570, 380]]);
+  await touch('touchEnd', []); await until('inkward.state.splashCooldown > 0');
+  assert.equal(await evaluate('inkward.input.painting'), false, 'Two-finger tap ends painting and splashes');
+  const dashButton = await evaluate('(() => { const r=document.querySelector("#touch-dash").getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
+  await touch('touchStart', [[1, dashButton.x, dashButton.y]]); await touch('touchEnd', []);
+  await until('inkward.state.monk.dashCooldown > 0');
+  await call('Emulation.setTouchEmulationEnabled', { enabled: false });
+  console.log('Touch browser OK: menu tap, one-finger wall, two-finger splash and the touch-only dash button');
   assert.deepEqual(errors, [], `Browser errors: ${JSON.stringify(errors)}`);
-  console.log('Browser OK: input and live tactics, readable path/drafts, victory controls, seeds, ghost chart and persistent unlocks; zero console errors, exceptions or failed resources');
+  console.log('Browser OK: buffered controls and touch, all art VFX, live tactics/synergy, readable drafts, victory, seeds/ghost and saves; zero console errors, exceptions or failed resources');
 } finally {
   ws?.close(); chrome.kill('SIGTERM');
   await new Promise(resolve => { if (chrome.exitCode !== null) resolve(); else chrome.once('exit', resolve); });

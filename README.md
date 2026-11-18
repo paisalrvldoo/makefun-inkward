@@ -123,6 +123,18 @@ node serve.ts
 
 Then open **http://localhost:8080**.
 
+Verify mechanics and browser play:
+
+```sh
+node scripts/check-syntax.mjs
+node scripts/check-core.mjs
+node scripts/check-controls.mjs
+node scripts/check-systems.mjs
+node serve.ts --port 8123
+# With the server running, in a second terminal:
+node scripts/check-browser.mjs http://localhost:8123
+```
+
 ## How it hands in
 
 From the repository root:
