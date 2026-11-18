@@ -1,14 +1,21 @@
 import { playArtSound } from './audio/artSounds.js';
 import { playFinaleSound } from './audio/finaleSounds.js';
+import { createMusic } from './audio/music.js';
 
 export function createAudio() {
   let context = null;
+  let output = null;
   let muted = false;
   let lastStroke = 0;
   function unlock() {
     if (!context) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) context = new AudioContext();
+      if (AudioContext) {
+        context = new AudioContext(); output = context.createGain();
+        const compressor = context.createDynamicsCompressor();
+        compressor.threshold.value = -12; compressor.ratio.value = 3; compressor.attack.value = 0.006; compressor.release.value = 0.2;
+        output.gain.value = muted ? 0 : 0.72; output.connect(compressor).connect(context.destination);
+      }
     }
     if (context?.state === 'suspended') context.resume().catch(() => {});
   }
@@ -22,23 +29,26 @@ export function createAudio() {
     gain.gain.setValueAtTime(0.001, start);
     gain.gain.exponentialRampToValueAtTime(volume, start + 0.008);
     gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    oscillator.connect(gain).connect(context.destination);
+    oscillator.connect(gain).connect(output);
     oscillator.start(start);
     oscillator.stop(start + duration + 0.02);
   }
-  function rustle(duration, volume, cutoff) {
+  function rustle(duration, volume, cutoff, delay = 0) {
     if (!context || muted || context.state !== 'running') return;
     const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
     const source = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
     source.buffer = buffer; filter.type = 'lowpass'; filter.frequency.value = cutoff; gain.gain.value = volume;
-    source.connect(filter).connect(gain).connect(context.destination); source.start();
+    source.connect(filter).connect(gain).connect(output); source.start(context.currentTime + delay);
   }
+  const music = createMusic(tone, rustle, () => context && !muted && context.state === 'running' ? context.currentTime : null);
   return {
     unlock,
+    music,
+    update: state => music.update(state),
     get muted() { return muted; },
-    toggle() { muted = !muted; return muted; },
+    toggle() { muted = !muted; if (context) output.gain.setTargetAtTime(muted ? 0 : 0.72, context.currentTime, 0.015); return muted; },
     play(name, value = 1) {
       if (playFinaleSound(name, value, tone, rustle)) return;
       if (name.startsWith('art:')) {

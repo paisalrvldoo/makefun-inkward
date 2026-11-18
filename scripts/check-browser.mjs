@@ -142,6 +142,7 @@ try {
   await call('Input.dispatchKeyEvent', { type: 'keyDown', code: 'KeyD', key: 'd', windowsVirtualKeyCode: 68 });
   assert.ok(await evaluate('window.inkward.input.keys.has("KeyD")'), 'Browser receives the movement key');
   await until(`window.inkward.state.monk.x > ${beforeX + 20}`);
+  await until('inkward.audio.music.active && inkward.audio.music.scheduled > 0');
   await call('Input.dispatchKeyEvent', { type: 'keyUp', code: 'KeyD', key: 'd' });
   const movement = await evaluate('({x:inkward.state.monk.x, mode:inkward.state.mode, keys:[...inkward.input.keys], time:inkward.state.runTime, hidden:document.hidden})');
   assert.ok(movement.x > beforeX + 20, `WASD moves the monk: ${JSON.stringify({ beforeX, ...movement })}`);
@@ -181,7 +182,10 @@ try {
   assert.equal(await evaluate('new Set(inkward.state.skillEffects.map(f => f.id)).size'), 14, 'All art motifs render in the live browser');
   console.log('Controls/VFX browser OK: four real early presses fire once ready; all fourteen cast motifs render');
   await key('KeyM', 'm'); await until('window.inkward.audio.muted');
+  await until('!inkward.audio.music.active');
+  await key('KeyM', 'm'); await until('!inkward.audio.muted && inkward.audio.music.active');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "pause"');
+  assert.equal(await evaluate('inkward.audio.music.active'), false, 'Pause stops the procedural music scheduler');
   const pausedTime = await evaluate('window.inkward.state.runTime'); await pause(180);
   assert.equal(await evaluate('window.inkward.state.runTime'), pausedTime, 'Pause freezes simulation');
   await key('KeyP', 'p'); await until('window.inkward.state.mode === "play"');
@@ -274,6 +278,30 @@ try {
     }
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
   }
+  await call('Page.navigate', { url: `${base}/?seed=1&climax=1` });
+  await until('location.search.includes("climax=1") && window.inkward?.state.mode === "title"');
+  await key('Enter', 'Enter'); await until('inkward.state.mode === "play"');
+  await evaluate(`(async () => {
+    const { replayInput, createReplayPilot } = await import('./src/shots.js');
+    const { updateWorld } = await import('./src/world/update.js');
+    const input = replayInput(), pilot = createReplayPilot({ branching: true });
+    window.finaleCheck = { input, pilot, updateWorld };
+    for (let i = 0; i < 54000 && !inkward.state.ended; i++) {
+      pilot(inkward.state, input); updateWorld(inkward.state, input, 1/60);
+      if (inkward.state.climax?.phase === 1) break;
+    }
+  })()`);
+  assert.equal(await evaluate('inkward.state.climax?.phase'), 1, 'Actual gameplay reaches the second final-boss phase');
+  assert.ok((await paintedLabels()).some(label => label.text === 'PHASE 2 / 3'));
+  await evaluate(`(() => { const {input, pilot, updateWorld} = finaleCheck; for (let i = 0; i < 18000 && !inkward.state.ended; i++) { pilot(inkward.state, input); updateWorld(inkward.state, input, 1/60); if (inkward.state.climax?.phase === 2) break; } })()`);
+  assert.ok((await paintedLabels()).some(label => label.text === 'WINTER’S LAST BREATH'));
+  await evaluate(`(() => { const {input, pilot, updateWorld} = finaleCheck; for (let i = 0; i < 18000 && inkward.state.mode === 'play'; i++) { pilot(inkward.state, input); updateWorld(inkward.state, input, 1/60); } })()`);
+  await until('inkward.state.mode === "seal" && inkward.state.finalSeal.burst');
+  assert.ok(await evaluate('inkward.state.enemies.every(enemy => enemy.dead) && inkward.state.queue.length === 0'));
+  assert.equal(await evaluate('inkward.audio.music.active'), false, 'The final seal clears the music for its layered impact');
+  await until('inkward.state.finalSeal.age > 1.1');
+  assert.ok((await paintedLabels()).some(label => label.text === 'THE LAST SEAL'));
+  console.log('Climax browser OK: live three-phase boss, cinematic name cards, last-seal slash and mass spirit release');
   await call('Page.navigate', { url: `${base}/?shot=ending&seed=1` });
   await until('location.search.includes("shot=ending") && window.inkward?.state.ending?.age > 11 && document.documentElement.dataset.shotReady === "true"');
   const endingLabels = await paintedLabels();
@@ -282,6 +310,8 @@ try {
   }
   assert.equal(endingLabels.filter(label => ['REEDS', 'LANTERNS', 'MOSS', 'PAPER', 'FIRELIGHT', 'MAPLE', 'INKSTONE', 'LAST BELL'].includes(label.text)).length, 8, 'Eight earned scrolls unroll in the ending');
   assert.ok(!endingLabels.some(label => label.text === 'GUARD THE BELL'), 'The peaceful shrine has its clean ending presentation');
+  const endingScreenshot = await call('Page.captureScreenshot', { format: 'jpeg', quality: 90 });
+  writeFileSync('/tmp/ink-ending.jpg', Buffer.from(endingScreenshot.data, 'base64'));
   await evaluate('inkward.post.toggle()'); await until('!inkward.post.active');
   const plainEnding = await evaluate('document.querySelector("#game").toDataURL()');
   const endingFallback = await call('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
@@ -324,6 +354,7 @@ try {
   await call('Page.navigate', { url: base }); await until('window.inkward?.state.mode === "title"');
   await evaluate(`(async () => { const { replayInput, createReplayPilot } = await import('./src/shots.js'); const { updateWorld, nextScroll } = await import('./src/world/update.js'); const { startRun } = await import('./src/world/state.js'); const s = inkward.state; const input = replayInput(); const pilot = createReplayPilot(); startRun(s); for (let i = 0; i < 12000 && s.mode !== 'lose'; i++) { if (s.runTime < 35) pilot(s, input); else { input.clearFrame(); input.keys.clear(); } updateWorld(s, input, 1/60); } })()`);
   await until('window.inkward.state.mode === "lose"'); await pause(60);
+  assert.ok((await paintedLabels()).some(label => label.text === 'RETRY  (R)'), 'The live ink-dissolve defeat offers immediate retry');
   const lossScore = await evaluate('window.inkward.state.score');
   await until(`Number(localStorage.getItem('inkward.best.v1')) >= ${lossScore}`);
   assert.ok(await evaluate('Number(localStorage.getItem("inkward.best.v1"))') >= lossScore, 'Best score persists');

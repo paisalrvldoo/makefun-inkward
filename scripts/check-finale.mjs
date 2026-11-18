@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { STEP } from '../game/src/config.js';
 import { createState, startRun } from '../game/src/world/state.js';
-import { updateWorld } from '../game/src/world/update.js';
+import { updateWorld, finishRun } from '../game/src/world/update.js';
 import { spawnBoss, updateBosses, bossLoopDamage } from '../game/src/entities/bosses.js';
 import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { finalPhase, inFrostLane } from '../game/src/entities/finalBoss.js';
@@ -9,6 +9,8 @@ import { sealLoop } from '../game/src/ink/seal.js';
 import { replayInput } from '../game/src/shots.js';
 import { beginEnding, advanceEnding, skipEnding, skipResults, ENDING_DURATION } from '../game/src/scenes/ending.js';
 import { resultMotion } from '../game/src/screens/resultMotion.js';
+import { createMusic, musicProfile } from '../game/src/audio/music.js';
+import { advanceDefeat, skipDefeat } from '../game/src/scenes/defeat.js';
 
 function finalWorld() {
   const state = createState(1); startRun(state); state.scroll = 8; state.queue = []; state.spawnTime = 1000;
@@ -79,4 +81,29 @@ function loop(state, boss, minions = 0) {
   damageBell(state, boss);
   assert.equal(boss.dead, false); assert.equal(state.bell.hp, 8, 'The final boss must be sealed; touching the bell cannot grant victory');
 }
-console.log('Finale OK: enforced phases, real-clock slow motion, alternating frost lanes, recovery/i-frames, final freeze/slash, mass release and one-time victory');
+{
+  const state = createState(1); startRun(state);
+  let clock = 0; const notes = [], drums = [];
+  const music = createMusic((...args) => notes.push(args), (...args) => drums.push(args), () => clock);
+  for (let i = 0; i < 120; i++) { music.update(state); clock += STEP; }
+  const normal = musicProfile(state); assert.ok(music.active && music.scheduled > 2 && notes.length > 2);
+  state.scroll = 8; const boss = spawnBoss(state, 'frost', { x: 270, y: 350 }); state.climax = null; boss.hp = 3;
+  assert.ok(musicProfile(state).bpm > normal.bpm && musicProfile(state).intensity > normal.intensity);
+  for (let i = 0; i < 120; i++) { music.update(state); clock += STEP; }
+  assert.ok(drums.length > 3 && notes.some(note => note[0] === 49), 'The last scroll adds a distinct drum and bass layer');
+  state.mode = 'pause'; const count = notes.length; clock += 30; music.update(state);
+  assert.equal(music.active, false); assert.equal(notes.length, count, 'Paused music schedules no notes');
+  state.mode = 'play'; music.update(state);
+  assert.ok(notes.length - count < 8, 'Resuming avoids a burst of thirty seconds of missed notes');
+}
+{
+  const state = createState(1); startRun(state); state.bell.hp = 0; finishRun(state, false);
+  assert.equal(state.mode, 'lose'); assert.equal(state.defeat.age, 0);
+  const score = state.score, time = state.runTime;
+  advanceEnding(state, 1); assert.equal(state.resultsTime, 0, 'The defeat dissolves before its record unrolls');
+  advanceDefeat(state, 0.3); assert.ok(state.defeat.age > 0);
+  assert.ok(skipDefeat(state)); assert.equal(skipDefeat(state), false);
+  advanceEnding(state, 3); assert.equal(resultMotion(state).score, score);
+  assert.equal(state.runTime, time); assert.equal(state.score, score, 'Defeat polish preserves the run record');
+}
+console.log('Finale OK: enforced phases, slow motion, frost recovery/i-frames, final freeze/slash, eight-scroll epilogue, score/grade animation, music escalation/pause, defeat/retry and one-time records');

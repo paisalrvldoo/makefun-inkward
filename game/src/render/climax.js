@@ -52,7 +52,7 @@ export function drawClimax(ctx, state) {
     brushSlash(ctx, { x: -60, y: 712 }, { x: 1370, y: 100 }, cut, 20, '#fff2c1');
     const wave = clamp((age - 0.3) / 1.5, 0, 1);
     circle(ctx, seal.x, seal.y, 60 + wave * 1050, null, '#fff6d4', 11 * (1 - wave) + 1);
-    ctx.globalAlpha = 1; drawEffects(ctx, state);
+    ctx.globalAlpha = 1; drawEffects(ctx, { ...state, floats: [] });
     for (let i = 0; i < 45; i++) {
       const angle = i * 2.399, radius = 75 + (age - 0.24) * (150 + i % 7 * 47), x = seal.x + Math.cos(angle) * radius, y = seal.y + Math.sin(angle) * radius * 0.6;
       ctx.save(); ctx.translate(x, y); ctx.rotate(angle + age); ctx.globalAlpha = Math.min(1, fade);

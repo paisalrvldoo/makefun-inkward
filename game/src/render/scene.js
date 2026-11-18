@@ -16,13 +16,21 @@ import { drawSilhouette } from './silhouette.js';
 import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffects.js';
 import { drawClimax } from './climax.js';
 import { drawEnding } from '../screens/ending.js';
+import { drawDefeat } from '../screens/defeat.js';
+import { holdFinalFrame } from './finalFrame.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
+  const frozen = holdFinalFrame(ctx, state);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(paper, 0, 0);
+  if (frozen) { ctx.drawImage(frozen, 0, 0); drawClimax(ctx, state); return; }
   if (state.mode === 'title') { drawTitle(ctx, state, input, audio); return; }
   if (state.mode === 'win' && state.ending && state.ending.age < state.ending.duration) { drawEnding(ctx, state); return; }
   drawGarden(ctx, state);
+  if (state.mode === 'seal') {
+    drawStrokes(ctx, state); drawBell(ctx, state.bell, state.time); drawMonk(ctx, state.monk, state.time);
+    drawClimax(ctx, state); return;
+  }
   ctx.save(); ctx.beginPath(); ctx.rect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.clip();
   if (state.shake > 0 && state.mode === 'play') ctx.translate(Math.sin(state.time * 79) * state.shake, Math.cos(state.time * 63) * state.shake * 0.6);
   const next = state.queue[0];
@@ -68,6 +76,7 @@ export function renderScene(ctx, paper, state, input, audio) {
   drawHud(ctx, state, audio);
   drawWaveBanner(ctx, state);
   drawBossBanner(ctx, state);
+  if (state.mode === 'lose' && state.defeat?.age < state.defeat?.duration) { drawDefeat(ctx, state, input); return; }
   if (state.mode === 'draft') drawDraft(ctx, state, input);
   if (state.mode === 'win' || state.mode === 'lose') drawResults(ctx, state, input);
   if (state.mode === 'pause') drawPause(ctx, input);

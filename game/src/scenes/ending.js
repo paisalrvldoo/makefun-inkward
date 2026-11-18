@@ -20,6 +20,7 @@ export function skipEnding(state) {
 
 export function advanceEnding(state, dt) {
   if (!['win', 'lose'].includes(state.mode)) return;
+  if (state.mode === 'lose' && state.defeat?.age < state.defeat?.duration) return;
   if (state.ending && state.ending.age < state.ending.duration) {
     state.ending.age = Math.min(state.ending.duration, state.ending.age + dt);
     while (state.ending.cue < CUES.length && state.ending.age >= CUES[state.ending.cue].time) {

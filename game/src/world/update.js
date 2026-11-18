@@ -17,6 +17,7 @@ import { castArt } from '../fx/skillCasts.js';
 import { advanceClimax } from '../entities/finalBoss.js';
 import { advanceFinalSeal } from '../scenes/finalSeal.js';
 import { beginEnding } from '../scenes/ending.js';
+import { beginDefeat } from '../scenes/defeat.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -33,7 +34,7 @@ export function finishRun(state, won) {
   recordScroll(state); state.grade = gradeRun(state);
   recordRun(state, { persist: false });
   if (won) beginEnding(state);
-  else state.soundEvents.push({ name: 'lose' });
+  else beginDefeat(state);
 }
 export function nextScroll(state) {
   if (!walkRoad(state)) return false;

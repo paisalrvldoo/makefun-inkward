@@ -20,6 +20,8 @@ import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
 import { stageShot } from './shots.js';
 import { advanceEnding, skipEnding, skipResults } from './scenes/ending.js';
+import { advanceDefeat, skipDefeat } from './scenes/defeat.js';
+import { DEFEAT_RETRY_BUTTON } from './screens/defeat.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -89,23 +91,29 @@ function handleMenus() {
       if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
       return;
     }
-    if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON)) resetRun(true, newRunSeed(state.seed));
+    if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON) || state.mode === 'lose' && state.defeat?.age < state.defeat?.duration && clicked(DEFEAT_RETRY_BUTTON)) resetRun(true, newRunSeed(state.seed));
     else if (input.pressed.has('KeyS') || clicked(SAME_SEED_BUTTON)) resetRun();
     else if (input.pressed.has('Escape') || clicked(TITLE_BUTTON)) resetRun(false);
-    else if (input.pressed.size || input.clicks.length || input.splashes.length) skipResults(state);
+    else if (input.pressed.size || input.clicks.length || input.splashes.length) { skipDefeat(state); skipResults(state); }
   }
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && !staged) pauseRun(); });
 window.addEventListener('blur', () => { if (!staged) pauseRun(); });
 
 function frame(now) {
-  const elapsed = Math.min((now - lastTime) / 1000, 0.1); lastTime = now;
+  const sceneElapsed = Math.max(0, (now - lastTime) / 1000), elapsed = Math.min(sceneElapsed, 0.1); lastTime = now;
   handleMenus();
   if (!staged) {
-    if (state.mode === 'play' || state.mode === 'seal') {
+    if (state.mode === 'play') {
       accumulator += elapsed;
       while (accumulator >= STEP) { updateWorld(state, input, STEP); input.clearFrame(); accumulator -= STEP; }
-    } else { state.time += elapsed; advanceEnding(state, elapsed); accumulator = 0; input.clearFrame(); }
+    } else if (state.mode === 'seal') {
+      updateWorld(state, input, previousMode === 'seal' ? sceneElapsed : 0); accumulator = 0; input.clearFrame();
+    } else {
+      state.time += elapsed;
+      const sceneDt = previousMode === state.mode ? sceneElapsed : 0;
+      advanceDefeat(state, sceneDt); advanceEnding(state, sceneDt); accumulator = 0; input.clearFrame();
+    }
     for (const event of state.soundEvents.splice(0)) audio.play(event.name, event.value);
   } else input.clearFrame();
   const showingEnding = state.mode === 'win' && state.ending?.age < state.ending?.duration;
@@ -115,6 +123,7 @@ function frame(now) {
     previousMode = state.mode; previousSeed = state.seed; previousEnding = showingEnding;
   }
   renderScene(ctx, paper, state, drawInput, audio);
+  if (!staged) audio.update(state);
   canvas.style.cursor = state.mode === 'play' ? 'none' : 'pointer';
   const touchDash = document.getElementById('touch-dash');
   touchDash.hidden = !input.touch || state.mode !== 'play';

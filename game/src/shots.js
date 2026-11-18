@@ -8,6 +8,7 @@ import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 import { chooseRoad } from './world/path.js';
 import { advanceEnding } from './scenes/ending.js';
+import { advanceDefeat } from './scenes/defeat.js';
 
 export function replayInput() {
   return {
@@ -124,6 +125,7 @@ export function stageShot(name, seed = 1) {
   if (['win', 'ending', 'end'].includes(name)) {
     // Let the real ending unfold. The dossier captures the earned, fully opened record.
     for (let i = 0; i < 20 / STEP; i++) {
+      advanceDefeat(state, STEP);
       advanceEnding(state, STEP);
       if (name === 'ending' ? state.ending?.age >= 11.4 : state.resultsTime >= 4.5) break;
     }

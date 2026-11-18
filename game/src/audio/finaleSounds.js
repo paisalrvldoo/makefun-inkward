@@ -1,5 +1,12 @@
 export function playFinaleSound(name, value, tone, rustle) {
-  if (name === 'finalPhase') {
+  if (name === 'win') {
+    [523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 1046.5, 1318.51, 1567.98].forEach((frequency, i) => tone(frequency, i >= 6 ? 1.6 : 0.55, 0.075, i % 3 ? 'sine' : 'triangle', i * 0.16));
+    [130.81, 261.63, 392].forEach(frequency => tone(frequency, 2.8, 0.065, 'sine', 0.96));
+    tone(65.41, 0.4, 0.1, 'triangle', 0.96); rustle(0.3, 0.035, 2400, 0.96);
+  } else if (name === 'lose') {
+    rustle(1.15, 0.095, 720); tone(46.25, 1.45, 0.075, 'triangle');
+    [277.18, 207.65, 138.59].forEach((frequency, i) => { tone(frequency, 1.3, 0.085, 'sine', i * 0.2); tone(frequency * 1.012, 1.05, 0.022, 'sine', i * 0.2); });
+  } else if (name === 'finalPhase') {
     rustle(0.7, 0.12, 650); tone(49, 1.3, 0.14, 'triangle');
     [147, 220, 311 + value * 12].forEach((frequency, i) => tone(frequency, 1.2, 0.06, 'sine', 0.12 + i * 0.12));
   } else if (name === 'finalBreath') {
