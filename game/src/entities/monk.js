@@ -9,7 +9,7 @@ import { addRing } from '../render/fx.js';
 import { landingDust } from '../fx/footsteps.js';
 
 export function createMonk() {
-  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0, stepTime: 0, landingTime: 0, health: MONK_HEALTH, maxHealth: MONK_HEALTH, invincibleTime: 0, stunned: false, stunTimer: 0 };
+  return { x: BELL.x, y: BELL.y + 93, vx: 0, vy: -1, dashTime: 0, dashCooldown: 0, hurtTime: 0, hitFlash: 0, recoil: 0, recoilX: 0, recoilY: 0, walk: 0, stepTime: 0, landingTime: 0, health: MONK_HEALTH, maxHealth: MONK_HEALTH, invincibleTime: 0, stunned: false, stunTimer: 0, outfit: 'pilgrim' };
 }
 export function updateMonk(state, input, dt) {
   const monk = state.monk, wasDashing = monk.dashTime > 0;

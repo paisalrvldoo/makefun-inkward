@@ -3,6 +3,7 @@ import { polygonArea } from '../ink/geometry.js';
 import { circle, text, stamp, line, panel } from './primitives.js';
 import { drawGlow } from './light.js';
 import { inkCost, closingSnap } from '../ink/cost.js';
+import { getBrush } from '../skins.js';
 
 function strokePath(ctx, points, width, color) {
   if (points.length < 2) return;
@@ -26,22 +27,27 @@ export function drawStrokes(ctx, state) {
     }
   }
   ctx.globalAlpha = 1;
+  const brush = getBrush(state.brush);
   for (const stroke of state.strokes) {
     ctx.globalAlpha = Math.min(1, stroke.life / 2) * (0.48 + stroke.integrity * 0.52);
     strokePath(ctx, stroke.points, 14, '#282e2580');
-    strokePath(ctx, stroke.points, 10, state.arts.includes('vermilion') ? '#882a20' : '#0c111a');
+    strokePath(ctx, stroke.points, 10, state.arts.includes('vermilion') ? '#882a20' : brush.inkColor);
     strokePath(ctx, stroke.points, 1, '#efe6cc2b');
     if (stroke.flash > 0) {
       ctx.globalAlpha = Math.min(1, stroke.flash * 4);
       strokePath(ctx, stroke.points, 13, '#b0333a55');
       strokePath(ctx, stroke.points, 4, '#fff4e6');
     }
-    // Dry-brush fibers and edge speckles follow the actual painted line.
     for (let i = 2; i < stroke.points.length; i += 5) {
       const p = stroke.points[i]; const prev = stroke.points[i - 1];
       const angle = Math.atan2(p.y - prev.y, p.x - prev.x) + Math.PI / 2;
       const offset = 5 + Math.sin(i * 2.3) * 2;
-      circle(ctx, p.x + Math.cos(angle) * offset, p.y + Math.sin(angle) * offset, 0.8 + i % 3 * 0.3, '#0c111a');
+      circle(ctx, p.x + Math.cos(angle) * offset, p.y + Math.sin(angle) * offset, 0.8 + i % 3 * 0.3, brush.inkColor);
+      if (brush.id === 'katana' && i % 3 === 0) {
+        const spark = 2 + (i % 4) * 2.5;
+        ctx.fillStyle = brush.trailColor + 'cc';
+        ctx.beginPath(); ctx.moveTo(p.x, p.y - spark); ctx.lineTo(p.x + spark * 0.5, p.y - spark * 0.5); ctx.lineTo(p.x + spark, p.y); ctx.lineTo(p.x + spark * 0.5, p.y + spark * 0.5); ctx.lineTo(p.x, p.y + spark); ctx.lineTo(p.x - spark * 0.5, p.y + spark * 0.5); ctx.lineTo(p.x - spark, p.y); ctx.lineTo(p.x - spark * 0.5, p.y - spark * 0.5); ctx.closePath(); ctx.fill();
+      }
     }
   }
   ctx.globalAlpha = 1;

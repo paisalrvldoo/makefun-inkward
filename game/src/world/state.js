@@ -6,6 +6,7 @@ import { DIFFICULTIES } from './difficulty.js';
 import { beginOmen } from './omens.js';
 import { emptyProgress } from '../save.js';
 import { createPath } from './path.js';
+import { getSkinPrefs } from '../skins.js';
 
 export function createState(seed = 1, best = 0, difficultyId = 'monk', progress = emptyProgress(), expedition = 'pilgrimage') {
   const profile = DIFFICULTIES.find(d => d.id === difficultyId) || DIFFICULTIES[1];
@@ -27,7 +28,10 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, hitStop: 0, soundEvents: [], nextId: 1,
     tutorial: 'DRAW A LOOP AROUND THE SPIRITS', ended: false, climax: null, finalSeal: null, frostLanes: [],
     ending: null, defeat: null, resultsTime: 0, resultsBeat: -1, showAchievements: false, daily: false,
+    ...getSkinPrefs(),
   };
+  state.monk.outfit = state.outfit;
+  state.monk.brush = state.brush;
   state.queue = makeThreatQueue(state);
   state.total = state.queue.length;
   beginOmen(state);
