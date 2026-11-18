@@ -129,13 +129,7 @@ export function drawHud(ctx, state, audio) {
   line(ctx, [[695, 720], [695, 754]], '#806c3e', 1);
   text(ctx, 'COMBO', 710, 722, 11, '#f0c35b', 'bold');
   const comboColor = state.combo >= 6 ? '#ffd273' : state.combo >= 3 ? '#ff9558' : '#ef5b48';
-  if (state.combo >= 3) {
-    for (let i = 0; i < Math.min(6, Math.floor(state.combo)); i++) {
-      const x = 760 + i * 11, rise = 8 + Math.sin(state.time * 11 + i * 2) * 5;
-      ctx.fillStyle = comboColor + '66'; ctx.beginPath(); ctx.moveTo(x - 4, 753); ctx.quadraticCurveTo(x - 6, 739, x + 2, 733 - rise); ctx.quadraticCurveTo(x + 7, 741, x + 4, 753); ctx.fill();
-    }
-  }
-  text(ctx, `×${state.combo.toFixed(1)}`, 734, 751, 28 + Math.sin(state.time * 9) * (state.combo >= 6 ? 1.4 : 0), comboColor, 'bold', true);
+  text(ctx, `×${state.combo.toFixed(1)}`, 792, 737, 20, comboColor, 'bold', true, 'right');
   ctx.fillStyle = '#4a4d51'; ctx.fillRect(710, 741, 80, 6);
   ctx.fillStyle = '#ef5b48'; ctx.fillRect(710, 741, 80 * Math.min(1, state.comboTime / comboDuration(state)), 6);
   if (state.comboHeat > 0.01) {
@@ -151,7 +145,7 @@ export function drawHud(ctx, state, audio) {
         ctx.beginPath(); ctx.moveTo(fx - 2, hy); ctx.quadraticCurveTo(fx - 1, hy - flicker, fx + 1, hy - flicker); ctx.quadraticCurveTo(fx + 2, hy - 3, fx + 2, hy); ctx.fill();
       }
     }
-    if (heat >= 1) text(ctx, '+25%', hx + hw + 2, hy + 12, 9, '#ffb84d', 'bold');
+    if (heat >= 1) text(ctx, 'HEAT +25%', hx + hw, hy + 13, 9, '#ffb84d', 'bold', false, 'right');
   }
   line(ctx, [[800, 720], [800, 754]], '#806c3e', 1);
   text(ctx, 'RITUALS', 812, 722, 11, '#f0c35b', 'bold');

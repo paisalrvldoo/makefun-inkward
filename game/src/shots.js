@@ -99,6 +99,14 @@ export function stageShot(name, seed = 1) {
     fillUlt(replay.state, ULT_MAX);
     replay.state.monk.health = Math.max(replay.state.monk.health, Math.round(replay.state.monk.maxHealth * 0.7));
     for (let i = 0; i < 36; i++) { replay.input.clearFrame(); replay.input.keys.clear(); updateWorld(replay.state, replay.input, STEP); }
+    // Cover staging: one hero callout plus a few small hit numbers keep the centre readable.
+    const st = replay.state;
+    st.scoreBurst = null;
+    st.floats = (st.floats || []).filter(f => !/^(SEALED|HEAT MAX)/.test(f.text) && !/^\+[\d,]+$/.test(f.text)).slice(-2);
+    const texts = st.combatTexts || [];
+    const hero = texts.filter(t => t.kind === 'chain').pop() || texts.filter(t => t.kind === 'seal').pop();
+    const small = texts.filter(t => (t.kind === 'hit' || t.kind === 'crit' || t.kind === 'score') && t !== hero).slice(-3).map(t => ({ ...t, detail: null }));
+    st.combatTexts = hero ? [...small, { ...hero, x: 430, y: 560, age: Math.min(hero.age, 0.2), detail: null }] : small;
     replay.state.soundEvents.length = 0; return replay;
   }
   const previous = ['title', 'win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
