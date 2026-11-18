@@ -7,6 +7,7 @@ import { chooseArt, draftArts } from './arts/brushArts.js';
 import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 import { chooseRoad } from './world/path.js';
+import { advanceEnding } from './scenes/ending.js';
 
 export function replayInput() {
   return {
@@ -89,9 +90,9 @@ export function createReplayPilot(options = {}) {
   };
 }
 export function stageShot(name, seed = 1) {
-  const previous = name === 'win' ? replayPreviousAttempt(seed) : null;
+  const previous = ['win', 'ending'].includes(name) ? replayPreviousAttempt(seed) : null;
   const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
-  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft', 'winter'].includes(name)) {
+  if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'ending', 'draft', 'winter'].includes(name)) {
     state.time = 3.5; return { state, input };
   }
   if (name === 'draft') {
@@ -100,7 +101,7 @@ export function stageShot(name, seed = 1) {
     chooseArt(state, 0);
   }
   startRun(state);
-  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, branching: ['play', 'draft', 'win'].includes(name) });
+  const pilot = createReplayPilot({ cover: name === 'play', omenScroll: name === 'draft' ? 4 : null, branching: ['play', 'draft', 'win', 'ending'].includes(name) });
   if (name === 'play') {
     state.best = stageShot('win', seed).state.score;
     return directPlayCover(state, input, pilot);
@@ -119,6 +120,13 @@ export function stageShot(name, seed = 1) {
   }
   if (name === 'draft' && (state.mode !== 'draft' || state.scroll !== 5 || !state.bonusDraft || state.arts.length !== 5 || state.draft.length !== 4)) {
     throw new Error('Draft director missed its frame: scroll ' + state.scroll + ', mode ' + state.mode + ', bonus ' + state.bonusDraft + ', arts ' + state.arts.length + ', choices ' + state.draft.length);
+  }
+  if (['win', 'ending', 'end'].includes(name)) {
+    // Let the real ending unfold. The dossier captures the earned, fully opened record.
+    for (let i = 0; i < 20 / STEP; i++) {
+      advanceEnding(state, STEP);
+      if (name === 'ending' ? state.ending?.age >= 11.4 : state.resultsTime >= 4.5) break;
+    }
   }
   state.soundEvents.length = 0;
   return { state, input };

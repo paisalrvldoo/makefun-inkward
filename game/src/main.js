@@ -19,6 +19,7 @@ import { RESTART_BUTTON, SAME_SEED_BUTTON, TITLE_BUTTON } from './screens/result
 import { RESUME_BUTTON } from './screens/pause.js';
 import { hitRect } from './render/primitives.js';
 import { stageShot } from './shots.js';
+import { advanceEnding, skipEnding, skipResults } from './scenes/ending.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -31,9 +32,10 @@ const query = new URLSearchParams(location.search);
 const shot = query.get('shot');
 const seed = query.has('seed') ? Number(query.get('seed')) : shot ? 1 : newRunSeed();
 let staged = Boolean(shot);
+let previewRun = Boolean(shot);
 let state = createState(seed, readBest(), 'monk', readProgress());
 let drawInput = input;
-let lastTime = performance.now(), accumulator = 0, previousMode = '', previousSeed = null;
+let lastTime = performance.now(), accumulator = 0, previousMode = '', previousSeed = null, previousEnding = false;
 
 function fitCanvas() {
   const scale = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
@@ -44,7 +46,7 @@ window.addEventListener('resize', fitCanvas); fitCanvas();
 
 function resetRun(start = true, runSeed = state.seed) {
   state = createState(runSeed, readBest(), state.difficulty, readProgress());
-  staged = false; drawInput = input; accumulator = 0;
+  staged = false; previewRun = false; drawInput = input; accumulator = 0;
   input.release(); input.clearFrame();
   if (start) startRun(state);
 }
@@ -83,9 +85,14 @@ function handleMenus() {
       }
     }
   } else if (state.mode === 'win' || state.mode === 'lose') {
+    if (state.mode === 'win' && state.ending && state.ending.age < state.ending.duration) {
+      if (input.pressed.size || input.clicks.length || input.splashes.length) { skipEnding(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
+      return;
+    }
     if (input.pressed.has('KeyR') || clicked(RESTART_BUTTON)) resetRun(true, newRunSeed(state.seed));
     else if (input.pressed.has('KeyS') || clicked(SAME_SEED_BUTTON)) resetRun();
     else if (input.pressed.has('Escape') || clicked(TITLE_BUTTON)) resetRun(false);
+    else if (input.pressed.size || input.clicks.length || input.splashes.length) skipResults(state);
   }
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && !staged) pauseRun(); });
@@ -98,13 +105,14 @@ function frame(now) {
     if (state.mode === 'play' || state.mode === 'seal') {
       accumulator += elapsed;
       while (accumulator >= STEP) { updateWorld(state, input, STEP); input.clearFrame(); accumulator -= STEP; }
-    } else { state.time += elapsed; accumulator = 0; input.clearFrame(); }
+    } else { state.time += elapsed; advanceEnding(state, elapsed); accumulator = 0; input.clearFrame(); }
     for (const event of state.soundEvents.splice(0)) audio.play(event.name, event.value);
   } else input.clearFrame();
-  if (previousMode !== state.mode || previousSeed !== state.seed) {
-    status.textContent = state.mode === 'title' ? `INKWARD. Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.`;
-    if (!staged && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
-    previousMode = state.mode; previousSeed = state.seed;
+  const showingEnding = state.mode === 'win' && state.ending?.age < state.ending?.duration;
+  if (previousMode !== state.mode || previousSeed !== state.seed || previousEnding !== showingEnding) {
+    status.textContent = state.mode === 'title' ? `INKWARD. Seed ${state.seed}. Click Open the first scroll or press Enter. R changes the seed.` : state.mode === 'play' ? `Scroll ${state.scroll}. Guard the bell. Draw closed loops around spirits.` : state.mode === 'draft' ? 'Scroll complete. Left chooses Swarm road; Right chooses Quiet road. Then choose a brush art with 1–4.' : state.mode === 'pause' ? 'Paused. P to resume.' : state.mode === 'seal' ? 'The final seal. All eight scrolls are released.' : state.mode === 'win' && state.ending?.age < state.ending?.duration ? `Victory. The bell rings at dawn. Any key or tap skips to your final record. Score ${state.score}.` : `${state.mode === 'win' ? 'Victory' : 'Defeat'}. Score ${state.score}. Seed ${state.seed}. R for a new seed. S for the same seed. Escape for the menu.`;
+    if (!previewRun && (state.mode === 'win' || state.mode === 'lose')) recordRun(state);
+    previousMode = state.mode; previousSeed = state.seed; previousEnding = showingEnding;
   }
   renderScene(ctx, paper, state, drawInput, audio);
   canvas.style.cursor = state.mode === 'play' ? 'none' : 'pointer';

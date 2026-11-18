@@ -7,6 +7,8 @@ import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { finalPhase, inFrostLane } from '../game/src/entities/finalBoss.js';
 import { sealLoop } from '../game/src/ink/seal.js';
 import { replayInput } from '../game/src/shots.js';
+import { beginEnding, advanceEnding, skipEnding, skipResults, ENDING_DURATION } from '../game/src/scenes/ending.js';
+import { resultMotion } from '../game/src/screens/resultMotion.js';
 
 function finalWorld() {
   const state = createState(1); startRun(state); state.scroll = 8; state.queue = []; state.spawnTime = 1000;
@@ -56,6 +58,20 @@ function loop(state, boss, minions = 0) {
   advance(state, input, 3);
   assert.equal(state.mode, 'win'); assert.ok(state.score > score);
   const total = state.score; advance(state, input, 1); assert.equal(state.score, total, 'The final reward settles once');
+  assert.equal(state.ending.age, 0, 'The earned victory opens its ending before the record');
+  const runTime = state.runTime, stats = [...state.scrollScores]; state.soundEvents = [];
+  for (let i = 0; i < Math.ceil(ENDING_DURATION / STEP); i++) advanceEnding(state, STEP);
+  assert.equal(state.ending.age, ENDING_DURATION); assert.equal(state.resultsTime, 0);
+  assert.equal(state.soundEvents.filter(event => event.name === 'endingBell').length, 1);
+  assert.deepEqual(state.soundEvents.filter(event => event.name === 'unroll').map(event => event.value), [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.equal(state.soundEvents.filter(event => event.name === 'win').length, 1);
+  advanceEnding(state, 1); const partial = resultMotion(state);
+  assert.ok(partial.score > 0 && partial.score < total && partial.stamp === 0, 'The score counts up before the grade lands');
+  advanceEnding(state, 2); assert.equal(resultMotion(state).score, total); assert.equal(resultMotion(state).stamp, 1);
+  assert.equal(state.score, total); assert.equal(state.runTime, runTime); assert.deepEqual(state.scrollScores, stats, 'Ending and animated maths preserve real run statistics');
+  beginEnding(state); state.soundEvents = [];
+  assert.ok(skipEnding(state)); assert.equal(skipEnding(state), false); skipResults(state);
+  assert.equal(resultMotion(state).score, total); assert.equal(state.soundEvents.filter(event => event.name === 'win').length, 1, 'Skipping settles once without duplicating the fanfare');
 }
 {
   const { state, boss } = finalWorld();

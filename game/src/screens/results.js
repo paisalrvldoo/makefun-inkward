@@ -5,14 +5,19 @@ import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
 import { artLevel } from '../arts/levels.js';
 import { formatSeed } from '../rng.js';
+import { resultMotion, resultReveal } from './resultMotion.js';
+import { drawEndingVista } from '../render/endingVista.js';
+import { drawSeasonScroll } from '../render/seasonScrolls.js';
 
 export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
 export const TITLE_BUTTON = { x: 848, y: 706, w: 368, h: 58 };
 const number = value => Math.round(value).toLocaleString('en-US');
 
-function drawGrade(ctx, state) {
-  ctx.save(); ctx.translate(1090, 221); ctx.rotate(-0.065);
+function drawGrade(ctx, state, motion) {
+  if (!motion.stamp) return;
+  ctx.save(); ctx.translate(1090, 221); ctx.rotate(-0.065 - (1 - motion.stamp) * 0.18);
+  const scale = 1 + (1 - motion.stamp) * 0.65; ctx.scale(scale, scale); ctx.globalAlpha = motion.stamp;
   const points = Array.from({ length: 33 }, (_, i) => {
     const a = i / 32 * Math.PI * 2, r = i % 2 ? 94 : 100;
     return [Math.cos(a) * r, Math.sin(a) * r];
@@ -41,6 +46,7 @@ function drawGrade(ctx, state) {
 }
 
 export function drawScoreChart(ctx, state) {
+  const age = state.resultsTime ?? 5;
   panel(ctx, 64, 422, 820, 184, '#111e2b', '#665538');
   text(ctx, 'EIGHT SCROLLS / SCORE RECORD', 84, 446, 12, '#edc571', 'bold');
   const ghost = state.previousBestRun;
@@ -58,7 +64,7 @@ export function drawScoreChart(ctx, state) {
   }
   state.scrollScores.forEach((score, i) => {
     const season = SEASONS[SCROLLS[i].season], x = 131 + i * 93;
-    const barHeight = score ? Math.max(3, score / max * height) : 2;
+    const barHeight = score ? Math.max(3, score / max * height * resultReveal(age, 1.05 + i * 0.12, 0.65)) : 2;
     const fill = ctx.createLinearGradient(0, baseline - barHeight, 0, baseline);
     fill.addColorStop(0, season.wash); fill.addColorStop(1, season.color);
     ctx.fillStyle = fill; ctx.fillRect(x - 26, baseline - barHeight, 52, barHeight);
@@ -66,13 +72,13 @@ export function drawScoreChart(ctx, state) {
     text(ctx, String(i + 1).padStart(2, '0'), x, 584, 10, '#e9deca', 'bold', false, 'center');
   });
   if (ghost) {
-    const points = ghost.scrollScores.map((score, i) => [131 + i * 93, baseline - score / max * height]);
+    const points = ghost.scrollScores.map((score, i) => [131 + i * 93, baseline - score / max * height * resultReveal(age, 1.35, 0.75)]);
     line(ctx, points, '#101b25cc', 5);
     ctx.save(); ctx.setLineDash([5, 4]); line(ctx, points, '#f4dc9b', 2); ctx.restore();
     points.forEach(([x, y]) => circle(ctx, x, y, 3, '#152632', '#f4dc9b', 1.5));
   }
   state.scrollScores.forEach((score, i) => {
-    const barHeight = score ? Math.max(3, score / max * height) : 2;
+    const barHeight = score ? Math.max(3, score / max * height * resultReveal(age, 1.05 + i * 0.12, 0.65)) : 2;
     text(ctx, score ? (score / 1000).toFixed(1) + 'k' : '—', 131 + i * 93, baseline - barHeight - 7, 10, '#e4e7db', 'bold', false, 'center');
   });
   SEASONS.forEach((season, i) => text(ctx, season.name, 177.5 + i * 186, 600, 9, season.wash, 'bold', false, 'center'));
@@ -85,7 +91,7 @@ function drawUnlocks(ctx, state) {
   UNLOCKS.forEach((unlock, i) => {
     const x = 239 + i * 240, owned = state.unlocks.includes(unlock.id), fresh = state.newUnlocks.includes(unlock.id);
     line(ctx, [[x - 12, 635], [x - 12, 677]], '#6e6243', 1);
-    ctx.save(); if (!owned) ctx.globalAlpha = 0.4;
+    ctx.save(); ctx.globalAlpha = (owned ? 1 : 0.4) * resultReveal(state.resultsTime ?? 5, 2.3 + i * 0.15);
     if (unlock.kind === 'BRUSH ART') drawArtIcon(ctx, unlock.id, x + 18, 653, 29, { fill: '#e5d3a4', outline: '#f5d787' });
     else if (unlock.id === 'master') {
       circle(ctx, x + 18, 653, 16, '#28424b', '#e3bd68', 1.5);
@@ -111,7 +117,9 @@ function resultButton(ctx, label, hint, rect, input, primary = false) {
 
 export function drawResults(ctx, state, input) {
   const won = state.mode === 'win', fulfilled = state.omenHistory.filter(o => o.complete);
+  const motion = resultMotion(state);
   ctx.fillStyle = '#080f19'; ctx.fillRect(0, 0, 1280, 800);
+  ctx.save(); ctx.beginPath(); ctx.rect(24, 20, 1232, 12 + 750 * (1 - (1 - motion.unroll) ** 3)); ctx.clip();
   const wash = ctx.createRadialGradient(1060, 180, 20, 1060, 180, 520);
   wash.addColorStop(0, '#75502533'); wash.addColorStop(1, '#111d2900');
   panel(ctx, 32, 24, 1216, 752, '#101c28', '#c6a25b');
@@ -126,11 +134,19 @@ export function drawResults(ctx, state, input) {
   const gold = ctx.createLinearGradient(0, 79, 0, 149);
   gold.addColorStop(0, '#fff0b7'); gold.addColorStop(0.5, '#efd086'); gold.addColorStop(1, '#b9893f');
   ctx.save(); ctx.shadowColor = '#edbd5144'; ctx.shadowBlur = 18;
-  text(ctx, won ? 'THE BELL ENDURES' : 'THE BELL FELL', 61, 145, 65, won ? gold : '#f0d3bb', 'bold', true);
+  text(ctx, won ? 'THE BELL ENDURES' : 'THE BELL FELL', 61, 145, won ? 55 : 65, won ? gold : '#f0d3bb', 'bold', true);
   ctx.restore();
-  text(ctx, won ? 'ALL EIGHT SCROLLS SEALED. THE WANDERING SPIRITS ARE HOME.' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
+  text(ctx, won ? 'AT DAWN, IT RANG FOR EVERY SOUL.' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
+  if (won) {
+    panel(ctx, 694, 94, 282, 212, '#22362e', '#ac955c');
+    text(ctx, 'DAWN AT THE SHRINE', 835, 108, 9, '#f0d596', 'bold', false, 'center');
+    drawEndingVista(ctx, state, 12.6 + motion.age, { x: 698, y: 116, w: 274, h: 157 }, true);
+    for (let i = 0; i < 8; i++) drawSeasonScroll(ctx, i, 706 + i * 33, 279, 25, 20, resultReveal(motion.age, 0.8 + i * 0.1), true);
+  }
   text(ctx, 'FINAL SCORE', 66, 211, 12, '#edc571', 'bold');
-  text(ctx, number(state.score), 62, 278, 76, '#fff1d4', 'bold', true);
+  ctx.save(); ctx.translate(62, 278); const totalScale = 1 + motion.slam * 0.065;
+  ctx.scale(totalScale, totalScale);
+  text(ctx, number(motion.score), motion.count > 0 && motion.count < 1 ? Math.sin(motion.age * 47) * 1.5 : 0, 0, 76, '#fff1d4', 'bold', true); ctx.restore();
   line(ctx, [[438, 215], [438, 276]], '#655a3e', 1);
   text(ctx, 'PERSONAL BEST', 465, 228, 11, '#b3c1be', 'bold');
   text(ctx, number(state.best), 463, 266, 34, '#eac66f', 'bold', true);
@@ -139,7 +155,7 @@ export function drawResults(ctx, state, input) {
     const difference = state.score - state.previousBestRun.score;
     text(ctx, (difference >= 0 ? '+' : '−') + number(Math.abs(difference)) + ' VS PREVIOUS BEST', 884, 317, 11, difference >= 0 ? '#91c9aa' : '#dda18a', 'bold', false, 'right');
   } else text(ctx, 'YOUR NEXT PILGRIMAGE STARTS HERE', 884, 317, 11, '#a5bab4', 'bold', false, 'right');
-  drawGrade(ctx, state);
+  drawGrade(ctx, state, motion);
 
   const stats = [
     ['SCROLLS SEALED', (won ? 8 : state.scroll - 1) + ' / 8', '#bd5364'],
@@ -150,11 +166,13 @@ export function drawResults(ctx, state, input) {
     ['PILGRIMAGE TIME', Math.floor(state.runTime / 60) + ':' + String(Math.floor(state.runTime % 60)).padStart(2, '0'), '#d1c6a8'],
   ];
   stats.forEach(([label, value, color], i) => {
+    ctx.save(); ctx.globalAlpha = resultReveal(motion.age, 0.8 + i * 0.12);
     const x = 64 + i * 194;
     panel(ctx, x, 354, 182, 52, '#1b2a36', '#586054');
     ctx.fillStyle = color; ctx.fillRect(x, 354, 3, 52);
     text(ctx, label, x + 13, 371, 9, '#b6c6c0', 'bold');
     text(ctx, value, x + 13, 398, 26, '#fff0d8', 'bold', true);
+    ctx.restore();
   });
   drawScoreChart(ctx, state);
   panel(ctx, 900, 422, 316, 184, '#111e2b', '#665538');
@@ -169,7 +187,8 @@ export function drawResults(ctx, state, input) {
   text(ctx, 'WRATH PEAK ' + state.peakWrath + '/5  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 554, 10, '#ed8c68', 'bold');
   text(ctx, 'LARGEST SEAL  /  ' + state.largestSeal + ' SPIRITS', 920, 580, 11, '#d1d4bf', 'bold');
   drawUnlocks(ctx, state);
-  resultButton(ctx, 'RUN AGAIN  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);
+  resultButton(ctx, won ? 'NEW RUN  (R)' : 'RETRY  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);
   resultButton(ctx, 'SAME SEED  (S)', 'RETRACE THIS RUN', SAME_SEED_BUTTON, input);
   resultButton(ctx, 'MENU  (Esc)', 'RETURN TO THE SHRINE', TITLE_BUTTON, input);
+  ctx.restore();
 }

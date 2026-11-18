@@ -14,7 +14,7 @@ export function drawBell(ctx, bell, time = 0, scale = 1) {
   ctx.fillStyle = '#d5c6a5'; ctx.fillRect(-45, 15, 90, 20); ctx.strokeStyle = '#958568'; ctx.lineWidth = 1.4; ctx.strokeRect(-45, 15, 90, 20);
   line(ctx, [[-36, 17], [-36, -48]], COLORS.red, 7); line(ctx, [[36, 17], [36, -48]], COLORS.red, 7);
   line(ctx, [[-53, -46], [0, -55], [53, -46]], COLORS.ink, 6); line(ctx, [[-48, -40], [48, -40]], COLORS.red, 5);
-  ctx.save(); ctx.rotate(bell.hitTime > 0 ? Math.sin(time * 28) * 0.1 : Math.sin(time * 1.1) * 0.015);
+  ctx.save(); ctx.rotate(bell.ring > 0 ? Math.sin(time * 12) * bell.ring * 0.12 : bell.hitTime > 0 ? Math.sin(time * 28) * 0.1 : Math.sin(time * 1.1) * 0.015);
   line(ctx, [[0, -48], [0, -28]], '#a88c52', 3);
   const moon = bell.skin === 'moon';
   ctx.fillStyle = moon ? '#c3dceb' : bell.hp <= 3 ? '#b58955' : '#d7b467'; ctx.strokeStyle = moon ? '#526b88' : '#695737'; ctx.lineWidth = 2;
@@ -28,6 +28,6 @@ export function drawBell(ctx, bell, time = 0, scale = 1) {
   if (bell.hp < (bell.maxHp || 12)) line(ctx, [[7, -21], [3, -10], [9, -4], [4, 5]], '#70543a', 1.6);
   if (bell.hp <= (bell.maxHp || 12) - 2) line(ctx, [[-8, -18], [-5, -10], [-10, -1]], '#70543a', 1.8);
   ctx.restore();
-  text(ctx, 'GUARD THE BELL', 0, 64, 10, '#8b7954', 'bold', false, 'center');
+  if (!bell.peaceful) text(ctx, 'GUARD THE BELL', 0, 64, 10, '#8b7954', 'bold', false, 'center');
   ctx.restore();
 }

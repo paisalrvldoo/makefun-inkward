@@ -25,6 +25,7 @@ export function createState(seed = 1, best = 0, difficultyId = 'monk', progress 
     spawnTime: 1.8, splashCooldown: 0, qCooldown: 0, eCooldown: 0, bannerTime: 4.5,
     banner: 'SCROLL I · A BELL IN BLOOM', shake: 0, flash: 0, hitStop: 0, soundEvents: [], nextId: 1,
     tutorial: 'DRAW A LOOP AROUND THE SPIRITS', ended: false, climax: null, finalSeal: null, frostLanes: [],
+    ending: null, resultsTime: 0, resultsBeat: -1,
   };
   state.queue = makeThreatQueue(state);
   state.total = state.queue.length;

@@ -255,7 +255,7 @@ try {
     }
     if (scene === 'win') {
       const labels = await paintedLabels();
-      for (const value of ['THE BELL ENDURES', 'S', 'NEW BEST!', 'UNLOCKED', 'SEED 0000000001 / MONK', 'BEST RUN / MONK / A']) {
+      for (const value of ['THE BELL ENDURES', 'S', 'NEW BEST!', 'UNLOCKED', 'SEED 0000000001 / MONK', 'BEST RUN / MONK / A', 'DAWN AT THE SHRINE', 'NEW RUN  (R)']) {
         assert.ok(labels.some(label => label.text === value), `Victory draws ${value}`);
       }
       assert.ok(labels.some(label => /^\+[\d,]+ VS PREVIOUS BEST$/.test(label.text)), 'Victory compares its score against the old record');
@@ -274,6 +274,34 @@ try {
     }
     console.log(`Browser scene ${scene}: ${JSON.stringify(state)}`);
   }
+  await call('Page.navigate', { url: `${base}/?shot=ending&seed=1` });
+  await until('location.search.includes("shot=ending") && window.inkward?.state.ending?.age > 11 && document.documentElement.dataset.shotReady === "true"');
+  const endingLabels = await paintedLabels();
+  for (const value of ['DAWN RETURNS', 'The bell kept no tally of the dark.', 'At dawn, it rang for every soul.', 'THE BELL ENDURES', 'ANY KEY OR TAP · OPEN YOUR FINAL RECORD']) {
+    assert.ok(endingLabels.some(label => label.text === value), `Ending draws ${value}`);
+  }
+  assert.equal(endingLabels.filter(label => ['REEDS', 'LANTERNS', 'MOSS', 'PAPER', 'FIRELIGHT', 'MAPLE', 'INKSTONE', 'LAST BELL'].includes(label.text)).length, 8, 'Eight earned scrolls unroll in the ending');
+  assert.ok(!endingLabels.some(label => label.text === 'GUARD THE BELL'), 'The peaceful shrine has its clean ending presentation');
+  await evaluate('inkward.post.toggle()'); await until('!inkward.post.active');
+  const plainEnding = await evaluate('document.querySelector("#game").toDataURL()');
+  const endingFallback = await call('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(kind, ...args) { return kind === 'webgl2' ? null : original.call(this, kind, ...args); };
+  })()` });
+  await call('Page.navigate', { url: `${base}/?shot=ending&seed=1&fallback=ending` });
+  await until('location.search.includes("fallback=ending") && document.documentElement.dataset.shotReady === "true" && window.inkward?.state.ending?.age > 11');
+  assert.equal(await evaluate('inkward.post.active'), false);
+  assert.equal(await evaluate('document.querySelector("#game").toDataURL()'), plainEnding, 'Missing WebGL preserves the exact animated-ending frame');
+  await call('Page.removeScriptToEvaluateOnNewDocument', { identifier: endingFallback.identifier });
+  const endingScore = await evaluate('inkward.state.score');
+  await key('KeyZ', 'z'); await until('inkward.state.ending.age === inkward.state.ending.duration && inkward.state.resultsTime > 0.1');
+  assert.equal(await evaluate('inkward.state.score'), endingScore, 'Any key skips the epilogue without resetting the run');
+  await key('KeyZ', 'z'); await until('inkward.state.resultsTime >= 4.5');
+  await call('Page.navigate', { url: `${base}/?shot=ending&seed=1&verify=tap` });
+  await until('location.search.includes("verify=tap") && document.documentElement.dataset.shotReady === "true" && window.inkward?.state.ending?.age < 12');
+  await mouse('mousePressed', 640, 360); await mouse('mouseReleased', 640, 360);
+  await until('inkward.state.ending.age === inkward.state.ending.duration');
+  console.log('Ending browser OK: original epilogue, eight unrolled scrolls, peaceful dawn shrine, exact 2D fallback, any-key/tap skip and animated record');
   for (const action of ['same-key', 'same-click', 'again-key', 'again-click', 'menu-key', 'menu-click']) {
     await call('Page.navigate', { url: `${base}/?shot=win&seed=1&verify=${action}` });
     await until(`location.search.includes('verify=${action}') && window.inkward?.state.mode === 'win' && document.documentElement.dataset.shotReady === 'true'`);
@@ -315,6 +343,8 @@ try {
   const saved = await evaluate('JSON.parse(localStorage.getItem("inkward.progress.v2"))');
   assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'moonBell'], 'A real browser victory persists all four unlocks');
   assert.equal(saved.bestRun.seed, 1); assert.equal(saved.bestRun.scrollScores.length, 8);
+  assert.ok(await evaluate('inkward.state.ending.age < inkward.state.ending.duration'), 'A natural victory enters its ending before results');
+  await key('KeyZ', 'z'); await until('inkward.state.ending.age === inkward.state.ending.duration');
   await key('Escape', 'Escape'); await until('inkward.state.mode === "title"');
   await key('KeyB', 'b'); await until('inkward.state.bell.skin === "moon"');
   await call('Page.navigate', { url: `${base}/?seed=1` });

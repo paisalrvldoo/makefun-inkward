@@ -16,6 +16,7 @@ import { bufferActions, clearControls } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
 import { advanceClimax } from '../entities/finalBoss.js';
 import { advanceFinalSeal } from '../scenes/finalSeal.js';
+import { beginEnding } from '../scenes/ending.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -31,7 +32,8 @@ export function finishRun(state, won) {
   if (won) state.score += state.bell.hp * 500 + 3000;
   recordScroll(state); state.grade = gradeRun(state);
   recordRun(state, { persist: false });
-  state.soundEvents.push({ name: won ? 'win' : 'lose' });
+  if (won) beginEnding(state);
+  else state.soundEvents.push({ name: 'lose' });
 }
 export function nextScroll(state) {
   if (!walkRoad(state)) return false;

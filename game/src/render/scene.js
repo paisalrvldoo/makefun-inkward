@@ -15,11 +15,13 @@ import { drawSkillEffects } from './skillEffects.js';
 import { drawSilhouette } from './silhouette.js';
 import { drawHunterAura, drawDissolves, drawAttackIntent } from './characterEffects.js';
 import { drawClimax } from './climax.js';
+import { drawEnding } from '../screens/ending.js';
 
 export function renderScene(ctx, paper, state, input, audio) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(paper, 0, 0);
   if (state.mode === 'title') { drawTitle(ctx, state, input, audio); return; }
+  if (state.mode === 'win' && state.ending && state.ending.age < state.ending.duration) { drawEnding(ctx, state); return; }
   drawGarden(ctx, state);
   ctx.save(); ctx.beginPath(); ctx.rect(FIELD.x, FIELD.y, FIELD.w, FIELD.h); ctx.clip();
   if (state.shake > 0 && state.mode === 'play') ctx.translate(Math.sin(state.time * 79) * state.shake, Math.cos(state.time * 63) * state.shake * 0.6);
