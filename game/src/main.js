@@ -98,7 +98,11 @@ function handleMenus() {
     }
     for (let i = 0; i < state.draft.length; i++) {
       if (input.pressed.has(`Digit${i + 1}`) || clicked(draftRects(state)[i])) {
-        if (chooseArt(state, i)) { openShop(state); staged = false; drawInput = input; input.release(); input.clearFrame(); }
+        if (chooseArt(state, i)) {
+          if (staged) { nextScroll(state); }
+          else { openShop(state); }
+          staged = false; drawInput = input; input.release(); input.clearFrame();
+        }
         break;
       }
     }

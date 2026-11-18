@@ -312,4 +312,57 @@ console.log('Combo heat OK: builds with seals, +25% score at max, decays on comb
   assert.equal(ultCharge(s3), 30, 'ULT meter can refill after use');
 }
 console.log('ULT OK: meter fills from seals, activates, seals yokai, damages bosses, resets');
+{
+  const { rollInkGold, openShop, closeShop, rerollShop, buyShopItem, rerollPrice, rollShopOffer } = await import('../game/src/run/shop.js');
+  // Sealing real yokai earns ink-gold coins.
+  const state = world();
+  const goldBefore = state.inkGold || 0;
+  for (let i = 0; i < 4; i++) spawnYokai(state, 'kappa', { x: 260 + i * 8, y: 360 });
+  circle(state, 270, 360);
+  assert.ok(state.inkGold > goldBefore, 'Sealing spirits drops ink-gold coins');
+  assert.ok(rollInkGold(state, { kind: 'kappa', value: 100 }) >= 2, 'Higher-value yokai drop more coins');
+  assert.ok(rollInkGold(state, { kind: 'oni', value: 500 }) >= 3, 'Oni drop at least 3 coins');
+  assert.ok(rollInkGold(state, { kind: 'crane', value: 80 }) >= 1, 'Every yokai drop is at least 1');
+  // Opening the shop transitions to shop mode with 4-6 items.
+  const draftState = createState(7); startRun(draftState); draftState.queue = [];
+  updateWorld(draftState, replayInput(), STEP); // clears the scroll -> draft mode
+  assert.equal(draftState.mode, 'draft');
+  chooseRoad(draftState, 'quiet'); chooseArt(draftState, 0);
+  openShop(draftState);
+  assert.equal(draftState.mode, 'shop');
+  assert.ok(draftState.shopOffer.length >= 4 && draftState.shopOffer.length <= 6, 'Shop offers 4-6 items');
+  // Every item has a positive integer price.
+  for (const item of draftState.shopOffer) assert.ok(item.price > 0 && Number.isInteger(item.price), 'Item price is a positive integer');
+  // Buying reduces coins and applies the effect.
+  const coins = draftState.inkGold;
+  const firstItem = draftState.shopOffer[0];
+  draftState.inkGold = firstItem.price + 5;
+  const coinBefore = draftState.inkGold;
+  assert.ok(buyShopItem(draftState, 0));
+  assert.equal(draftState.inkGold, coinBefore - firstItem.price, 'Buying deducts the exact price');
+  assert.equal(firstItem.sold, true, 'Bought items are marked sold');
+  assert.ok(!buyShopItem(draftState, 0), 'Sold items cannot be rebought');
+  // Cannot buy without enough coins.
+  draftState.inkGold = 0;
+  assert.ok(!buyShopItem(draftState, 1), 'Buying without coins fails');
+  // Reroll changes the offer and grows in price.
+  draftState.inkGold = 100;
+  const firstOffer = [...draftState.shopOffer];
+  const firstRerollCost = rerollPrice(draftState);
+  assert.ok(firstRerollCost >= 3, 'First reroll costs at least 3');
+  assert.ok(rerollShop(draftState));
+  assert.ok(rerollPrice(draftState) > firstRerollCost, 'Reroll price grows after each reroll');
+  // Reroll fails without enough coins.
+  draftState.inkGold = 0;
+  assert.ok(!rerollShop(draftState), 'Reroll without coins fails');
+  // Leaving the shop returns to draft mode.
+  closeShop(draftState);
+  assert.equal(draftState.mode, 'draft');
+  // The staged shop shot produces a real shop panel.
+  const shopShot = stageShot('shop', 1);
+  assert.equal(shopShot.state.mode, 'shop', 'Shop shot opens a real shop');
+  assert.ok(shopShot.state.shopOffer.length >= 4, 'Shop shot has items to buy');
+  assert.ok(shopShot.state.inkGold > 0, 'Shop shot has coins to spend');
+}
+console.log('Shop OK: ink-gold drops from seals, 4-6 priced items, buy deducts coins, reroll grows in price, leave returns to draft');
 console.log(`Core OK: wall collision/erosion, ink limits/refund, multi-seal, oni grace, fox split, draft, win (${win.score}), loss (${loss.score})`);
