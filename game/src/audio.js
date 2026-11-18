@@ -87,6 +87,16 @@ export function createAudio() {
         rustle(0.15, 0.05, name === 'dash' ? 3000 : 1000);
         tone(155, 0.25, 0.13, 'triangle');
         tone(330, 0.15, 0.045, 'sine', 0.04);
+      } else if (name === 'cleanBell') {
+        [294, 588, 882, 1176, 1470].forEach((f, i) => tone(f, 3.5 - i * 0.3, 0.11 / (i + 1), 'sine'));
+      } else if (name === 'unroll') {
+        rustle(0.24, 0.04, 2100); tone(294 * 2 ** (value / 12), 0.45, 0.045, 'triangle');
+      } else if (name === 'gradeStamp') {
+        tone(65, 0.2, 0.17, 'triangle'); rustle(0.14, 0.12, 900); tone(1176, 0.6, 0.06);
+      } else if (name === 'victoryFanfare') {
+        [294, 392, 440, 588, 784, 882, 1176].forEach((f, i) => {
+          tone(f, 0.9, 0.065, 'triangle', i * 0.13); tone(f / 2, 1.1, 0.04, 'sine', i * 0.13);
+        });
       } else if (name === 'win' || name === 'draft') {
         [330, 440, 550, 660].forEach((f, i) => tone(f, 0.7, 0.09, 'triangle', i * 0.15));
       } else if (name === 'lose') {

@@ -7,6 +7,7 @@ import { chooseArt, draftArts } from './arts/brushArts.js';
 import { directPlayCover } from './coverReplay.js';
 import { wrathLevel } from './world/wrath.js';
 import { chooseRoad } from './world/path.js';
+import { updateEnding } from './scenes/ending.js';
 
 export function replayInput() {
   return {
@@ -89,6 +90,8 @@ export function createReplayPilot(options = {}) {
   };
 }
 export function stageShot(name, seed = 1) {
+  const ending = name === 'ending';
+  if (ending) name = 'win';
   const previous = name === 'win' ? replayPreviousAttempt(seed) : null;
   const state = createState(seed, previous?.best || 0, 'monk', previous?.progress), input = replayInput();
   if (name === 'start' || name === 'title' || !['play', 'end', 'win', 'draft', 'winter'].includes(name)) {
@@ -120,6 +123,7 @@ export function stageShot(name, seed = 1) {
   if (name === 'draft' && (state.mode !== 'draft' || state.scroll !== 5 || !state.bonusDraft || state.arts.length !== 5 || state.draft.length !== 4)) {
     throw new Error('Draft director missed its frame: scroll ' + state.scroll + ', mode ' + state.mode + ', bonus ' + state.bonusDraft + ', arts ' + state.arts.length + ', choices ' + state.draft.length);
   }
+  if (name === 'win') updateEnding(state, ending ? 7.8 : 12.8);
   state.soundEvents.length = 0;
   return { state, input };
 }

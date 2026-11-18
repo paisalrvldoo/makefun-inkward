@@ -315,6 +315,22 @@ try {
   const saved = await evaluate('JSON.parse(localStorage.getItem("inkward.progress.v2"))');
   assert.deepEqual(saved.unlocks, ['master', 'moonInk', 'afterglow', 'moonBell'], 'A real browser victory persists all four unlocks');
   assert.equal(saved.bestRun.seed, 1); assert.equal(saved.bestRun.scrollScores.length, 8);
+  assert.ok(await evaluate('inkward.state.ending.time < 9.5'), 'A genuine win opens the animated ending');
+  await evaluate(`(async () => { const { updateEnding } = await import('./src/scenes/ending.js'); updateEnding(inkward.state, 6.5 - inkward.state.ending.time); })()`);
+  const epilogue = await paintedLabels();
+  for (const value of ['THE BELL ENDURES', 'Only a bell, and room for spring.', 'ANY KEY / TAP · REVEAL YOUR RECORD']) assert.ok(epilogue.some(l => l.text === value), 'The original epilogue is painted');
+  assert.equal(epilogue.filter(l => ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'].includes(l.text)).length, 8, 'All eight scrolls unroll');
+  await key('KeyG', 'g'); await until('!inkward.post.active');
+  const plainEnding = await paintedLabels(); assert.ok(plainEnding.some(l => l.text === 'NEW RUN  (R)'), 'Canvas fallback paints the animated results');
+  assert.equal(await evaluate('inkward.state.ending.skipped'), true, 'Any key reveals the results without restarting');
+  // Revisit the dawn in fallback and exercise an actual pointer skip.
+  await evaluate('inkward.state.ending.time = 6.5; inkward.state.ending.skipped = false; inkward.state.resultTime = 0');
+  const fallbackVerse = await paintedLabels(); assert.ok(fallbackVerse.some(l => l.text === 'Only a bell, and room for spring.'));
+  await mouse('mousePressed', 640, 730); await mouse('mouseReleased', 640, 730);
+  await until('inkward.state.ending.skipped && inkward.state.resultTime >= 3');
+  assert.equal(await evaluate('inkward.state.mode'), 'win', 'Skip tap cannot activate a results button behind the ending');
+  await key('KeyG', 'g'); await until('inkward.post.active');
+  console.log('Ending browser OK: natural dawn, eight animated scrolls, original verse, keyboard/tap skip, Canvas fallback and intact saved victory');
   await key('Escape', 'Escape'); await until('inkward.state.mode === "title"');
   await key('KeyB', 'b'); await until('inkward.state.bell.skin === "moon"');
   await call('Page.navigate', { url: `${base}/?seed=1` });

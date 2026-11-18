@@ -5,6 +5,8 @@ import { text, panel, hitRect, circle, line } from '../render/primitives.js';
 import { drawArtIcon } from '../render/arts.js';
 import { artLevel } from '../arts/levels.js';
 import { formatSeed } from '../rng.js';
+import { scoreReveal } from '../scenes/ending.js';
+import { drawDawnShrine } from '../render/endingScene.js';
 
 export const RESTART_BUTTON = { x: 64, y: 706, w: 396, h: 58 };
 export const SAME_SEED_BUTTON = { x: 478, y: 706, w: 352, h: 58 };
@@ -13,6 +15,9 @@ const number = value => Math.round(value).toLocaleString('en-US');
 
 function drawGrade(ctx, state) {
   ctx.save(); ctx.translate(1090, 221); ctx.rotate(-0.065);
+  const slam = Math.max(0, 1 - Math.max(0, (state.resultTime ?? 3) - 2.2) / 0.3);
+  ctx.globalAlpha = (state.resultTime ?? 3) >= 2.2 ? 1 : 0;
+  ctx.scale(1 + slam * 0.45, 1 + slam * 0.45);
   const points = Array.from({ length: 33 }, (_, i) => {
     const a = i / 32 * Math.PI * 2, r = i % 2 ? 94 : 100;
     return [Math.cos(a) * r, Math.sin(a) * r];
@@ -58,7 +63,7 @@ export function drawScoreChart(ctx, state) {
   }
   state.scrollScores.forEach((score, i) => {
     const season = SEASONS[SCROLLS[i].season], x = 131 + i * 93;
-    const barHeight = score ? Math.max(3, score / max * height) : 2;
+    const barHeight = score ? Math.max(3, score / max * height * scoreReveal(state)) : 2;
     const fill = ctx.createLinearGradient(0, baseline - barHeight, 0, baseline);
     fill.addColorStop(0, season.wash); fill.addColorStop(1, season.color);
     ctx.fillStyle = fill; ctx.fillRect(x - 26, baseline - barHeight, 52, barHeight);
@@ -72,7 +77,7 @@ export function drawScoreChart(ctx, state) {
     points.forEach(([x, y]) => circle(ctx, x, y, 3, '#152632', '#f4dc9b', 1.5));
   }
   state.scrollScores.forEach((score, i) => {
-    const barHeight = score ? Math.max(3, score / max * height) : 2;
+    const barHeight = score ? Math.max(3, score / max * height * scoreReveal(state)) : 2;
     text(ctx, score ? (score / 1000).toFixed(1) + 'k' : '—', 131 + i * 93, baseline - barHeight - 7, 10, '#e4e7db', 'bold', false, 'center');
   });
   SEASONS.forEach((season, i) => text(ctx, season.name, 177.5 + i * 186, 600, 9, season.wash, 'bold', false, 'center'));
@@ -85,7 +90,8 @@ function drawUnlocks(ctx, state) {
   UNLOCKS.forEach((unlock, i) => {
     const x = 239 + i * 240, owned = state.unlocks.includes(unlock.id), fresh = state.newUnlocks.includes(unlock.id);
     line(ctx, [[x - 12, 635], [x - 12, 677]], '#6e6243', 1);
-    ctx.save(); if (!owned) ctx.globalAlpha = 0.4;
+    ctx.save(); ctx.globalAlpha = Math.min(1, Math.max(0, ((state.resultTime ?? 3) - 2.2 - i * 0.12) * 5));
+    if (!owned) ctx.globalAlpha *= 0.4;
     if (unlock.kind === 'BRUSH ART') drawArtIcon(ctx, unlock.id, x + 18, 653, 29, { fill: '#e5d3a4', outline: '#f5d787' });
     else if (unlock.id === 'master') {
       circle(ctx, x + 18, 653, 16, '#28424b', '#e3bd68', 1.5);
@@ -110,12 +116,28 @@ function resultButton(ctx, label, hint, rect, input, primary = false) {
 }
 
 export function drawResults(ctx, state, input) {
+  const t = state.resultTime ?? 3, open = 1 - (1 - Math.min(1, t / 0.7)) ** 3;
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 400 - 400 * open, 1280, 800 * open); ctx.clip();
+  drawResultContents(ctx, state, input); ctx.restore();
+  if (open < 1) {
+    for (const y of [400 - 400 * open, 400 + 400 * open]) {
+      line(ctx, [[23, y], [1257, y]], '#755537', 15);
+      line(ctx, [[24, y - 3], [1256, y - 3]], '#e5c37c', 3);
+    }
+  }
+}
+
+function drawResultContents(ctx, state, input) {
   const won = state.mode === 'win', fulfilled = state.omenHistory.filter(o => o.complete);
   ctx.fillStyle = '#080f19'; ctx.fillRect(0, 0, 1280, 800);
   const wash = ctx.createRadialGradient(1060, 180, 20, 1060, 180, 520);
   wash.addColorStop(0, '#75502533'); wash.addColorStop(1, '#111d2900');
   panel(ctx, 32, 24, 1216, 752, '#101c28', '#c6a25b');
   ctx.fillStyle = wash; ctx.fillRect(33, 25, 1214, 750);
+  if (won) {
+    drawDawnShrine(ctx, state, state.ending?.time || 12.8, true);
+    text(ctx, 'DAWN AT THE SHRINE', 650, 191, 10, '#d5b466', 'bold');
+  }
   panel(ctx, 40, 32, 1200, 736, '#101c2800', '#514c38');
   for (const [x, y, dx, dy] of [[48, 40, 1, 1], [1232, 40, -1, 1], [48, 760, 1, -1], [1232, 760, -1, -1]]) {
     line(ctx, [[x, y + dy * 20], [x, y], [x + dx * 20, y]], '#d8b463', 2);
@@ -128,9 +150,10 @@ export function drawResults(ctx, state, input) {
   ctx.save(); ctx.shadowColor = '#edbd5144'; ctx.shadowBlur = 18;
   text(ctx, won ? 'THE BELL ENDURES' : 'THE BELL FELL', 61, 145, 65, won ? gold : '#f0d3bb', 'bold', true);
   ctx.restore();
-  text(ctx, won ? 'ALL EIGHT SCROLLS SEALED. THE WANDERING SPIRITS ARE HOME.' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
+  text(ctx, won ? 'DAWN RETURNS. ALL EIGHT SCROLLS SEALED. THE SPIRITS ARE HOME.' : 'A NEW ROAD. A NEW BRUSH. THE NEXT PILGRIMAGE AWAITS.', 66, 173, 12, '#b9c5bd', 'bold');
   text(ctx, 'FINAL SCORE', 66, 211, 12, '#edc571', 'bold');
-  text(ctx, number(state.score), 62, 278, 76, '#fff1d4', 'bold', true);
+  const reveal = scoreReveal(state), pulse = reveal < 1 ? Math.sin((state.resultTime ?? 3) * 26) * 2 : 0;
+  text(ctx, number(state.score * reveal), 62, 278 + pulse, 76 + pulse, '#fff1d4', 'bold', true);
   line(ctx, [[438, 215], [438, 276]], '#655a3e', 1);
   text(ctx, 'PERSONAL BEST', 465, 228, 11, '#b3c1be', 'bold');
   text(ctx, number(state.best), 463, 266, 34, '#eac66f', 'bold', true);
@@ -150,11 +173,13 @@ export function drawResults(ctx, state, input) {
     ['PILGRIMAGE TIME', Math.floor(state.runTime / 60) + ':' + String(Math.floor(state.runTime % 60)).padStart(2, '0'), '#d1c6a8'],
   ];
   stats.forEach(([label, value, color], i) => {
+    ctx.save(); ctx.globalAlpha = Math.min(1, Math.max(0, ((state.resultTime ?? 3) - 0.65 - i * 0.12) * 4));
     const x = 64 + i * 194;
     panel(ctx, x, 354, 182, 52, '#1b2a36', '#586054');
     ctx.fillStyle = color; ctx.fillRect(x, 354, 3, 52);
     text(ctx, label, x + 13, 371, 9, '#b6c6c0', 'bold');
     text(ctx, value, x + 13, 398, 26, '#fff0d8', 'bold', true);
+    ctx.restore();
   });
   drawScoreChart(ctx, state);
   panel(ctx, 900, 422, 316, 184, '#111e2b', '#665538');
@@ -169,7 +194,7 @@ export function drawResults(ctx, state, input) {
   text(ctx, 'WRATH PEAK ' + state.peakWrath + '/5  ·  ' + state.huntersSealed + ' HUNTERS SEALED', 920, 554, 10, '#ed8c68', 'bold');
   text(ctx, 'LARGEST SEAL  /  ' + state.largestSeal + ' SPIRITS', 920, 580, 11, '#d1d4bf', 'bold');
   drawUnlocks(ctx, state);
-  resultButton(ctx, 'RUN AGAIN  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);
+  resultButton(ctx, won ? 'NEW RUN  (R)' : 'RETRY  (R)', 'A NEW PILGRIMAGE', RESTART_BUTTON, input, true);
   resultButton(ctx, 'SAME SEED  (S)', 'RETRACE THIS RUN', SAME_SEED_BUTTON, input);
   resultButton(ctx, 'MENU  (Esc)', 'RETURN TO THE SHRINE', TITLE_BUTTON, input);
 }

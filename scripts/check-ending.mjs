@@ -6,6 +6,7 @@ import { spawnYokai, damageBell } from '../game/src/entities/yokai.js';
 import { sealLoop } from '../game/src/ink/seal.js';
 import { releaseWhiteout, updateFrostWaves } from '../game/src/entities/frostPattern.js';
 import { replayInput } from '../game/src/shots.js';
+import { ENDING_DURATION, updateEnding, skipEnding, scoreReveal } from '../game/src/scenes/ending.js';
 
 const s = createState(17); startRun(s); s.scroll = 8; s.queue = [];
 spawnBoss(s, 'frost', { x: 360, y: 330 });
@@ -31,6 +32,18 @@ assert.equal(s.mode, 'play', 'Results wait for the final impact');
 for (let i = 0; i < 180; i++) updateWorld(s, replayInput(), 1 / 60);
 assert.equal(s.mode, 'win'); assert.ok(s.ended && s.bell.hp > 0);
 assert.equal(s.scrollScores.reduce((a, b) => a + b, 0), s.score);
+const score = s.score, unlocks = [...s.unlocks];
+assert.ok(s.ending && s.ending.time < 1, 'A natural win starts at dawn');
+s.soundEvents = []; s.ending.time = 0;
+updateEnding(s, ENDING_DURATION + 3);
+assert.equal(s.soundEvents.filter(e => e.name === 'cleanBell').length, 1);
+assert.equal(s.soundEvents.filter(e => e.name === 'unroll').length, 8, 'Every seasonal scroll rings in once');
+assert.equal(s.soundEvents.filter(e => e.name === 'gradeStamp').length, 1);
+assert.equal(scoreReveal(s), 1); assert.equal(s.score, score); assert.deepEqual(s.unlocks, unlocks);
+updateEnding(s, 1); assert.equal(s.soundEvents.filter(e => e.name === 'unroll').length, 8, 'Cues never repeat');
+s.ending.time = 1; s.resultTime = 0;
+assert.ok(skipEnding(s)); assert.equal(s.resultTime, 3); assert.equal(s.mode, 'win'); assert.equal(s.score, score);
+assert.equal(skipEnding(s), false, 'Skipping again does not replay cues');
 
 const frost = createState(9); frost.scroll = 8; spawnBoss(frost, 'frost', { x: 300, y: 300 });
 const oni = frost.enemies[0]; oni.hp = 3; oni.pulse = 0; oni.stun = 0;
