@@ -4,7 +4,19 @@ import { text, panel, circle, line } from './primitives.js';
 import { omenProgress } from '../world/omens.js';
 import { drawGlow } from './light.js';
 
+function drawWhiteout(ctx, wave, radius, alpha, width) {
+  ctx.save(); ctx.globalAlpha = alpha;
+  for (let i = 0; i < 6; i++) {
+    const safe = wave.broken.includes(i), a = wave.angle + i * Math.PI / 3;
+    ctx.beginPath(); ctx.arc(wave.x, wave.y, radius, a + 0.04, a + Math.PI / 3 - 0.04);
+    ctx.strokeStyle = safe ? '#639c78' : '#ce534c'; ctx.lineWidth = safe ? 2 : width;
+    ctx.setLineDash(safe ? [5, 9] : []); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function drawBossTelegraphs(ctx, state) {
+  for (const wave of state.frostWaves) if (wave.delay <= 0) drawWhiteout(ctx, wave, wave.radius, Math.min(1, (1100 - wave.radius) / 200), 14);
   for (const boss of state.enemies) {
     if (boss.kind !== 'oni' || boss.dead || !boss.telegraph) continue;
     const warning = boss.telegraph, progress = 1 - warning.time / warning.total;
@@ -12,7 +24,14 @@ export function drawBossTelegraphs(ctx, state) {
     drawGlow(ctx, warning.x, warning.y, boss.radius * 2.3, 0.25 + progress * 0.45, color);
     ctx.save(); ctx.globalAlpha *= 0.32 + progress * 0.4 + Math.sin(state.time * 6) * 0.08;
     circle(ctx, warning.x, warning.y, boss.radius + 12 + progress * 5, null, '#ffd078', 3); ctx.restore();
-    if (warning.kind === 'charge') {
+    if (warning.kind === 'whiteout') {
+      const wave = { ...warning, angle: warning.angle, broken: [1, 4] };
+      drawWhiteout(ctx, wave, 105 + progress * 190, 0.6, 8 + progress * 12);
+      for (let i = 0; i < 6; i++) if (![1, 4].includes(i)) {
+        const a = warning.angle + (i + 0.5) * Math.PI / 3;
+        line(ctx, [[warning.x + Math.cos(a) * 60, warning.y + Math.sin(a) * 60], [warning.x + Math.cos(a) * 700, warning.y + Math.sin(a) * 700]], '#ce534c44', 22 * progress + 2);
+      }
+    } else if (warning.kind === 'charge') {
       line(ctx, [[warning.x, warning.y], [warning.end.x, warning.end.y]], '#bb44361c', 76);
     } else {
       circle(ctx, warning.x, warning.y, warning.radius, color + '18', color, 2);

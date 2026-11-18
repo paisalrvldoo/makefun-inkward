@@ -14,5 +14,5 @@ export const ONI = {
   inkstone: { name: 'SUMIGARA · THE INKSTONE ONI', short: 'SUMIGARA', color: '#778e9f', hp: 6, speed: 13, value: 2800, crest: 'stone', tempo: 5.5, stormCount: 3,
     phases: ['DARK SLATE', 'CRACKED WARD', 'FALLING STONE'], attacks: [['roar'], ['charge', 'storm'], ['roar', 'charge']], minions: ['eater', 'crane'], rule: 'LOOP = 1 HIT · STUN / RECOVERY = 2' },
   frost: { name: 'YUKIORO · THE FROST ONI', short: 'YUKIORO', color: '#7191a6', hp: 10, speed: 17, value: 3600,
-    phases: ['SNOW HUSH', 'WHITE CHARGE', 'WINTER’S MOUTH'], attacks: [['storm', 'roar'], ['charge', 'storm'], ['roar', 'charge', 'storm']], minions: ['eater', 'crane', 'lantern', 'fox'], rule: 'STUN / RECOVERY / LOOP WITH 2 MINIONS TO BREAK WARD' },
+    phases: ['SNOW HUSH', 'VIOLET FRACTURE', 'CRIMSON WHITEOUT'], attacks: [['storm', 'roar'], ['charge', 'storm'], ['whiteout', 'charge', 'whiteout']], minions: ['eater', 'crane', 'lantern', 'fox'], rule: 'STUN / RECOVERY / LOOP WITH 2 MINIONS TO BREAK WARD' },
 };

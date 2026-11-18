@@ -37,9 +37,14 @@ export function damageBell(state, enemy) {
     addRing(state, state.bell.x, state.bell.y, 63, '#b68a36', 0.4);
     state.soundEvents.push({ name: 'bell' }); return;
   }
-  enemy.dead = true;
-  dissolveSpirit(state, enemy);
-  state.cleared++;
+  if (enemy.boss === 'frost') {
+    // The final warden recoils from the bell and must be sealed to end winter.
+    const dx = enemy.x - state.bell.x, dy = enemy.y - state.bell.y, length = Math.hypot(dx, dy) || 1;
+    enemy.x += dx / length * 110; enemy.y += dy / length * 110;
+    enemy.stun = 1.5; enemy.exposed = 2.8; enemy.charge = null; enemy.actionTime = 0;
+  } else {
+    enemy.dead = true; dissolveSpirit(state, enemy); state.cleared++;
+  }
   state.bell.hp = Math.max(0, state.bell.hp - (enemy.kind === 'oni' ? 4 : 1));
   recordOmenBellHit(state, enemy.kind === 'oni' ? 4 : 1);
   state.bell.hitTime = 0.7;

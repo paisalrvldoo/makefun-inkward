@@ -2,7 +2,8 @@ import { distance } from '../config.js';
 import { pointInPolygon, polygonArea } from './geometry.js';
 import { burst, floatText, addRing } from '../render/fx.js';
 import { artLevel, comboDuration } from '../arts/levels.js';
-import { bossLoopDamage } from '../entities/bosses.js';
+import { bossLoopDamage, bossPhase } from '../entities/bosses.js';
+import { beginBossPhase, beginFinalSeal } from '../fx/climax.js';
 import { raiseWrath, wrathMultiplier } from '../world/wrath.js';
 import { recordOmenSeal } from '../world/omens.js';
 import { castArt } from '../fx/skillCasts.js';
@@ -19,6 +20,12 @@ export function releaseSpirit(state, enemy) {
   state.score += score; state.wrathScore += score - Math.round(base);
   if (enemy.hunter) state.huntersSealed++;
   burst(state, enemy.x, enemy.y, enemy.kind === 'oni' ? 65 : 18, enemy.color);
+  if (state.scroll === 8 && enemy.boss === 'frost') {
+    beginFinalSeal(state, enemy);
+    // Breaking the last curse releases the live crowd; cancelled arrivals award no score.
+    state.total -= state.queue.length; state.queue = [];
+    for (const spirit of state.enemies) if (!spirit.dead) releaseSpirit(state, spirit);
+  }
 }
 export function sealLoop(state, points) {
   if (polygonArea(points) < 1200) return false;
@@ -46,10 +53,12 @@ export function sealLoop(state, points) {
     if (enemy.kind === 'oni') {
       const damage = bossLoopDamage(enemy, enclosed.length);
       if (!damage) { floatText(state, enemy.x, enemy.y - 55, 'WARD · STUN TO OPEN', '#7191a6', 19); continue; }
+      const phase = bossPhase(enemy);
       enemy.hp = Math.max(0, enemy.hp - damage); enemy.sealLock = 1.3; enemy.stun = 1.4; enemy.hitTime = 0.8;
       enemy.hitFlash = 0.14;
       enemy.actionTime = 0; enemy.charge = null;
       if (enemy.hp > 0) {
+        if (bossPhase(enemy) !== phase) beginBossPhase(state, enemy, bossPhase(enemy));
         state.score += Math.round(350 * state.combo);
         burst(state, enemy.x, enemy.y, 30, enemy.color);
         floatText(state, enemy.x, enemy.y - 50, `ONI SEAL · ${enemy.hp} LEFT`, enemy.color, 23);

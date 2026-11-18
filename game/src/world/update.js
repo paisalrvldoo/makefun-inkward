@@ -14,6 +14,7 @@ import { artLevel } from '../arts/levels.js';
 import { walkRoad } from './path.js';
 import { bufferActions, clearControls } from '../controls/buffer.js';
 import { castArt } from '../fx/skillCasts.js';
+import { updateClimax } from '../fx/climax.js';
 
 export function recordScroll(state) {
   state.scrollScores[state.scroll - 1] = Math.max(0, state.score - state.scrollStartScore);
@@ -49,6 +50,12 @@ export function nextScroll(state) {
 }
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
+  const speed = updateClimax(state, dt);
+  if (state.finalSealed) {
+    if (!state.climax) { state.enemies = []; finishRun(state, true); }
+    return;
+  }
+  dt *= speed;
   bufferActions(state, input, dt);
   if (state.hitStop > 0) {
     state.paintBuffer = [...new Set([...state.paintBuffer, ...input.paintEvents])].slice(-650);
@@ -63,6 +70,7 @@ export function updateWorld(state, input, dt) {
   updateEffects(state, dt);
   updateMonk(state, input, dt);
   updateStrokes(state, input, dt);
+  if (state.finalSealed) return;
   updateArts(state, input, dt);
   updateWrath(state, dt);
   updateWaves(state, dt);

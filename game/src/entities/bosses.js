@@ -1,11 +1,13 @@
 import { FIELD, distance, clamp } from '../config.js';
 import { addRing, floatText, burst } from '../render/fx.js';
 import { spawnYokai, wallCollision } from './yokai.js';
+import { beginBossPhase } from '../fx/climax.js';
+import { releaseWhiteout, updateFrostWaves } from './frostPattern.js';
 
 import { ONI } from './bossProfiles.js';
 export { ONI } from './bossProfiles.js';
 
-export const ATTACK_NAMES = { storm: 'INK STORM', charge: 'BELL CHARGE', roar: 'WALL-EATING ROAR' };
+export const ATTACK_NAMES = { storm: 'INK STORM', charge: 'BELL CHARGE', roar: 'WALL-EATING ROAR', whiteout: 'CRIMSON WHITEOUT' };
 export const bossPhase = enemy => Math.min(2, Math.floor((1 - enemy.hp / enemy.maxHp) * 3));
 export function spawnBoss(state, kind, point) {
   const stats = ONI[kind];
@@ -16,23 +18,30 @@ export function spawnBoss(state, kind, point) {
   });
   floatText(state, point.x, FIELD.y + 208, stats.short + ' AWAKENS', stats.color, 22);
   state.soundEvents.push({ name: 'bossIntro' });
+  if (kind === 'frost') beginBossPhase(state, state.enemies.at(-1), 0);
 }
 export function bossLoopDamage(enemy, enclosedCount) {
   if (enemy.sealLock > 0) return 0;
   const vulnerable = enemy.stun > 0 || enemy.exposed > 0;
   if (enemy.boss === 'frost' && !vulnerable && enclosedCount < 3) return 0;
   const base = vulnerable || (['ember', 'lantern', 'cinder'].includes(enemy.boss) && enemy.telegraph?.kind === 'charge') ? 2 : 1;
-  return base + Math.min(3, Math.floor((enclosedCount - 1) / 2));
+  const damage = base + Math.min(3, Math.floor((enclosedCount - 1) / 2));
+  // Even a powerful build must break each of the final warden's three masks.
+  const floor = enemy.boss === 'frost' ? [6, 3, 0][bossPhase(enemy)] : 0;
+  return Math.min(damage, enemy.hp - floor);
 }
 function warnAttack(state, enemy) {
   const phase = bossPhase(enemy), attacks = enemy.attacks[phase];
   const kind = attacks[enemy.cycle++ % attacks.length];
   enemy.telegraph = { kind, time: 2.1, total: 2.1, x: enemy.x, y: enemy.y, end: { x: state.bell.x, y: state.bell.y }, radius: kind === 'roar' ? 200 : 128 };
+  if (kind === 'whiteout') enemy.telegraph.angle = Math.atan2(state.monk.y - enemy.y, state.monk.x - enemy.x) - Math.PI / 2;
   state.soundEvents.push({ name: 'warning', value: phase });
 }
 function executeAttack(state, enemy, telegraph) {
   const phase = bossPhase(enemy);
-  if (telegraph.kind === 'storm') {
+  if (telegraph.kind === 'whiteout') {
+    releaseWhiteout(state, enemy, telegraph);
+  } else if (telegraph.kind === 'storm') {
     const count = (enemy.stormCount || 4) + phase * 2;
     for (let i = 0; i < count; i++) {
       const a = i / count * Math.PI * 2 + enemy.cycle * 0.7;
@@ -55,6 +64,7 @@ function executeAttack(state, enemy, telegraph) {
   state.soundEvents.push({ name: telegraph.kind });
 }
 export function updateBosses(state, dt) {
+  updateFrostWaves(state, dt);
   for (const enemy of state.enemies) {
     if (enemy.kind !== 'oni' || enemy.dead) continue;
     enemy.sealLock = Math.max(0, enemy.sealLock - dt);

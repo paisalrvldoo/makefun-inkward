@@ -48,6 +48,16 @@ export function createAudio() {
       } else if (name === 'seal') {
         tone(85, 0.25, 0.25, 'triangle');
         [440, 550, 660, 880].forEach((f, i) => tone(f, 0.45, 0.065, 'sine', i * 0.035));
+      } else if (name === 'phaseChange') {
+        rustle(0.9, 0.12, 700); tone(46, 1.1, 0.13, 'triangle');
+        [147, 220, value === 2 ? 311 : 294].forEach((f, i) => tone(f, 1.4, 0.065, 'sine', i * 0.12));
+      } else if (name === 'finalSeal') {
+        tone(44, 0.25, 0.18, 'triangle'); rustle(0.2, 0.07, 3400);
+      } else if (name === 'sealImpact') {
+        rustle(0.8, 0.22, 1700); tone(38, 0.8, 0.18, 'triangle');
+        [294, 588, 882, 1176].forEach((f, i) => tone(f, 2.1, 0.07, 'sine', i * 0.035));
+      } else if (name === 'whiteout') {
+        rustle(0.6, 0.1, 4200); [98, 147, 196].forEach((f, i) => tone(f, 0.3, 0.07, 'triangle', i * 0.1));
       } else if (name === 'bigSeal') {
         tone(48, 0.35, 0.2, 'triangle'); rustle(0.24, 0.2, 800);
       } else if (name === 'petals') {
