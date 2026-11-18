@@ -111,7 +111,7 @@ export function drawHud(ctx, state, audio) {
   text(ctx, `E ${state.eCooldown > 0 ? Math.ceil(state.eCooldown) + 's' : 'READY'}`, 758, 751, 12, '#f0c35b', 'bold');
   text(ctx, 'GRADE', 927, 727, 9, '#d4cfbf', 'bold', false, 'center');
   text(ctx, gradeRun(state), 927, 754, 29, COLORS.white, 'bold', true, 'center');
-  text(ctx, 'WASD MOVE  ·  LMB PAINT + CLOSE LOOP  ·  RMB SPLASH  ·  SPACE DASH  ·  Q LOTUS  ·  E BELL  ·  P PAUSE', 20, 790, 11, '#e5dfd0');
+  text(ctx, 'WASD MOVE  ·  LMB PAINT + CLOSE LOOP  ·  RMB SPLASH  ·  SPACE DASH  ·  Q LOTUS  ·  E BELL  ·  P PAUSE  ·  G CINEMATIC', 20, 790, 11, '#e5dfd0');
   text(ctx, `${state.sealed} SEALED  ·  ${Math.floor(state.runTime / 60)}:${String(Math.floor(state.runTime % 60)).padStart(2, '0')}`, 1260, 751, 15, COLORS.white, 'bold', true, 'right');
   text(ctx, 'AN ORIGINAL INK-PAINTING DEFENCE', 1260, 789, 10, '#e5dfd0', 'bold', false, 'right');
 }

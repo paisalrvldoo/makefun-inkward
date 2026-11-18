@@ -36,6 +36,7 @@ Clear every spirit in a scroll to advance and choose a brush art. Clear all **ei
 | 1–3 / click | Select difficulty on the title screen or a brush art during a draft; 4 selects an extra draft option when available |
 | P / Esc | Pause or resume during play |
 | M | Toggle sound |
+| G | Toggle cinematic graphics (on by default) |
 | R / Run again | Start another run with a fresh seed from the results screen |
 | R / seed button on title | Roll a fresh seed before starting |
 | S / Same seed | Replay the finished run's seed and difficulty |
@@ -91,6 +92,8 @@ Oni take multiple seals to defeat and become more aggressive as their health fal
 
 Use a recent Node.js version with built-in TypeScript support (Node 22.18+ or Node 24) and a desktop browser with mouse and keyboard. No dependencies or build step are required; the game draws its art on Canvas and synthesizes its audio.
 
+The optional WebGL2 display adds soft bloom, seasonal colour grading, vignette, paper grain and ink-edge bleed. Press **G** to reveal the plain Canvas display. Missing WebGL2, shader or texture failures, and context loss automatically reveal that same display; a restored context rebuilds the cinematic pass. Tune strengths in `game/src/render/post/config.js`. Bloom runs at quarter resolution, with cached landscape layers, paper fibres, shadows and halos to keep rendering light. The garden has three parallax ink-wash layers, autumn light shafts and winter moonlight; the monk and spirits sway, blink, breathe and stretch during dashes.
+
 ```sh
 node serve.ts
 ```
@@ -123,7 +126,8 @@ game/
     entities/          Monk, yokai, and Oni behavior
     ink/               Strokes, geometry, and seals
     arts/              Fourteen brush arts, drafts, and upgrade levels
-    render/            Paper, sprites, effects, scenery, and HUD
+    render/            Cached parallax scenery, animated sprites, light, effects, and HUD
+      post/            Optional WebGL2 bloom, seasonal grade and paper composite
     screens/           Title, draft, pause, and results
     shots.js           Submission-view staging
     coverReplay.js     Gameplay replay for the cover

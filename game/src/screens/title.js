@@ -84,4 +84,5 @@ export function drawTitle(ctx, state, input, audio) {
   text(ctx, 'Q LOTUS  ·  E BELL  ·  P PAUSE', 782, 775, 12, '#f0c15d', 'bold');
   text(ctx, audio.muted ? 'M  SOUND OFF' : 'M  SOUND ON', 1216, 775, 11, '#fff1d2', 'bold', false, 'right');
   text(ctx, 'PROCEDURAL PAPER, INK & SOUND  /  PAISALRVLDOO', 64, 789, 10, '#9a9a91');
+  text(ctx, 'G  CINEMATIC GRAPHICS', 1216, 789, 10, '#9a9a91', 'normal', false, 'right');
 }
