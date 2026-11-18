@@ -132,6 +132,7 @@ export function updateYokai(state, dt) {
     }
     const next = { x: enemy.x + vx * dt, y: enemy.y + vy * dt };
     if (!wallCollision(state, enemy, next, dt)) { enemy.x = next.x; enemy.y = next.y; }
+    if (enemy.dead) continue;
     enemy.x = clamp(enemy.x, FIELD.x + enemy.radius, FIELD.x + FIELD.w - enemy.radius);
     enemy.y = clamp(enemy.y, FIELD.y + enemy.radius, FIELD.y + FIELD.h - enemy.radius);
     if (state.monk.hurtTime <= 0 && state.monk.dashTime <= 0 && distance(enemy, state.monk) < enemy.radius + 13) {

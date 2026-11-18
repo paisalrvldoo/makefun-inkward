@@ -14,6 +14,6 @@ export function castArt(state, id, point, options = {}) {
   state.soundEvents.push({ name: `art:${id}` });
 }
 export function ritualImpact(state, id) {
-  state.impactFrames = 2; state.impactColor = ART_COLORS[id];
+  state.impactFrames = 2; state.impactTime = state.time; state.impactColor = ART_COLORS[id];
   state.ritualFlash = 0.22;
 }

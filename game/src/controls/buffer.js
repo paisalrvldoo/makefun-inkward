@@ -27,5 +27,5 @@ export function takeAction(state, action, ready) {
   return request;
 }
 export function clearControls(state) {
-  state.actionBuffer = {}; state.strokeStart = null; state.strokeGrace = 0; state.controlFeedback = null;
+  state.actionBuffer = {}; state.paintBuffer = []; state.strokeStart = null; state.strokeGrace = 0; state.controlFeedback = null;
 }

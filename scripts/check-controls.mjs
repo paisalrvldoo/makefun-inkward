@@ -23,6 +23,13 @@ for (const [action, key, field] of [['dash', 'Space', 'dashCooldown'], ['lotus',
   for (let i = 0; i < 4; i++) updateWorld(state, input, 0.02);
   assert.ok(state.qCooldown > 0, 'Ritual presses survive brief hit-stop');
 }
+{
+  const state = world(), input = replayInput(); state.hitStop = 0.06;
+  input.painting = true; input.paintEvents.push({ type: 'begin', point: { x: 250, y: 300 } }, { type: 'move', point: { x: 400, y: 300 } });
+  updateWorld(state, input, 0.02); input.clearFrame();
+  for (let i = 0; i < 4; i++) updateWorld(state, input, 0.02);
+  assert.ok(state.activeStroke?.length >= 150, 'Paint begins and moves survive brief hit-stop');
+}
 for (const delay of [0.1, 0.14]) {
   const state = world(), input = replayInput(); input.painting = true; input.pointer = { x: 20, y: 300 };
   input.paintEvents.push({ type: 'begin', point: input.pointer }); updateStrokes(state, input, 0); input.clearFrame();

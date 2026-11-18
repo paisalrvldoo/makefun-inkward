@@ -50,7 +50,10 @@ export function nextScroll(state) {
 export function updateWorld(state, input, dt) {
   if (state.mode !== 'play') return;
   bufferActions(state, input, dt);
-  if (state.hitStop > 0) { state.hitStop = Math.max(0, state.hitStop - dt); return; }
+  if (state.hitStop > 0) {
+    state.paintBuffer = [...new Set([...state.paintBuffer, ...input.paintEvents])].slice(-650);
+    state.hitStop = Math.max(0, state.hitStop - dt); return;
+  }
   state.time += dt; state.runTime += dt; state.scrollTime += dt;
   state.bannerTime = Math.max(0, state.bannerTime - dt);
   state.bell.hitTime = Math.max(0, state.bell.hitTime - dt);

@@ -86,7 +86,9 @@ export function updateStrokes(state, input, dt) {
     state.strokeGrace = Math.max(0, state.strokeGrace - dt);
     if (!state.strokeGrace) { endStroke(state); state.waitRelease = true; }
   }
-  for (const event of input.paintEvents) {
+  const paintEvents = [...new Set([...state.paintBuffer, ...input.paintEvents])];
+  state.paintBuffer = [];
+  for (const event of paintEvents) {
     if (event.type === 'begin') { state.waitRelease = false; beginStroke(state, event.point); }
     else if (event.type === 'move') {
       if (state.strokeStart && inField(event.point) && state.ink >= 2) beginStroke(state, event.point);
