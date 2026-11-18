@@ -38,7 +38,7 @@ export function drawShop(ctx, state, input) {
   text(ctx, 'INK-GOLD  \u25c9 ' + coins, 1224, 54, 22, '#f0c35b', 'bold', false, 'right');
   text(ctx, '1\u2013' + (state.shopOffer || []).length + ' BUY \u00b7 R REROLL \u25c9' + rerollPrice(state) + ' \u00b7 ENTER LEAVE', 1224, 72, 10, '#cbc7ba', 'bold', false, 'right');
 
-  text(ctx, 'INK-GOLD: ' + coins, 42, 120, 28, '#f0c35b', 'bold', true);
+  text(ctx, 'CHOOSE YOUR BLESSINGS', 42, 120, 24, '#f0c35b', 'bold', true);
   const rerollCost = rerollPrice(state);
   text(ctx, coins >= rerollCost ? 'R  REROLL \u25c9' + rerollCost : 'R  REROLL \u25c9' + rerollCost + ' (NOT ENOUGH)', 42, 150, 13, coins >= rerollCost ? '#cbc7ba' : '#7f7f7f', 'bold');
   text(ctx, 'ENTER  LEAVE THE SHRINE', 1224, 120, 11, '#e5dfd0', 'bold', false, 'right');
